@@ -315,3 +315,7 @@ class TestWorkspaceHelpers:
     def test_path_safe_block_absolute(self):
         """绝对路径应被拦截。"""
         assert not is_path_safe(Path("/ws"), "abc", "/etc/passwd")
+
+    def test_path_safe_block_sibling_prefix(self):
+        """同名前缀的相邻目录不能被误判为任务目录内部。"""
+        assert not is_path_safe(Path("/ws"), "abc", "../abc2/preview.png")

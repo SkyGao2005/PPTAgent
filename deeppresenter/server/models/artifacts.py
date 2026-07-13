@@ -119,7 +119,11 @@ def is_path_safe(workspace_base: Path, task_id: str, requested: str) -> bool:
     """
     root = task_dir(workspace_base, task_id).resolve()
     candidate = (root / requested).resolve()
-    return str(candidate).startswith(str(root))
+    try:
+        candidate.relative_to(root)
+    except ValueError:
+        return False
+    return True
 
 
 # ── 版本数量限制 ────────────────────────────────────────────────

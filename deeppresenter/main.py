@@ -11,6 +11,7 @@ from deeppresenter.agents.planner import Planner
 from deeppresenter.agents.pptagent import PPTAgent
 from deeppresenter.agents.research import Research
 from deeppresenter.agents.subagent import SubAgent
+from deeppresenter.server.models.events import StageName
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.constants import WORKSPACE_BASE
 from deeppresenter.utils.log import debug, error, set_logger, timer, warning
@@ -25,9 +26,13 @@ class AgentLoop:
         session_id: str | None = None,
         workspace: Path | None = None,
         language: Literal["zh", "en"] = "en",
+        event_reporter=None,
+        preview_service=None,
     ):
         self.config = config
         self.language = language
+        self.event_reporter = event_reporter
+        self.preview_service = preview_service
         if session_id is None:
             session_id = str(uuid.uuid4())[:8]
         self.workspace = workspace or WORKSPACE_BASE / session_id
@@ -61,10 +66,22 @@ class AgentLoop:
             )
         if check_llms:
             await self.config.validate_llms()
-        request.copy_to_workspace(self.workspace)
-        with open(self.workspace / ".input_request.json", "w") as f:
-            json.dump(request.model_dump(), f, ensure_ascii=False, indent=2)
-        async with AgentEnv(self.workspace, self.config) as agent_env:
+        try:
+            await self._report_stage_started(StageName.PREPARE)
+            request.copy_to_workspace(self.workspace)
+            with open(self.workspace / ".input_request.json", "w") as f:
+                json.dump(request.model_dump(), f, ensure_ascii=False, indent=2)
+            await self._report_stage_completed(StageName.PREPARE)
+        except Exception as e:
+            await self._report_stage_failed(StageName.PREPARE, str(e))
+            raise
+
+        async with AgentEnv(
+            self.workspace,
+            self.config,
+            event_reporter=self.event_reporter,
+            preview_service=self.preview_service,
+        ) as agent_env:
             hello_message = f"DeepPresenter running in {self.workspace}, with {len(request.attachments)} attachments, prompt={request.instruction}"
             modes = []
             if self.config.offline_mode:
@@ -85,6 +102,8 @@ class AgentLoop:
 
             # ── Optional Planner phase ────────────────────────────────────
             if request.enable_planner:
+                agent_env.current_stage = StageName.PLAN
+                await self._report_stage_started(StageName.PLAN)
                 self.planner = Planner(
                     self.config,
                     agent_env,
@@ -97,18 +116,22 @@ class AgentLoop:
                     async for msg in self.planner_gen:
                         if isinstance(msg, str):
                             self.intermediate_output["outline"] = msg
+                            await self._report_stage_completed(StageName.PLAN)
                             yield msg
                             break
                         yield msg
                 except Exception as e:
                     error_message = f"Planner agent failed with error: {e}\n{traceback.format_exc()}"
                     error(error_message)
+                    await self._report_stage_failed(StageName.PLAN, str(e))
                     raise e
                 finally:
                     self.planner.save_history()
                     await self.planner_gen.aclose()
                     self.save_results()
 
+            agent_env.current_stage = StageName.RESEARCH
+            await self._report_stage_started(StageName.RESEARCH)
             self.research_agent = Research(
                 self.config,
                 agent_env,
@@ -126,6 +149,7 @@ class AgentLoop:
                             md_file = self.workspace / md_file
                         self.intermediate_output["manuscript"] = md_file
                         msg = str(md_file)
+                        await self._report_stage_completed(StageName.RESEARCH)
                         break
                     yield msg
             except Exception as e:
@@ -133,12 +157,15 @@ class AgentLoop:
                     f"Research agent failed with error: {e}\n{traceback.format_exc()}"
                 )
                 error(error_message)
+                await self._report_stage_failed(StageName.RESEARCH, str(e))
                 raise e
             finally:
                 self.research_agent.save_history()
                 self.save_results()
 
             if request.convert_type == ConvertType.PPTAGENT:
+                agent_env.current_stage = StageName.GENERATE
+                await self._report_stage_started(StageName.GENERATE)
                 self.pptagent = PPTAgent(
                     self.config,
                     agent_env,
@@ -155,6 +182,7 @@ class AgentLoop:
                             self.intermediate_output["pptx"] = pptx_file
                             self.intermediate_output["final"] = pptx_file
                             msg = str(pptx_file)
+                            await self._report_stage_completed(StageName.GENERATE)
                             break
                         yield msg
                 except Exception as e:
@@ -162,11 +190,14 @@ class AgentLoop:
                         f"PPTAgent failed with error: {e}\n{traceback.format_exc()}"
                     )
                     error(error_message)
+                    await self._report_stage_failed(StageName.GENERATE, str(e))
                     raise e
                 finally:
                     self.pptagent.save_history()
                     self.save_results()
             else:
+                agent_env.current_stage = StageName.GENERATE
+                await self._report_stage_started(StageName.GENERATE)
                 self.designagent = Design(
                     self.config,
                     agent_env,
@@ -181,6 +212,7 @@ class AgentLoop:
                             if not slide_html_dir.is_absolute():
                                 slide_html_dir = self.workspace / slide_html_dir
                             self.intermediate_output["slide_html_dir"] = slide_html_dir
+                            await self._report_stage_completed(StageName.GENERATE)
                             break
                         yield msg
                 except Exception as e:
@@ -188,36 +220,44 @@ class AgentLoop:
                         f"Design agent failed with error: {e}\n{traceback.format_exc()}"
                     )
                     error(error_message)
+                    await self._report_stage_failed(StageName.GENERATE, str(e))
                     raise e
                 finally:
                     self.designagent.save_history()
                     self.save_results()
                 pptx_path = self.workspace / f"{md_file.stem}.pptx"
+                agent_env.current_stage = StageName.EXPORT
+                await self._report_export_started()
                 try:
-                    # ? this feature is in experimental stage
-                    await convert_html_to_pptx(
-                        slide_html_dir,
-                        pptx_path,
-                        aspect_ratio=request.powerpoint_type.value,
-                        soft_parsing=soft_parsing,
-                    )
-                except Exception as e:
-                    warning(
-                        f"html2pptx conversion failed, falling back to pdf conversion\n{e}"
-                    )
-                    pptx_path = pptx_path.with_suffix(".pdf")
-                    (self.workspace / ".html2pptx-error.txt").write_text(
-                        str(e) + "\n" + traceback.format_exc()
-                    )
-                finally:
-                    async with PlaywrightConverter() as pc:
-                        await pc.convert_to_pdf(
-                            list(slide_html_dir.glob("*.html")),
-                            pptx_path.with_suffix(".pdf"),
+                    try:
+                        # ? this feature is in experimental stage
+                        await convert_html_to_pptx(
+                            slide_html_dir,
+                            pptx_path,
                             aspect_ratio=request.powerpoint_type.value,
+                            soft_parsing=soft_parsing,
                         )
+                    except Exception as e:
+                        warning(
+                            f"html2pptx conversion failed, falling back to pdf conversion\n{e}"
+                        )
+                        pptx_path = pptx_path.with_suffix(".pdf")
+                        (self.workspace / ".html2pptx-error.txt").write_text(
+                            str(e) + "\n" + traceback.format_exc()
+                        )
+                    finally:
+                        async with PlaywrightConverter() as pc:
+                            await pc.convert_to_pdf(
+                                list(slide_html_dir.glob("*.html")),
+                                pptx_path.with_suffix(".pdf"),
+                                aspect_ratio=request.powerpoint_type.value,
+                            )
+                except Exception as e:
+                    await self._report_export_failed(str(e))
+                    raise
 
                 self.intermediate_output["final"] = str(pptx_path)
+                await self._report_export_completed(str(pptx_path))
                 msg = pptx_path
             self.save_results()
             debug(f"DeepPresenter finished, final output at: {msg}")
@@ -231,3 +271,51 @@ class AgentLoop:
                 ensure_ascii=False,
                 indent=2,
             )
+
+    async def _report_stage_started(self, stage: StageName) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.stage_started(stage)
+        except Exception as e:
+            warning(f"Failed to report stage start event: {e}")
+
+    async def _report_stage_completed(self, stage: StageName) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.stage_completed(stage)
+        except Exception as e:
+            warning(f"Failed to report stage completion event: {e}")
+
+    async def _report_stage_failed(self, stage: StageName, message: str) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.stage_failed(stage, message)
+        except Exception as e:
+            warning(f"Failed to report stage failure event: {e}")
+
+    async def _report_export_started(self) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.export_started()
+        except Exception as e:
+            warning(f"Failed to report export start event: {e}")
+
+    async def _report_export_completed(self, artifact_url: str) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.export_completed(artifact_url)
+        except Exception as e:
+            warning(f"Failed to report export completion event: {e}")
+
+    async def _report_export_failed(self, message: str) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.export_failed(message)
+        except Exception as e:
+            warning(f"Failed to report export failure event: {e}")

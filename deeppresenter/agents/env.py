@@ -56,12 +56,17 @@ class AgentEnv:
         workspace: Path,
         config: DeepPresenterConfig,
         cutoff_len: int = TOOL_CUTOFF_LEN,
+        event_reporter=None,
+        preview_service=None,
     ):
         if isinstance(workspace, str):
             workspace = Path(workspace)
         self.workspace = workspace.absolute()
         self.cutoff_len = cutoff_len
         self.async_mode = config.async_tool_mode
+        self.event_reporter = event_reporter
+        self.preview_service = preview_service
+        self.current_stage = None
         self.mcp_configs = []
         with open(config.mcp_config_file, encoding="utf-8") as f:
             for s in json.load(f):
@@ -130,6 +135,7 @@ class AgentEnv:
                 except jsonschema.ValidationError as e:
                     raise ValueError(f"Input validation error: {e.message}") from e
 
+            await self._report_tool_started(tool_call, arguments)
             result = await self._execute_tool(tool_call.function.name, arguments)
         except KeyError:
             result = CallToolResult(
@@ -166,6 +172,7 @@ class AgentEnv:
                 f"Tool `{tool_call.function.name}` execution took {elapsed:.2f} seconds"
             )
             self.timing_dict[tool_call.function.name].total_time += elapsed
+            await self._report_tool_finished(tool_call, arguments, elapsed, result)
         if result.isError:
             self.timing_dict[tool_call.function.name].error_count += 1
             warning(
@@ -224,6 +231,99 @@ class AgentEnv:
         )
         self.tool_history.append((tool_call, msg))
         return msg
+
+    async def _report_tool_started(
+        self, tool_call: ToolCall, arguments: dict | None
+    ) -> None:
+        if self.event_reporter is None:
+            return
+        try:
+            await self.event_reporter.tool_started(
+                tool_call.function.name,
+                stage=self.current_stage,
+                payload={
+                    "tool_call_id": tool_call.id,
+                    "has_arguments": arguments is not None,
+                },
+            )
+        except Exception as e:
+            warning(f"Failed to report tool start event: {e}")
+
+    async def _report_tool_finished(
+        self,
+        tool_call: ToolCall,
+        arguments: dict | None,
+        elapsed: float,
+        result: CallToolResult,
+    ) -> None:
+        if self.event_reporter is None:
+            await self._maybe_render_html_preview(tool_call, arguments, result)
+            return
+        try:
+            if result.isError:
+                await self.event_reporter.tool_failed(
+                    tool_call.function.name,
+                    elapsed=elapsed,
+                    stage=self.current_stage,
+                    error=self._tool_result_text(result),
+                    payload={"tool_call_id": tool_call.id},
+                )
+            else:
+                await self.event_reporter.tool_completed(
+                    tool_call.function.name,
+                    elapsed=elapsed,
+                    stage=self.current_stage,
+                    payload={"tool_call_id": tool_call.id},
+                )
+            await self._maybe_render_html_preview(tool_call, arguments, result)
+        except Exception as e:
+            warning(f"Failed to report tool finish event: {e}")
+
+    async def _maybe_render_html_preview(
+        self,
+        tool_call: ToolCall,
+        arguments: dict | None,
+        result: CallToolResult,
+    ) -> None:
+        if (
+            self.preview_service is None
+            or result.isError
+            or tool_call.function.name != "inspect_slide"
+            or not arguments
+            or "html_file" not in arguments
+        ):
+            return
+        try:
+            from deeppresenter.server.services.preview import artifact_url
+
+            html_path = Path(arguments["html_file"])
+            if not html_path.is_absolute():
+                html_path = self.workspace / html_path
+            artifact = await self.preview_service.render_html_slide(
+                self.workspace.stem,
+                html_path,
+                aspect_ratio=arguments.get("aspect_ratio", "16:9"),
+            )
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_preview_ready(
+                    artifact.slide_id,
+                    artifact.index,
+                    artifact_url(artifact.task_id, artifact.preview_path),
+                )
+                await self.event_reporter.slide_completed(
+                    artifact.slide_id,
+                    artifact.index,
+                )
+        except Exception as e:
+            warning(f"Failed to render slide preview: {e}")
+
+    @staticmethod
+    def _tool_result_text(result: CallToolResult) -> str:
+        texts = []
+        for block in result.content:
+            if getattr(block, "type", None) == "text":
+                texts.append(block.text)
+        return "\n".join(texts)[:500]
 
     async def __aenter__(self):
         try:

@@ -138,6 +138,33 @@ class TestReplay:
         assert len(replayed) == 0
         await bus.close()
 
+    @pytest.mark.asyncio
+    async def test_replay_after_close(self, tmp_workspace):
+        """任务终态关闭总线后，历史事件仍应可用于刷新恢复。"""
+        bus = EventBus(tmp_workspace)
+        await bus.publish(_make_event(type=EventType.TASK_CREATED))
+        await bus.publish(_make_event(type=EventType.TASK_STARTED))
+        await bus.close()
+
+        replayed = list(bus._replay(0))
+        assert [evt["seq"] for evt in replayed] == [1, 2]
+
+    @pytest.mark.asyncio
+    async def test_new_bus_recovers_latest_seq(self, tmp_workspace):
+        """服务重启重建 EventBus 后，seq 应从历史最大值继续递增。"""
+        bus = EventBus(tmp_workspace)
+        await bus.publish(_make_event(type=EventType.TASK_CREATED))
+        await bus.publish(_make_event(type=EventType.TASK_STARTED))
+        await bus.close()
+
+        restored = EventBus(tmp_workspace)
+        assert restored.seq == 2
+        await restored.publish(
+            _make_event(type=EventType.STAGE_STARTED, stage=StageName.RESEARCH)
+        )
+        assert restored.seq == 3
+        await restored.close()
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # SSE 订阅
@@ -244,6 +271,19 @@ class TestSubscribe:
         await bus.close()
 
         # 生成器应收到哨兵并停止迭代
+        with pytest.raises(StopAsyncIteration):
+            await gen.__anext__()
+
+    @pytest.mark.asyncio
+    async def test_subscribe_after_close_replays_then_stops(self, tmp_workspace):
+        """任务结束后新连接只能回放历史，不应持续心跳。"""
+        bus = EventBus(tmp_workspace)
+        await bus.publish(_make_event(type=EventType.TASK_CREATED))
+        await bus.close()
+
+        gen = bus.subscribe(last_seq=0)
+        first = await gen.__anext__()
+        assert first["type"] == "task.created"
         with pytest.raises(StopAsyncIteration):
             await gen.__anext__()
 

@@ -10,7 +10,7 @@
 import asyncio
 import json
 import logging
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Iterator
 from pathlib import Path
 
 import jsonlines
@@ -44,7 +44,7 @@ class EventBus:
         task_workspace.mkdir(parents=True, exist_ok=True)
         self._events_path = task_workspace / "events.jsonl"
         self._fh = open(str(self._events_path), "a", encoding="utf-8")
-        self._seq: int = 0
+        self._seq: int = self._load_latest_seq()
         self._subscribers: list[asyncio.Queue] = []
         self._closed: bool = False
 
@@ -97,6 +97,9 @@ class EventBus:
             for event in self._replay(last_seq):
                 yield event
 
+            if self._closed:
+                return
+
             # 第二阶段 —— 实时订阅
             while True:
                 try:
@@ -115,19 +118,20 @@ class EventBus:
             if queue in self._subscribers:
                 self._subscribers.remove(queue)
 
-    def _replay(self, last_seq: int):
+    def _replay(self, last_seq: int) -> Iterator[dict]:
         """从 jsonl 中回放 seq > *last_seq* 的事件。"""
         if last_seq < 0:
             last_seq = 0
 
-        if self._closed or not self._events_path.exists():
+        if not self._events_path.exists():
             return
 
         # 先刷新写入缓冲区，确保所有已发布事件可见
         try:
-            self._fh.flush()
+            if not self._fh.closed:
+                self._fh.flush()
         except (ValueError, OSError):
-            return
+            pass
 
         try:
             with jsonlines.open(str(self._events_path), mode="r") as reader:
@@ -137,6 +141,19 @@ class EventBus:
         except Exception:
             # 文件可能为空或损坏，跳过回放
             return
+
+    def _load_latest_seq(self) -> int:
+        """从已有 events.jsonl 中恢复最大 seq，避免重启后重复编号。"""
+        latest = 0
+        if not self._events_path.exists():
+            return latest
+        try:
+            with jsonlines.open(str(self._events_path), mode="r") as reader:
+                for obj in reader:
+                    latest = max(latest, int(obj.get("seq", 0)))
+        except Exception:
+            return latest
+        return latest
 
     # ── 生命周期 ────────────────────────────────────────────────
 
