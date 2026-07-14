@@ -1,7 +1,7 @@
 """任务管理器 —— 任务生命周期、状态机、快照持久化、取消与恢复。
 
 每个任务被包装为 ``asyncio.Task``，拥有独立工作区、EventBus 和状态快照。
-AgentLoop 集成将在 Day 4-5 通过可选回调完成；当前提供占位执行器。
+FastAPI 服务默认运行真实 AgentLoop；测试可显式启用占位执行器。
 """
 
 import asyncio
@@ -13,13 +13,13 @@ from typing import Any, Dict, Optional
 
 from deeppresenter.server.models.artifacts import task_dir
 from deeppresenter.server.models.events import (
-    EventType,
-    GenerationEvent,
     StageName,
     TaskStatus,
     validate_task_transition,
 )
 from deeppresenter.server.services.event_bus import EventBus
+from deeppresenter.server.services.event_reporter import EventReporter
+from deeppresenter.server.services.preview import PreviewService
 
 # 任务快照文件名
 SNAPSHOT_FILE = "task.json"
@@ -113,13 +113,25 @@ class TaskManager:
         await manager.cancel(task_id)
     """
 
-    def __init__(self, workspace_base: Path) -> None:
+    def __init__(
+        self,
+        workspace_base: Path,
+        *,
+        use_placeholder: bool = True,
+        config_path: str | None = None,
+    ) -> None:
         self.workspace_base = Path(workspace_base)
         self.workspace_base.mkdir(parents=True, exist_ok=True)
+        self.use_placeholder = use_placeholder
+        self.config_path = config_path
         # task_id → asyncio.Task（包装 AgentLoop 的协程）
         self._runners: Dict[str, asyncio.Task] = {}
         # task_id → EventBus
         self._buses: Dict[str, EventBus] = {}
+        # task_id → EventReporter
+        self._reporters: Dict[str, EventReporter] = {}
+        # task_id → PreviewService
+        self._preview_services: Dict[str, PreviewService] = {}
         # task_id → TaskSnapshot
         self._snapshots: Dict[str, TaskSnapshot] = {}
         # task_id → asyncio.Event（取消信号）
@@ -132,6 +144,9 @@ class TaskManager:
         instruction: str,
         attachments: Optional[list[str]] = None,
         num_pages: Optional[str] = None,
+        powerpoint_type: str = "16:9",
+        template: Optional[str] = None,
+        convert_type: Optional[str] = None,
         enable_planner: bool = False,
         language: str = "zh",
     ) -> str:
@@ -147,6 +162,10 @@ class TaskManager:
         # 创建事件总线
         bus = EventBus(workspace)
         self._buses[task_id] = bus
+        reporter = EventReporter(task_id, bus.publish)
+        self._reporters[task_id] = reporter
+        preview_service = PreviewService(self.workspace_base)
+        self._preview_services[task_id] = preview_service
 
         # 创建取消信号
         cancel_evt = asyncio.Event()
@@ -162,31 +181,37 @@ class TaskManager:
         self._snapshots[task_id] = snapshot
         self._save_snapshot(workspace, snapshot)
 
-        # 发出 task.created
-        await bus.publish(
-            GenerationEvent(
-                task_id=task_id,
-                seq=1,  # EventBus.publish() 会覆写为真实值
-                type=EventType.TASK_CREATED,
-                status=TaskStatus.QUEUED,
-                progress=0.0,
-                message=f"任务已创建：{instruction[:50]}",
-                payload={
-                    "instruction": instruction,
-                    "language": language,
-                    "num_pages": num_pages,
-                    "attachments": attachments or [],
-                },
-            )
+        await reporter.task_created(
+            message=f"任务已创建：{instruction[:50]}",
+            payload={
+                "instruction": instruction,
+                "language": language,
+                "num_pages": num_pages,
+                "powerpoint_type": powerpoint_type,
+                "template": template,
+                "convert_type": convert_type,
+                "attachments": attachments or [],
+            },
         )
 
-        # 异步启动任务执行（当前为占位，Day 4-5 对接 AgentLoop）
-        runner = asyncio.create_task(
-            self._run_placeholder(
+        if self.use_placeholder:
+            runner_coro = self._run_placeholder(
                 task_id=task_id,
                 instruction=instruction,
             )
-        )
+        else:
+            runner_coro = self._run_agent_loop(
+                task_id=task_id,
+                instruction=instruction,
+                attachments=attachments or [],
+                num_pages=num_pages,
+                powerpoint_type=powerpoint_type,
+                template=template,
+                convert_type=convert_type,
+                enable_planner=enable_planner,
+                language=language,
+            )
+        runner = asyncio.create_task(runner_coro)
         self._runners[task_id] = runner
 
         return task_id
@@ -200,6 +225,14 @@ class TaskManager:
     def get_event_bus(self, task_id: str) -> Optional[EventBus]:
         """返回任务的事件总线。"""
         return self._buses.get(task_id)
+
+    def get_event_reporter(self, task_id: str) -> Optional[EventReporter]:
+        """返回任务的事件发布辅助器。"""
+        return self._reporters.get(task_id)
+
+    def get_preview_service(self, task_id: str) -> Optional[PreviewService]:
+        """返回任务的预览服务。"""
+        return self._preview_services.get(task_id)
 
     def get_cancel_event(self, task_id: str) -> Optional[asyncio.Event]:
         """返回任务的取消信号。"""
@@ -226,6 +259,9 @@ class TaskManager:
 
         # 更新状态
         self._transition_to(task_id, TaskStatus.CANCELLED, message="任务已取消，已完成页面保留")
+        reporter = self._reporters.get(task_id)
+        if reporter:
+            await reporter.task_cancelled("任务已取消，已完成页面保留")
 
         # 通知取消
         cancel_evt = self._cancel_events.get(task_id)
@@ -270,7 +306,105 @@ class TaskManager:
         workspace = task_dir(self.workspace_base, task_id)
         self._save_snapshot(workspace, snapshot)
 
-    # ── 占位执行器（Day 4-5 替换为真实 AgentLoop）────────────
+    # ── 真实 AgentLoop 执行器 ───────────────────────────────
+
+    async def _run_agent_loop(
+        self,
+        *,
+        task_id: str,
+        instruction: str,
+        attachments: list[str],
+        num_pages: Optional[str],
+        powerpoint_type: str,
+        template: Optional[str],
+        convert_type: Optional[str],
+        enable_planner: bool,
+        language: str,
+    ) -> None:
+        """运行真实 AgentLoop，并把最终结果写回任务快照。"""
+        bus = self._buses.get(task_id)
+        reporter = self._reporters.get(task_id)
+        preview_service = self._preview_services.get(task_id)
+        if bus is None or reporter is None:
+            return
+
+        try:
+            from deeppresenter.main import AgentLoop
+            from deeppresenter.utils.config import DeepPresenterConfig
+            from deeppresenter.utils.typings import (
+                ConvertType,
+                InputRequest,
+                PowerPointType,
+            )
+
+            config = DeepPresenterConfig.load_from_file(self.config_path)
+            workspace = task_dir(self.workspace_base, task_id)
+            request_convert_type = (
+                ConvertType(convert_type)
+                if convert_type
+                else (
+                    ConvertType.PPTAGENT
+                    if template
+                    else ConvertType.DEEPPRESENTER
+                )
+            )
+            request = InputRequest(
+                instruction=instruction,
+                attachments=attachments,
+                num_pages=num_pages,
+                template=template,
+                powerpoint_type=PowerPointType(powerpoint_type),
+                convert_type=request_convert_type,
+                enable_planner=enable_planner,
+            )
+
+            self._transition_to(task_id, TaskStatus.RUNNING, progress=0.0)
+            await reporter.task_started("任务开始执行")
+
+            loop = AgentLoop(
+                config=config,
+                session_id=task_id,
+                workspace=workspace,
+                language=language,
+                event_reporter=reporter,
+                preview_service=preview_service,
+            )
+
+            final_artifact: str | None = None
+            async for msg in loop.run(request):
+                if isinstance(msg, (str, Path)):
+                    final_artifact = self._artifact_path(task_id, Path(msg))
+
+            self._transition_to(
+                task_id,
+                TaskStatus.SUCCEEDED,
+                progress=100.0,
+                result_artifact=final_artifact,
+            )
+            await reporter.task_completed(final_artifact, "任务完成")
+
+        except asyncio.CancelledError:
+            pass
+        except Exception as exc:
+            self._transition_to(
+                task_id,
+                TaskStatus.FAILED,
+                error_message=str(exc),
+            )
+            await reporter.task_failed(f"任务执行失败：{exc}")
+        finally:
+            if bus and not bus._closed:
+                await bus.close()
+
+    def _artifact_path(self, task_id: str, path: Path) -> str:
+        """把最终产物路径转换为任务工作区内相对路径。"""
+        root = task_dir(self.workspace_base, task_id).resolve()
+        try:
+            return str(path.resolve().relative_to(root))
+        except ValueError:
+            return str(path)
+
+    # ── 占位执行器 ────────────────────────────────────────────
 
     async def _run_placeholder(self, task_id: str, instruction: str) -> None:
         """占位任务执行器 —— 模拟阶段推进，后续替换为 AgentLoop。
@@ -279,22 +413,14 @@ class TaskManager:
         """
         bus = self._buses.get(task_id)
         cancel_evt = self._cancel_events.get(task_id)
-        if bus is None:
+        reporter = self._reporters.get(task_id)
+        if bus is None or reporter is None:
             return
 
         try:
             # task.started
-            self._transition_to(task_id, TaskStatus.RUNNING)
-            await bus.publish(
-                GenerationEvent(
-                    task_id=task_id,
-                    seq=1,
-                    type=EventType.TASK_STARTED,
-                    status=TaskStatus.RUNNING,
-                    progress=0.0,
-                    message="任务开始执行（占位模式）",
-                )
-            )
+            self._transition_to(task_id, TaskStatus.RUNNING, progress=0.0)
+            await reporter.task_started("任务开始执行（占位模式）")
 
             # 模拟各个阶段
             stages = [
@@ -311,16 +437,9 @@ class TaskManager:
 
                 # stage.started
                 self._snapshots[task_id].current_stage = stage
-                await bus.publish(
-                    GenerationEvent(
-                        task_id=task_id,
-                        seq=1,
-                        type=EventType.STAGE_STARTED,
-                        stage=stage,
-                        progress=progress_start,
-                        message=msg,
-                    )
-                )
+                self._snapshots[task_id].progress = progress_start
+                self._save_snapshot(task_dir(self.workspace_base, task_id), self._snapshots[task_id])
+                await reporter.stage_started(stage, msg)
 
                 # 模拟该阶段的执行耗时
                 await asyncio.sleep(0.1)
@@ -329,16 +448,9 @@ class TaskManager:
                     return
 
                 # stage.completed
-                await bus.publish(
-                    GenerationEvent(
-                        task_id=task_id,
-                        seq=1,
-                        type=EventType.STAGE_COMPLETED,
-                        stage=stage,
-                        progress=progress_end,
-                        message=f"{msg}——完成",
-                    )
-                )
+                self._snapshots[task_id].progress = progress_end
+                self._save_snapshot(task_dir(self.workspace_base, task_id), self._snapshots[task_id])
+                await reporter.stage_completed(stage, f"{msg}——完成")
 
             # task.completed
             self._transition_to(
@@ -347,17 +459,7 @@ class TaskManager:
                 progress=100.0,
                 result_artifact="exports/latest.pptx",
             )
-            await bus.publish(
-                GenerationEvent(
-                    task_id=task_id,
-                    seq=1,
-                    type=EventType.TASK_COMPLETED,
-                    status=TaskStatus.SUCCEEDED,
-                    progress=100.0,
-                    message="任务完成",
-                    artifact_url="exports/latest.pptx",
-                )
-            )
+            await reporter.task_completed("exports/latest.pptx", "任务完成")
 
         except asyncio.CancelledError:
             # 被取消 —— 状态已在 cancel() 中设置
@@ -369,15 +471,7 @@ class TaskManager:
                 TaskStatus.FAILED,
                 error_message=str(exc),
             )
-            await bus.publish(
-                GenerationEvent(
-                    task_id=task_id,
-                    seq=1,
-                    type=EventType.TASK_FAILED,
-                    status=TaskStatus.FAILED,
-                    message=f"任务执行失败：{exc}",
-                )
-            )
+            await reporter.task_failed(f"任务执行失败：{exc}")
         finally:
             if bus and not bus._closed:
                 await bus.close()

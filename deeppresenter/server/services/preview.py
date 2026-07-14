@@ -11,12 +11,14 @@ from deeppresenter.server.models.artifacts import (
     SlideArtifact,
     revision_dir,
     slide_dir,
+    slides_dir,
     task_dir,
 )
 
 HtmlPreviewRenderer = Callable[[Path, Path, str], Awaitable[None]]
 
 _SLIDE_HTML_RE = re.compile(r"^slide[_-](\d+)\.html$", re.IGNORECASE)
+SLIDES_INDEX_FILE = "index.json"
 _VIEWPORTS = {
     "16:9": (1280, 720),
     "4:3": (960, 720),
@@ -109,13 +111,80 @@ class PreviewService:
 
         self._write_json(rev_dir / "slide.json", artifact)
         self._write_json(current_path, artifact)
+        self._write_index(task_id)
         return artifact
+
+    def list_slides(self, task_id: str) -> list[SlideArtifact]:
+        """返回任务当前所有页面，按 1-based 页码排序。"""
+        index_path = slides_dir(self.workspace_base, task_id) / SLIDES_INDEX_FILE
+        if index_path.exists():
+            try:
+                data = json.loads(index_path.read_text(encoding="utf-8"))
+                return self._sort_slides(
+                    SlideArtifact.model_validate(item)
+                    for item in data.get("slides", [])
+                )
+            except (OSError, ValueError, TypeError):
+                pass
+        return self._scan_current_slides(task_id)
+
+    def get_slide(self, task_id: str, slide_id: str) -> SlideArtifact | None:
+        """返回单页 current artifact；不存在时返回 None。"""
+        current_path = slide_dir(self.workspace_base, task_id, slide_id) / "current.json"
+        return self._load_current(current_path)
+
+    def revision_count(self, task_id: str, slide_id: str) -> int:
+        """返回单页已持久化 revision 数量。"""
+        revisions = slide_dir(self.workspace_base, task_id, slide_id) / "revisions"
+        if not revisions.exists():
+            return 0
+        count = 0
+        for child in revisions.iterdir():
+            if (
+                child.is_dir()
+                and child.name.isdigit()
+                and (child / "slide.json").exists()
+            ):
+                count += 1
+        return count
 
     @staticmethod
     def _load_current(path: Path) -> SlideArtifact | None:
         if not path.exists():
             return None
         return SlideArtifact.model_validate_json(path.read_text(encoding="utf-8"))
+
+    def _write_index(self, task_id: str) -> None:
+        root = slides_dir(self.workspace_base, task_id)
+        slides = self._scan_current_slides(task_id)
+        root.mkdir(parents=True, exist_ok=True)
+        (root / SLIDES_INDEX_FILE).write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "total": len(slides),
+                    "slides": [slide.model_dump() for slide in slides],
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+    def _scan_current_slides(self, task_id: str) -> list[SlideArtifact]:
+        root = slides_dir(self.workspace_base, task_id)
+        if not root.exists():
+            return []
+        slides: list[SlideArtifact] = []
+        for current_path in root.glob("*/current.json"):
+            current = self._load_current(current_path)
+            if current is not None:
+                slides.append(current)
+        return self._sort_slides(slides)
+
+    @staticmethod
+    def _sort_slides(slides) -> list[SlideArtifact]:
+        return sorted(slides, key=lambda slide: (slide.index, slide.slide_id))
 
     @staticmethod
     def _write_json(path: Path, artifact: SlideArtifact) -> None:

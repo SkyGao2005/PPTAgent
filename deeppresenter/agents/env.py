@@ -293,16 +293,28 @@ class AgentEnv:
             or "html_file" not in arguments
         ):
             return
+        html_path = None
+        slide_id = None
+        slide_index = None
+        aspect_ratio = arguments.get("aspect_ratio", "16:9")
         try:
-            from deeppresenter.server.services.preview import artifact_url
+            from deeppresenter.server.services.preview import (
+                artifact_url,
+                parse_slide_index,
+                stable_slide_id,
+            )
 
             html_path = Path(arguments["html_file"])
             if not html_path.is_absolute():
                 html_path = self.workspace / html_path
+            slide_index = parse_slide_index(html_path)
+            slide_id = stable_slide_id(self.workspace.stem, slide_index)
             artifact = await self.preview_service.render_html_slide(
                 self.workspace.stem,
                 html_path,
-                aspect_ratio=arguments.get("aspect_ratio", "16:9"),
+                aspect_ratio=aspect_ratio,
+                slide_index=slide_index,
+                slide_id=slide_id,
             )
             if self.event_reporter is not None:
                 await self.event_reporter.slide_preview_ready(
@@ -315,6 +327,25 @@ class AgentEnv:
                     artifact.index,
                 )
         except Exception as e:
+            if (
+                self.event_reporter is not None
+                and slide_id is not None
+                and slide_index is not None
+            ):
+                try:
+                    await self.event_reporter.slide_failed(
+                        slide_id,
+                        slide_index,
+                        f"第 {slide_index} 页预览生成失败：{e}",
+                        payload={
+                            "error": str(e),
+                            "html_file": str(html_path) if html_path else None,
+                            "aspect_ratio": aspect_ratio,
+                            "source_preserved": True,
+                        },
+                    )
+                except Exception as report_error:
+                    warning(f"Failed to report slide preview failure: {report_error}")
             warning(f"Failed to render slide preview: {e}")
 
     @staticmethod

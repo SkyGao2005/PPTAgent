@@ -3,16 +3,14 @@
 所有路由均挂在 ``/api/tasks`` 下。
 """
 
-import asyncio
 import json
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from deeppresenter.server.models.artifacts import is_path_safe, task_dir
-from deeppresenter.server.services.event_bus import HEARTBEAT_EVENT
+from deeppresenter.server.models.artifacts import SlideArtifact, is_path_safe, task_dir
+from deeppresenter.server.services.preview import artifact_url
 from deeppresenter.server.services.task_manager import TaskManager
 
 router = APIRouter(prefix="/api/tasks")
@@ -28,6 +26,9 @@ class CreateTaskRequest(BaseModel):
     num_pages: str | None = Field(default=None, description="页数，如 '8' 或 '5-10'")
     powerpoint_type: str = Field(default="16:9", description="画面比例")
     template: str | None = Field(default=None, description="模板 ID")
+    convert_type: str | None = Field(
+        default=None, description="转换模式 deeppresenter/pptagent"
+    )
     enable_planner: bool = Field(default=False, description="是否启用大纲规划")
     language: str = Field(default="en", description="语言 en/zh")
 
@@ -57,6 +58,42 @@ def _get_manager(request: Request) -> TaskManager:
     return manager
 
 
+def _require_task(manager: TaskManager, task_id: str):
+    snapshot = manager.get_snapshot(task_id)
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail=f"任务 {task_id} 不存在")
+    return snapshot
+
+
+def _slide_summary(task_id: str, slide: SlideArtifact) -> dict:
+    return {
+        "slide_id": slide.slide_id,
+        "index": slide.index,
+        "status": slide.status,
+        "mode": slide.mode,
+        "layout_name": slide.layout_name,
+        "current_revision": slide.revision,
+        "preview_url": (
+            artifact_url(task_id, slide.preview_path)
+            if slide.preview_path
+            else None
+        ),
+        "created_at": slide.created_at,
+        "updated_at": slide.updated_at,
+    }
+
+
+def _slide_detail(manager: TaskManager, task_id: str, slide: SlideArtifact) -> dict:
+    service = manager.get_preview_service(task_id)
+    revision_count = service.revision_count(task_id, slide.slide_id) if service else 0
+    return {
+        **_slide_summary(task_id, slide),
+        "structured_data": slide.structured_data.model_dump(),
+        "source_path": slide.source_path,
+        "revision_count": revision_count,
+    }
+
+
 # ── 路由 ──────────────────────────────────────────────────────
 
 
@@ -71,6 +108,9 @@ async def create_task(
         instruction=body.instruction,
         attachments=body.attachments,
         num_pages=body.num_pages,
+        powerpoint_type=body.powerpoint_type,
+        template=body.template,
+        convert_type=body.convert_type,
         enable_planner=body.enable_planner,
         language=body.language,
     )
@@ -111,6 +151,12 @@ async def get_task(task_id: str, request: Request):
     # 确保 status 是字符串
     if hasattr(d["status"], "value"):
         d["status"] = d["status"].value
+    service = manager.get_preview_service(task_id)
+    d["slides"] = (
+        [_slide_summary(task_id, slide) for slide in service.list_slides(task_id)]
+        if service
+        else []
+    )
     return d
 
 
@@ -142,6 +188,37 @@ async def subscribe_events(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/{task_id}/slides")
+async def list_slides(task_id: str, request: Request):
+    """获取任务当前所有页的预览元数据。"""
+    manager = _get_manager(request)
+    _require_task(manager, task_id)
+    service = manager.get_preview_service(task_id)
+    if service is None:
+        raise HTTPException(status_code=404, detail=f"任务 {task_id} 预览服务不存在")
+
+    slides = service.list_slides(task_id)
+    return {
+        "slides": [_slide_summary(task_id, slide) for slide in slides],
+        "total": len(slides),
+    }
+
+
+@router.get("/{task_id}/slides/{slide_id}")
+async def get_slide(task_id: str, slide_id: str, request: Request):
+    """获取单页当前预览元数据。"""
+    manager = _get_manager(request)
+    _require_task(manager, task_id)
+    service = manager.get_preview_service(task_id)
+    if service is None:
+        raise HTTPException(status_code=404, detail=f"任务 {task_id} 预览服务不存在")
+
+    slide = service.get_slide(task_id, slide_id)
+    if slide is None:
+        raise HTTPException(status_code=404, detail=f"页面 {slide_id} 不存在")
+    return _slide_detail(manager, task_id, slide)
 
 
 @router.post("/{task_id}/cancel")

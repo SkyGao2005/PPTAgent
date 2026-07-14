@@ -7,6 +7,10 @@
 或通过环境变量指定工作区根目录::
 
     DEEPPRESENTER_WORKSPACE_BASE=/tmp/pptagent uvicorn deeppresenter.server.app:app
+
+开发联调时可使用占位执行器快速验证 API/SSE 链路::
+
+    DEEPPRESENTER_SERVER_PLACEHOLDER=1 uvicorn deeppresenter.server.app:app
 """
 
 import os
@@ -25,11 +29,25 @@ WORKSPACE_BASE = Path(
 )
 
 
-def create_app(workspace_base: Path | None = None) -> FastAPI:
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
+
+
+def create_app(
+    workspace_base: Path | None = None,
+    *,
+    use_placeholder: bool | None = None,
+    config_path: str | None = None,
+) -> FastAPI:
     """创建并配置 FastAPI 应用。
 
     Args:
         workspace_base: 任务工作区根目录，默认使用环境变量或 ~/.cache/deeppresenter
+        use_placeholder: 是否使用占位执行器，默认由环境变量控制
+        config_path: DeepPresenter 配置文件路径，默认读取 DEEPPRESENTER_CONFIG_FILE
     """
     app = FastAPI(
         title="DeepPresenter API",
@@ -40,7 +58,15 @@ def create_app(workspace_base: Path | None = None) -> FastAPI:
     base = workspace_base or WORKSPACE_BASE
     base.mkdir(parents=True, exist_ok=True)
 
-    manager = TaskManager(workspace_base=base)
+    if use_placeholder is None:
+        use_placeholder = _env_flag("DEEPPRESENTER_SERVER_PLACEHOLDER", default=False)
+    resolved_config_path = config_path or os.getenv("DEEPPRESENTER_CONFIG_FILE")
+
+    manager = TaskManager(
+        workspace_base=base,
+        use_placeholder=use_placeholder,
+        config_path=resolved_config_path,
+    )
     app.state.task_manager = manager
 
     app.include_router(tasks_router)

@@ -65,12 +65,17 @@ class EventReporter:
             )
         )
 
-    async def task_created(self, message: str | None = None) -> None:
+    async def task_created(
+        self,
+        message: str | None = None,
+        payload: dict[str, Any] | None = None,
+    ) -> None:
         await self.emit(
             EventType.TASK_CREATED,
             status=TaskStatus.QUEUED,
             progress=0,
             message=message or "任务已创建",
+            payload=payload,
         )
 
     async def task_started(self, message: str | None = None) -> None:
@@ -208,6 +213,7 @@ class EventReporter:
         message: str,
         *,
         total_slides: int | None = None,
+        payload: dict[str, Any] | None = None,
     ) -> None:
         await self.emit(
             EventType.SLIDE_FAILED,
@@ -216,6 +222,7 @@ class EventReporter:
             slide_index=slide_index,
             total_slides=total_slides,
             message=message,
+            payload=payload,
         )
 
     async def export_started(self) -> None:

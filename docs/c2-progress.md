@@ -1,6 +1,6 @@
 # C2 开发协作与进度记录
 
-最后更新：2026-07-13
+最后更新：2026-07-14
 
 ## 基本信息
 
@@ -40,7 +40,8 @@
 - 虚拟环境：`.venv`
 - Python：3.12.13
 - 当前安装策略：先安装 C2 开发和测试所需最小依赖，不安装完整 PPTAgent 重依赖。
-- 已安装核心依赖：`fastapi`、`uvicorn`、`httpx`、`pytest`、`pytest-asyncio`、`jsonlines`、`pydantic`、`jsonschema`、`aiofiles`、`python-multipart`
+- 已安装核心依赖：`fastapi`、`uvicorn`、`httpx`、`pytest`、`pytest-asyncio`、`jsonlines`、`pydantic`、`jsonschema`、`aiofiles`、`python-multipart`、`playwright`
+- Playwright 浏览器缓存：`.local-playwright`（已加入 `.gitignore`）
 - 启用环境：
 
 ```bash
@@ -51,6 +52,14 @@ source .venv/bin/activate
 
 ```bash
 .venv/bin/python -m pytest deeppresenter/server/tests -q
+```
+
+- 真实 HTML 预览冒烟测试：
+
+```bash
+DEEPPRESENTER_RUN_REAL_PREVIEW_TEST=1 \
+PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-playwright \
+.venv/bin/python -m pytest deeppresenter/server/tests/test_preview.py::test_render_html_preview_real_playwright_opt_in -q
 ```
 
 ## 已完成
@@ -106,22 +115,70 @@ source .venv/bin/activate
   - 未传 `preview_service` 时保持原有 CLI/Agent 行为。
 - 当前 server 测试结果：`54 passed in 0.24s`。
 
+### 2026-07-14
+
+- 拉取 C1 最新代码，同步到 `c4f5e70`：
+  - 新增 `deeppresenter/server/app.py`
+  - 新增 `deeppresenter/server/routes/tasks.py`
+  - 新增 `deeppresenter/server/services/task_manager.py`
+  - 新增 `deeppresenter/server/tests/test_task_manager.py`
+  - 新增 `docs/devlog/0714.md`
+- 确认 C1 当前实现：
+  - FastAPI app 和 `/api/tasks` 基础路由已落地。
+  - TaskManager 已支持创建、查询、取消、任务快照、EventBus 和占位执行器。
+  - 真实 AgentLoop 尚未替换占位执行器。
+- 将 TaskManager 与 C2 服务打通：
+  - 任务创建时实例化 `EventReporter(task_id, bus.publish)`。
+  - 任务创建时实例化 `PreviewService(workspace_base)`。
+  - 新增 `get_event_reporter(task_id)`。
+  - 新增 `get_preview_service(task_id)`。
+  - 占位执行器改为通过 `EventReporter` 发布任务/阶段事件，减少手写 `GenerationEvent`。
+- 补充 TaskManager 测试，确认任务创建后可以获取 C2 的 `EventReporter` 和 `PreviewService`。
+- 将 TaskManager 的真实执行路径接入 `AgentLoop`：
+  - `TaskManager(..., use_placeholder=False)` 会构造 `InputRequest` 并运行真实 `AgentLoop`。
+  - 真实执行器注入 `EventReporter` 和 `PreviewService`，复用此前 C2 接好的阶段、工具、预览事件钩子。
+  - 将最终产物路径转换为任务工作区相对路径并写入 `TaskSnapshot.result_artifact`。
+  - FastAPI `create_app()` 默认使用真实执行器，可通过 `DEEPPRESENTER_SERVER_PLACEHOLDER=1` 切回占位链路。
+  - `/api/tasks` 创建任务已透传 `powerpoint_type`、`template`、`convert_type`。
+- 补充真实执行器参数传递测试，确认创建任务时的生成参数完整进入执行链。
+- 使用占位模式完成 FastAPI 冒烟测试：
+  - `GET /health` 返回 `{"status":"ok"}`。
+  - `POST /api/tasks` 可创建任务并返回 `task_id`。
+  - `GET /api/tasks/{task_id}/events?last_seq=0` 可回放 `task.created`、阶段事件和 `task.completed`。
+  - `GET /api/tasks/{task_id}` 返回 `succeeded`、`progress=100` 和 `result_artifact`。
+- 完善逐页预览读取能力：
+  - `PreviewService.render_html_slide()` 每次写入 `current.json` 后同步维护 `slides/index.json`。
+  - 新增 `PreviewService.list_slides()`、`get_slide()`、`revision_count()`。
+  - 新增 `GET /api/tasks/{task_id}/slides`，返回当前页列表、`preview_url` 和 `current_revision`。
+  - 新增 `GET /api/tasks/{task_id}/slides/{slide_id}`，返回单页详情、结构化数据和 revision 数量。
+  - `GET /api/tasks/{task_id}` 已内联当前 slides 摘要，和 API 契约示例保持一致。
+  - 补充预览服务与 slides 路由测试。
+- 推进第 1 天 HTML 预览做实：
+  - 安装 `playwright` Python 包，浏览器下载到 `.local-playwright`。
+  - 新增真实 Playwright opt-in 冒烟测试，验证 HTML 可截图为 PNG。
+  - 真实预览测试结果：`1 passed in 1.36s`。
+  - `AgentEnv` 预览失败路径改为发布标准 `slide.failed` 事件，并在 payload 中记录 `error`、`html_file`、`aspect_ratio`、`source_preserved`。
+  - `EventReporter.slide_failed()` 支持轻量 payload。
+  - 补充 `slide.failed` payload 单元测试。
+- 本仓库本地 Git 提交名已设置为 `bhqmz111`。
+- 当前 server 测试结果：`76 passed, 1 skipped in 1.35s`。
+
 ## 已发现问题和待处理点
 
 1. `TaskStatus` 使用 `succeeded`，但部分文档/示例仍可能出现 `completed`。需要在模型、API 文档、前端约定中统一。
 2. 当前虚拟环境没有安装完整 PPTAgent 运行依赖。接入真实 `AgentLoop`、Playwright 预览、PPT/PDF 转换时，需要按需补装 `docker`、`fastmcp`、`openai`、`playwright`、`pdf2image`、`pypdf` 等依赖。
-3. `AgentLoop` 的阶段事件已接入，但尚未做真实 LLM/MCP 集成验证；需要等 C1 TaskManager 骨架或补齐运行依赖后验证完整链路。
-4. HTML 预览已接入 `inspect_slide` 成功路径，但尚未在本地 Playwright 环境中做真实截图验证。
+3. TaskManager 已接入真实 `AgentLoop`，但尚未安装完整运行依赖并完成真实 LLM/MCP 集成验证。
+4. HTML 预览已接入 `inspect_slide` 成功路径，并具备 slides API 读取能力；真实 Playwright 截图已通过 opt-in 冒烟测试，尚未在完整 AgentLoop 真实生成中验证。
 
 ## 下一步计划
 
-1. 与 C1 TaskManager 对接：
-   - C1 创建任务后实例化 `EventBus` 和 `EventReporter`。
-   - C1 调用 `AgentLoop(..., event_reporter=reporter)`。
-   - SSE 路由使用 `EventBus.subscribe(last_seq)`。
-2. 将 HTML 预览与 C1 TaskManager 串起来：
-   - C1 创建任务时构造 `PreviewService(workspace_base)`。
-   - C1 调用 `AgentLoop(..., event_reporter=reporter, preview_service=preview_service)`。
+1. 补齐完整运行依赖并做真实链路冒烟测试：
+   - 安装 AgentLoop、PPT/PDF 转换所需依赖。
+   - 配置 `DEEPPRESENTER_CONFIG_FILE` 或默认 `deeppresenter/config.yaml`。
+   - 启动 FastAPI 后创建一个最小任务，验证 SSE 阶段事件和最终产物。
+2. 补充 API/任务快照与 C2 产物的进一步对齐：
+   - 后续可根据前端需要裁剪 `GET /api/tasks/{task_id}` 内联 slides 字段规模。
+   - artifact URL 统一用 `/api/tasks/{task_id}/artifacts/{path}`。
    - 预览失败时当前只记录 warning；后续可增加标准 warning 事件。
 3. 模板模式预览调研：
    - 确认 `pptagent/mcp_server.py::generate_slide()` 能否返回足够信息。

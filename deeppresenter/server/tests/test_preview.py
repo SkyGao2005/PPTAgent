@@ -1,13 +1,15 @@
 """PreviewService 单元测试。"""
 
+import os
 import tempfile
 from pathlib import Path
 
 import pytest
 
-from deeppresenter.server.models.artifacts import revision_dir, slide_dir, task_dir
+from deeppresenter.server.models.artifacts import revision_dir, slide_dir, slides_dir, task_dir
 from deeppresenter.server.services.preview import (
     PreviewService,
+    SLIDES_INDEX_FILE,
     artifact_url,
     parse_slide_index,
     stable_slide_id,
@@ -114,6 +116,38 @@ async def test_render_html_slide_explicit_revision_updates_current(tmp_workspace
     assert second.revision == 2
     assert rev2.exists()
     assert '"revision": 2' in current.read_text(encoding="utf-8")
+    assert service.revision_count(task_id, first.slide_id) == 2
+
+
+@pytest.mark.asyncio
+async def test_render_html_slide_maintains_task_slide_index(tmp_workspace):
+    task_id = "abc12345"
+    root = task_dir(tmp_workspace, task_id)
+    html_dir = root / "slides"
+    html_dir.mkdir(parents=True)
+    slide_2 = html_dir / "slide_02.html"
+    slide_1 = html_dir / "slide_01.html"
+    slide_2.write_text("<html><body>two</body></html>", encoding="utf-8")
+    slide_1.write_text("<html><body>one</body></html>", encoding="utf-8")
+
+    service = PreviewService(tmp_workspace, renderer=fake_renderer)
+    second = await service.render_html_slide(task_id, slide_2)
+    first = await service.render_html_slide(task_id, slide_1)
+
+    index_path = slides_dir(tmp_workspace, task_id) / SLIDES_INDEX_FILE
+    assert index_path.exists()
+
+    slides = service.list_slides(task_id)
+    assert [slide.slide_id for slide in slides] == [first.slide_id, second.slide_id]
+    assert [slide.index for slide in slides] == [1, 2]
+    assert service.get_slide(task_id, first.slide_id).preview_path == first.preview_path
+
+
+def test_list_slides_returns_empty_for_task_without_previews(tmp_workspace):
+    service = PreviewService(tmp_workspace, renderer=fake_renderer)
+    assert service.list_slides("abc12345") == []
+    assert service.get_slide("abc12345", "sld-missing") is None
+    assert service.revision_count("abc12345", "sld-missing") == 0
 
 
 @pytest.mark.asyncio
@@ -124,3 +158,45 @@ async def test_render_html_slide_rejects_outside_workspace(tmp_workspace):
 
     with pytest.raises(ValueError):
         await service.render_html_slide("abc12345", html)
+
+
+@pytest.mark.asyncio
+async def test_render_html_preview_real_playwright_opt_in(tmp_workspace):
+    """真实 Playwright 截图冒烟测试，默认跳过以避免 CI 强依赖浏览器。"""
+    if os.getenv("DEEPPRESENTER_RUN_REAL_PREVIEW_TEST") != "1":
+        pytest.skip("Set DEEPPRESENTER_RUN_REAL_PREVIEW_TEST=1 to run real preview rendering")
+
+    try:
+        from playwright.async_api import async_playwright  # noqa: F401
+    except ImportError:
+        pytest.skip("playwright is not installed")
+
+    from deeppresenter.server.services.preview import render_html_preview
+
+    task_id = "abc12345"
+    root = task_dir(tmp_workspace, task_id)
+    html_dir = root / "slides"
+    html_dir.mkdir(parents=True)
+    html = html_dir / "slide_01.html"
+    html.write_text(
+        """
+        <!doctype html>
+        <html>
+          <head>
+            <style>
+              html, body { margin: 0; width: 100%; height: 100%; }
+              body { display: grid; place-items: center; background: #f8fafc; }
+              h1 { color: #0f172a; font-family: Arial, sans-serif; }
+            </style>
+          </head>
+          <body><h1>Preview smoke test</h1></body>
+        </html>
+        """,
+        encoding="utf-8",
+    )
+    output = root / "preview.png"
+
+    await render_html_preview(html, output, "16:9")
+
+    assert output.exists()
+    assert output.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")

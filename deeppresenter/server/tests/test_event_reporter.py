@@ -41,6 +41,32 @@ async def test_task_events(tmp_workspace):
 
 
 @pytest.mark.asyncio
+async def test_slide_failed_event_includes_preview_payload(tmp_workspace):
+    bus = EventBus(tmp_workspace)
+    reporter = EventReporter("abc12345", bus.publish)
+
+    await reporter.slide_failed(
+        "sld-001",
+        1,
+        "第 1 页预览生成失败：boom",
+        payload={
+            "error": "boom",
+            "html_file": "slides/slide_01.html",
+            "source_preserved": True,
+        },
+    )
+
+    events = list(bus._replay(0))
+    assert events[0]["type"] == EventType.SLIDE_FAILED.value
+    assert events[0]["slide_id"] == "sld-001"
+    assert events[0]["slide_index"] == 1
+    assert events[0]["payload"]["source_preserved"] is True
+    assert events[0]["payload"]["html_file"] == "slides/slide_01.html"
+
+    await bus.close()
+
+
+@pytest.mark.asyncio
 async def test_stage_events_use_weighted_progress(tmp_workspace):
     bus = EventBus(tmp_workspace)
     reporter = EventReporter("abc12345", bus.publish)

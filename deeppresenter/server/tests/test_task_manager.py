@@ -23,6 +23,8 @@ from deeppresenter.server.services.task_manager import (
     TaskManager,
     TaskSnapshot,
 )
+from deeppresenter.server.services.event_reporter import EventReporter
+from deeppresenter.server.services.preview import PreviewService
 
 
 @pytest.fixture
@@ -104,6 +106,15 @@ class TestTaskCreate:
         assert events[0]["type"] == EventType.TASK_CREATED.value
 
     @pytest.mark.asyncio
+    async def test_create_exposes_c2_services(self, tmp_workspace):
+        """任务创建后应能获取 EventReporter 和 PreviewService，供 AgentLoop 对接。"""
+        manager = TaskManager(tmp_workspace)
+        task_id = await manager.create(instruction="测试任务")
+
+        assert isinstance(manager.get_event_reporter(task_id), EventReporter)
+        assert isinstance(manager.get_preview_service(task_id), PreviewService)
+
+    @pytest.mark.asyncio
     async def test_create_persists_snapshot(self, tmp_workspace):
         manager = TaskManager(tmp_workspace)
         task_id = await manager.create(instruction="测试任务")
@@ -126,6 +137,45 @@ class TestTaskCreate:
         assert snapshot is not None
         # 占位执行器最终会走到 succeeded
         assert snapshot.status in (TaskStatus.RUNNING, TaskStatus.SUCCEEDED)
+
+    @pytest.mark.asyncio
+    async def test_real_runner_receives_generation_options(self, tmp_workspace):
+        """真实执行器模式应完整接收 API 传入的生成参数。"""
+
+        class RecordingTaskManager(TaskManager):
+            def __init__(self, workspace_base: Path):
+                super().__init__(workspace_base, use_placeholder=False)
+                self.calls = []
+
+            async def _run_agent_loop(self, **kwargs):
+                self.calls.append(kwargs)
+
+        manager = RecordingTaskManager(tmp_workspace)
+        task_id = await manager.create(
+            instruction="测试任务",
+            attachments=["/tmp/input.pdf"],
+            num_pages="6",
+            powerpoint_type="4:3",
+            template="template-1",
+            convert_type="pptagent",
+            enable_planner=True,
+            language="zh",
+        )
+        await manager._runners[task_id]
+
+        assert manager.calls == [
+            {
+                "task_id": task_id,
+                "instruction": "测试任务",
+                "attachments": ["/tmp/input.pdf"],
+                "num_pages": "6",
+                "powerpoint_type": "4:3",
+                "template": "template-1",
+                "convert_type": "pptagent",
+                "enable_planner": True,
+                "language": "zh",
+            }
+        ]
 
 
 # ═══════════════════════════════════════════════════════════════════════
