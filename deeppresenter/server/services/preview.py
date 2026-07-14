@@ -1,3 +1,4 @@
+from __future__ import annotations
 """逐页预览与 SlideArtifact 持久化服务。"""
 
 import json

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """GenerationEvent 发布辅助层。
 
 EventReporter 是 AgentLoop / AgentEnv 与 EventBus 之间的薄适配器：
