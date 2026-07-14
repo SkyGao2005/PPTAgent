@@ -40,3 +40,4 @@ dist-ssr
 .superset
 !.vscode/extensions.json
 !.dockerignore
+.claude/

@@ -1,0 +1,71 @@
+// SSE client (§7). In mock mode events come from the in-memory mock server;
+// in real mode a native EventSource connects to the FastAPI endpoint and the
+// server replays missed events based on `last_seq`.
+
+import { USE_MOCK } from "@/lib/api"
+import type { GenerationEvent } from "@/types/api"
+
+export type ConnectionState = "connecting" | "open" | "reconnecting"
+
+export function connectTaskEvents(
+  taskId: string,
+  lastSeq: number,
+  onEvent: (event: GenerationEvent) => void,
+  onStatusChange: (state: ConnectionState) => void,
+): () => void {
+  onStatusChange("connecting")
+
+  if (USE_MOCK) {
+    let unsubscribe: (() => void) | null = null
+    let closed = false
+    void import("@/mocks/mock-server").then((server) => {
+      if (closed) {
+        return
+      }
+      unsubscribe = server.mockSubscribeTask(taskId, lastSeq, onEvent)
+      onStatusChange("open")
+    })
+    return () => {
+      closed = true
+      unsubscribe?.()
+    }
+  }
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ""
+  const params = new URLSearchParams({ last_seq: String(lastSeq) })
+  const source = new EventSource(`${baseUrl}/api/tasks/${taskId}/events?${params}`)
+
+  source.onopen = () => onStatusChange("open")
+  source.onerror = () => onStatusChange("reconnecting")
+  source.onmessage = (message) => {
+    onEvent(JSON.parse(message.data) as GenerationEvent)
+  }
+
+  return () => source.close()
+}
+
+export function connectTemplateEvents(
+  onEvent: (event: GenerationEvent) => void,
+): () => void {
+  if (USE_MOCK) {
+    let unsubscribe: (() => void) | null = null
+    let closed = false
+    void import("@/mocks/mock-server").then((server) => {
+      if (closed) {
+        return
+      }
+      unsubscribe = server.mockSubscribeTemplates(onEvent)
+    })
+    return () => {
+      closed = true
+      unsubscribe?.()
+    }
+  }
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ""
+  const source = new EventSource(`${baseUrl}/api/templates/events`)
+  source.onmessage = (message) => {
+    onEvent(JSON.parse(message.data) as GenerationEvent)
+  }
+  return () => source.close()
+}
