@@ -82,6 +82,52 @@ def test_list_and_get_slide_preview_routes(tmp_workspace):
     assert task_body["slides"][0]["preview_url"].endswith("/preview.png")
 
 
+def test_template_slide_preview_is_visible_via_routes(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/tasks",
+        json={
+            "instruction": "测试模板预览路由",
+            "num_pages": "1",
+            "template": "template-1",
+            "convert_type": "pptagent",
+            "language": "zh",
+        },
+    )
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    service = app.state.task_manager.get_preview_service(task_id)
+    service.renderer = fake_renderer
+
+    import anyio
+
+    artifact = anyio.run(
+        service.render_template_slide,
+        task_id,
+        1,
+        {
+            "layout_name": "Title and body",
+            "title": "模板页标题",
+            "body": ["第一点", "第二点"],
+        },
+    )
+
+    list_response = client.get(f"/api/tasks/{task_id}/slides")
+    assert list_response.status_code == 200
+    slide = list_response.json()["slides"][0]
+    assert slide["mode"] == "template"
+    assert slide["preview_url"].endswith("/preview.png")
+
+    preview_response = client.get(
+        f"/api/tasks/{task_id}/artifacts/{artifact.preview_path}"
+    )
+    assert preview_response.status_code == 200
+    assert preview_response.content == b"fake-png"
+
+
 def test_slide_routes_return_404_for_unknown_task(tmp_workspace):
     app = _create_test_app(tmp_workspace)
     client = TestClient(app)

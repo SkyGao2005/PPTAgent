@@ -11,6 +11,7 @@ from deeppresenter.server.services.preview import (
     PreviewService,
     SLIDES_INDEX_FILE,
     artifact_url,
+    build_template_preview_html,
     parse_slide_index,
     stable_slide_id,
 )
@@ -52,6 +53,21 @@ def test_artifact_url():
         artifact_url("abc12345", "slides/sld-1/revisions/1/preview.png")
         == "/api/tasks/abc12345/artifacts/slides/sld-1/revisions/1/preview.png"
     )
+
+
+def test_build_template_preview_html_escapes_content():
+    html = build_template_preview_html(
+        {
+            "layout_name": "<layout>",
+            "title": "<Title>",
+            "body": ["<point>"],
+            "extras": {"note": "<script>"},
+        }
+    )
+
+    assert "&lt;Title&gt;" in html
+    assert "&lt;point&gt;" in html
+    assert "<script>" not in html
 
 
 @pytest.mark.asyncio
@@ -200,3 +216,49 @@ async def test_render_html_preview_real_playwright_opt_in(tmp_workspace):
 
     assert output.exists()
     assert output.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+
+
+@pytest.mark.asyncio
+async def test_render_template_slide_generates_preview_and_source(tmp_workspace):
+    task_id = "abc12345"
+    service = PreviewService(tmp_workspace, renderer=fake_renderer)
+
+    artifact = await service.render_template_slide(
+        task_id,
+        1,
+        {
+            "layout_name": "Title and body",
+            "title": "季度总结",
+            "subtitle": "Q2",
+            "body": ["营收增长", "成本下降"],
+            "images": [{"path": "chart.png", "caption": "增长趋势"}],
+            "extras": {"footer": "confidential"},
+        },
+    )
+
+    root = task_dir(tmp_workspace, task_id)
+    rev = revision_dir(tmp_workspace, task_id, artifact.slide_id, 1)
+    assert artifact.mode == "template"
+    assert artifact.layout_name == "Title and body"
+    assert artifact.structured_data.body == ["营收增长", "成本下降"]
+    assert artifact.source_path.endswith("/source.json")
+    assert artifact.preview_path.endswith("/preview.png")
+    assert (rev / "source.json").exists()
+    assert (rev / "template_preview.html").exists()
+    assert (root / artifact.preview_path).read_bytes() == b"fake-png"
+
+
+@pytest.mark.asyncio
+async def test_render_template_slide_accepts_string_body(tmp_workspace):
+    service = PreviewService(tmp_workspace, renderer=fake_renderer)
+
+    artifact = await service.render_template_slide(
+        "abc12345",
+        2,
+        {
+            "title": "单段正文",
+            "body": "这里是正文",
+        },
+    )
+
+    assert artifact.structured_data.body == ["这里是正文"]

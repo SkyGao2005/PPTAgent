@@ -321,7 +321,16 @@ class TestTaskRetry:
     @pytest.mark.asyncio
     async def test_retry_failed_task(self, tmp_workspace):
         """FAILED 任务可以重试并转为 RUNNING。"""
-        manager = TaskManager(tmp_workspace, use_placeholder=True)
+
+        class RecordingRetryManager(TaskManager):
+            def __init__(self, workspace_base: Path):
+                super().__init__(workspace_base, use_placeholder=True)
+                self.retry_calls = []
+
+            async def _run_agent_loop(self, **kwargs):
+                self.retry_calls.append(kwargs)
+
+        manager = RecordingRetryManager(tmp_workspace)
         task_id = await manager.create(instruction="test")
 
         # 手动设为 FAILED
@@ -336,6 +345,8 @@ class TestTaskRetry:
         assert success
         snap = manager.get_snapshot(task_id)
         assert snap.status == TaskStatus.RUNNING
+        await manager._runners[task_id]
+        assert manager.retry_calls[0]["task_id"] == task_id
 
     @pytest.mark.asyncio
     async def test_retry_non_failed_returns_false(self, tmp_workspace):

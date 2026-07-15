@@ -1,6 +1,6 @@
 # C2 开发协作与进度记录
 
-最后更新：2026-07-14
+最后更新：2026-07-15
 
 ## 基本信息
 
@@ -39,8 +39,8 @@
 - 本地仓库：`/Users/wstdmac/image_classification/PPTAgent`
 - 虚拟环境：`.venv`
 - Python：3.12.13
-- 当前安装策略：先安装 C2 开发和测试所需最小依赖，不安装完整 PPTAgent 重依赖。
-- 已安装核心依赖：`fastapi`、`uvicorn`、`httpx`、`pytest`、`pytest-asyncio`、`jsonlines`、`pydantic`、`jsonschema`、`aiofiles`、`python-multipart`、`playwright`
+- 当前安装策略：已安装完整 PPTAgent 运行依赖；Docker sandbox 镜像下载不稳定时，可使用去掉 `sandbox` MCP 的配置继续无 Docker 链路验证。
+- 已安装核心依赖：`fastapi`、`uvicorn`、`httpx`、`pytest`、`pytest-asyncio`、`jsonlines`、`pydantic`、`jsonschema`、`aiofiles`、`python-multipart`、`playwright`、`docker`、`fastmcp`、`mcp`、`openai`、`json-repair`、`pdf2image`、`pypdf`、`python-pptx`
 - Playwright 浏览器缓存：`.local-playwright`（已加入 `.gitignore`）
 - 启用环境：
 
@@ -163,28 +163,76 @@ PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-pla
 - 本仓库本地 Git 提交名已设置为 `bhqmz111`。
 - 当前 server 测试结果：`76 passed, 1 skipped in 1.35s`。
 
+### 2026-07-15
+
+- 拉取 C1 最新代码，同步到 `dcd25b7`：
+  - C1 新增模板模式结构化页衔接：`PreviewService.render_template_slide()` 和 `AgentEnv._maybe_capture_template_slide()`。
+  - C1 新增 retry/export API：`POST /api/tasks/{task_id}/retry`、`POST /api/tasks/{task_id}/export`。
+  - C1 新增任务恢复：`TaskManager.restore_snapshots()` 和 FastAPI startup 恢复钩子。
+  - C1 新增取消检查点和 `completed_slide_ids` 快照字段。
+- 验证拉取后的 server 测试：`86 passed, 1 skipped in 1.91s`。
+- 完善模板模式逐页预览：
+  - `PreviewService.render_template_slide()` 不再只持久化结构化数据，而是生成 `template_preview.html` 并复用 HTML renderer 输出 `preview.png`。
+  - 模板模式 `SlideArtifact.preview_path` 已指向 `slides/<slide_id>/revisions/<n>/preview.png`。
+  - 新增 `build_template_preview_html()`，把 `layout_name`、标题、副标题、正文、图片引用和 extras 转为可截图 HTML，并做 HTML escape。
+  - `AgentEnv._maybe_capture_template_slide()` 传递 `aspect_ratio` 给模板预览渲染。
+  - 补充模板预览单测：结构化数据可生成 `source.json`、`template_preview.html`、`preview.png`；字符串 body 可归一化为列表。
+  - 补充模板预览路由测试：`GET /slides` 可返回模板页 `preview_url`，artifact API 可读取模板页 PNG。
+- 真实 HTML 预览 opt-in 测试结果：`1 passed in 1.19s`。
+- 当前 server 测试结果：`90 passed, 1 skipped in 1.87s`。
+- 使用阿里云 PyPI 镜像完成完整运行依赖安装：
+  - `pip check` 结果：`No broken requirements found`。
+  - 关键依赖导入通过：`docker`、`fastmcp`、`mcp`、`openai`、`json_repair`、`yaml`、`aiohttp`、`pdf2image`、`pptx`、`PIL`、`fasttext` 等。
+- 尝试拉取 `deeppresenter-sandbox` Docker 镜像：
+  - Docker Desktop daemon 可用。
+  - `docker.1ms.run/forceless/deeppresenter-sandbox` 多次下载到后段后因 `unexpected EOF` 中断。
+  - Docker Hub 原源在匿名 token 请求阶段出现 EOF。
+- 为无 Docker 开发/验证路径做解耦：
+  - `AgentEnv.__aenter__()` 只在 MCP 配置里包含 `docker` 命令或 `sandbox` server 时访问 Docker。
+  - 去掉 `sandbox` 的 `mcp.json` 可绕开 Docker daemon 和 sandbox 镜像，用于源码安装、非 sandbox MCP、模板模式/C2 事件预览验证。
+  - 新增 `test_agent_env.py` 覆盖无 sandbox 不访问 Docker、sandbox 配置需要 Docker。
+- 完成本地 `deeppresenter-sandbox` 镜像构建：
+  - Dockerfile 改用阿里云 Debian apt 镜像源，避免 `deb.debian.org` EOF。
+  - 移除构建时易卡住的 `fonts-noto-cjk` / `fonts-noto-cjk-extra`，保留 `fonts-wqy`、`fonts-arphic`、`fonts-ipafont` 等中文字体。
+  - 跳过 Playwright 自带 Chromium 下载，复用系统 `/usr/bin/chromium`。
+  - 构建成功镜像：`deeppresenter-sandbox:latest`，大小约 5.77GB。
+  - 容器启动冒烟测试：`docker run --rm deeppresenter-sandbox node --version` 返回 `v24.18.0`。
+- 当前 server 测试结果：`92 passed, 1 skipped in 2.40s`。
+- 完成真实 AgentLoop 端到端冒烟测试：
+  - 配置本地 `deeppresenter/config.yaml` 后，模型 API 校验通过。
+  - `deeppresenter/html2pptx` npm 依赖已安装，Python Playwright Chromium 已安装。
+  - sandbox MCP、deeppresenter MCP、pptagent MCP、task MCP 连接验证通过，工具总数 17。
+  - 修复 `inspect_manuscript` 导入时触发 HuggingFace 下载的问题，语言检测改为仅使用本地缓存，未命中则返回 `unknown`。
+  - 修复 `AgentEnv` 只接受单个 text/image block 的限制，支持工具返回 `TextContent + ImageContent`，避免读取预览图片时中断。
+  - 强化 Design Agent HTML 结构约束，要求可见文本必须包裹在块级语义元素内，减少 html2pptx 裸文本校验失败。
+  - 真实任务 `59f7a380` 结果：prepare/research/generate/export 全流程完成，`slide.preview_ready` 已发出，`task.completed` 状态为 `succeeded`。
+  - 真实产物：`.local-workspace/59f7a380/test_slide.pptx`、`test_slide.pdf`、`slides/.../preview.png`。
+- 当前 server 测试结果：`93 passed, 1 skipped in 2.45s`。
+
 ## 已发现问题和待处理点
 
 1. `TaskStatus` 使用 `succeeded`，但部分文档/示例仍可能出现 `completed`。需要在模型、API 文档、前端约定中统一。
-2. 当前虚拟环境没有安装完整 PPTAgent 运行依赖。接入真实 `AgentLoop`、Playwright 预览、PPT/PDF 转换时，需要按需补装 `docker`、`fastmcp`、`openai`、`playwright`、`pdf2image`、`pypdf` 等依赖。
-3. TaskManager 已接入真实 `AgentLoop`，但尚未安装完整运行依赖并完成真实 LLM/MCP 集成验证。
-4. HTML 预览已接入 `inspect_slide` 成功路径，并具备 slides API 读取能力；真实 Playwright 截图已通过 opt-in 冒烟测试，尚未在完整 AgentLoop 真实生成中验证。
+2. 当前虚拟环境已安装完整 PPTAgent 运行依赖；真实 LLM 生成仍需要本地 `deeppresenter/config.yaml` 填入可用模型 API key。
+3. TaskManager 已接入真实 `AgentLoop`，并已完成 1 页真实 LLM/MCP 端到端冒烟测试；后续仍需扩大到多页任务和模板任务。
+4. HTML 预览已接入 `inspect_slide` 成功路径，并在完整 AgentLoop 真实生成中验证可发出 `slide.preview_ready`。
+5. 模板模式已能基于结构化数据生成保底 PNG 预览，但尚未验证真实 `generate_slide()` 返回结构与模板视觉还原度。
+6. Docker sandbox 已通过本地构建准备完成，并已验证 sandbox MCP 连接和真实任务工具调用；后续需要观察多页并发任务稳定性。
 
 ## 下一步计划
 
 1. 补齐完整运行依赖并做真实链路冒烟测试：
-   - 安装 AgentLoop、PPT/PDF 转换所需依赖。
-   - 配置 `DEEPPRESENTER_CONFIG_FILE` 或默认 `deeppresenter/config.yaml`。
-   - 启动 FastAPI 后创建一个最小任务，验证 SSE 阶段事件和最终产物。
+   - 配置 `DEEPPRESENTER_CONFIG_FILE` 或默认 `deeppresenter/config.yaml`，填入可用模型 API key。
+   - 准备 `deeppresenter/mcp.json`，验证 sandbox MCP 可连接。
+   - 启动 FastAPI 后创建一个最小任务，验证 SSE 阶段事件、逐页预览和最终产物。
 2. 补充 API/任务快照与 C2 产物的进一步对齐：
    - 后续可根据前端需要裁剪 `GET /api/tasks/{task_id}` 内联 slides 字段规模。
    - artifact URL 统一用 `/api/tasks/{task_id}/artifacts/{path}`。
    - 预览失败时当前只记录 warning；后续可增加标准 warning 事件。
-3. 模板模式预览调研：
-   - 确认 `pptagent/mcp_server.py::generate_slide()` 能否返回足够信息。
-   - 需要时和 A/D 组协商 `SlidePage` 持久化结构。
+3. 模板模式真实链路验证：
+   - 用真实或 mock `generate_slide()` 结果验证 `AgentEnv._maybe_capture_template_slide()` 事件和 artifact。
+   - 根据真实返回结构调整 `slide_index`、`layout_name`、`structured_data` 提取逻辑。
+   - 后续可替换当前保底 HTML 预览为更高保真的模板单页截图。
 4. 补真实链路验证：
-   - 安装 AgentLoop 运行所需依赖。
    - 用 mock 或最小真实任务验证阶段事件顺序。
    - 确认工具事件 payload 不泄漏大文本。
 5. 每次与 C1 合并后：

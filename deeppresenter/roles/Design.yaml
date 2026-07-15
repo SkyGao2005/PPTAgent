@@ -19,7 +19,7 @@ system:
 
     <风格说明>
     1. 幻灯片版式：将 HTML 视作幻灯片或海报来设计；<body> 采用固定尺寸（16:9=1280x720、4:3=960x720、A1=2244x3178、A2=1587x2244、A3=1122x1587、A4=794x1123）严格控制边界、其他元素采用相对定位防止溢出，正文与底部应保持足够的间距；确保幻灯片无大面积空白，正文字体清晰可读（字号不小于 18px）
-    2. 结构与语义规则：文本须被包裹在`<p>, <li>, <span>`等元素内，禁止裸文本；列表必须使用 `<ul>/<ol>`，禁止使用自定义 bullet
+    2. 结构与语义规则：所有可见文本必须整体包裹在 `<p>`, `<h1>`-`<h6>`, `<ul>/<ol>/<li>` 等块级语义元素内，禁止任何裸文本直接出现在 `<div>` 下；`<span>` 只能放在这些文本元素内部用于局部样式，不能作为 `<div>` 的直接文本容器；列表必须使用 `<ul>/<ol>`，禁止使用自定义 bullet
     3. 样式与渲染约束：
       - 行内元素禁止 margin/border/shadow，装饰性样式, 背景图`url(...)`仅应用于 `<div>`
       - 安全性约束：仅用跨平台安全的字体（禁用网络字体资源和平台特定字体），禁止网页特有的设计（如单元格文本背景色、交互式样式等）
@@ -49,7 +49,7 @@ system:
 
     <style_guidelines>
     1. Slide layout: Treat HTML as a slide or poster; <body> uses fixed sizes (16:9=1280x720, 4:3=960x720, A1=2244x3178, A2=1587x2244, A3=1122x1587, A4=794x1123) to strictly control boundaries, and other elements use relative positioning to prevent overflow; keep enough bottom spacing for body text; avoid large blank areas and ensure body text is clear and readable (font size at least 18px)
-    2. Structure and semantics: Text must be wrapped inside `<p>`, `<li>`, `<span>`, etc.; no bare text. Lists must use `<ul>/<ol>`; no custom bullets
+    2. Structure and semantics: All visible text must be fully wrapped inside block-level semantic elements such as `<p>`, `<h1>`-`<h6>`, `<ul>/<ol>/<li>`; no bare text may appear directly under a `<div>`. Use `<span>` only inside those text elements for local styling, never as the direct text container of a `<div>`. Lists must use `<ul>/<ol>`; no custom bullets
     3. Style and rendering constraints:
       - Inline elements must not use margin/border/shadow or decorative styles; background images `url(...)` apply only to `<div>`
       - Safety constraints: use cross-platform safe fonts only (no web font resources or platform-specific fonts); avoid web-specific designs (e.g., cell text background colors, interactive styles)

@@ -15,7 +15,7 @@ import jsonschema
 from docker.errors import DockerException, NotFound
 from fastmcp.utilities.json_schema import compress_schema
 from fastmcp.utilities.types import get_cached_typeadapter
-from mcp.types import CallToolResult, TextContent
+from mcp.types import CallToolResult, ImageContent, TextContent
 from openai.types.chat.chat_completion_message_function_tool_call import (
     ChatCompletionMessageFunctionToolCall as ToolCall,
 )
@@ -113,6 +113,12 @@ class AgentEnv:
         if self.async_mode:
             self._register_async_tools()
 
+    def _requires_docker(self) -> bool:
+        return any(
+            server.command == "docker" or server.name == "sandbox"
+            for server in self.mcp_configs
+        )
+
     async def tool_execute(
         self,
         tool_call: ToolCall,
@@ -181,47 +187,49 @@ class AgentEnv:
         else:
             self.timing_dict[tool_call.function.name].success_count += 1
 
-        if len(result.content) != 1 or any(
+        if not result.content or any(
             c.type not in ["image", "text"] for c in result.content
         ):
             raise ValueError(
-                f"Only one text/image block is supported currently. While getting {result.content} from {tool_call.function.name}"
+                f"Only text/image blocks are supported currently. While getting {result.content} from {tool_call.function.name}"
             )
         content = []
-        block = result.content[0]
-        if block.type == "text":
-            if len(block.text) > self.cutoff_len:
-                truncated = block.text[: self.cutoff_len]
-                truncated = truncated[: truncated.rfind("\n")]
+        for block in result.content:
+            if block.type == "text":
+                assert isinstance(block, TextContent)
+                if len(block.text) > self.cutoff_len:
+                    truncated = block.text[: self.cutoff_len]
+                    truncated = truncated[: truncated.rfind("\n")]
 
-                # checking if we are reading from local file
-                if tool_call.function.name == "read_file":
-                    local_file = arguments["path"]
-                else:
-                    hash_id = uuid.uuid4().hex[:4]
-                    local_file = (
-                        self.workspace / f"{tool_call.function.name}_{hash_id}.txt"
+                    # checking if we are reading from local file
+                    if tool_call.function.name == "read_file":
+                        local_file = arguments["path"]
+                    else:
+                        hash_id = uuid.uuid4().hex[:4]
+                        local_file = (
+                            self.workspace / f"{tool_call.function.name}_{hash_id}.txt"
+                        )
+                        local_file.write_text(block.text)
+
+                    truncated += CUTOFF_WARNING.format(
+                        line=truncated.count("\n"), resource_id=str(local_file)
                     )
-                    local_file.write_text(block.text)
+                    block.text = truncated
 
-                truncated += CUTOFF_WARNING.format(
-                    line=truncated.count("\n"), resource_id=str(local_file)
+                content.append(
+                    {
+                        "type": "text",
+                        "text": block.text,
+                    }
                 )
-                block.text = truncated
-
-            content.append(
-                {
-                    "type": "text",
-                    "text": block.text,
-                }
-            )
-        elif block.type == "image":
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": block.data},
-                }
-            )
+            elif block.type == "image":
+                assert isinstance(block, ImageContent)
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": block.data},
+                    }
+                )
         msg = ChatMessage(
             role=Role.TOOL,
             content=content,
@@ -401,6 +409,7 @@ class AgentEnv:
                 slide_index,
                 slide_data,
                 slide_id=slide_id,
+                aspect_ratio=slide_data.get("aspect_ratio", "16:9"),
             )
 
             if self.event_reporter is not None:
@@ -442,22 +451,23 @@ class AgentEnv:
         return "\n".join(texts)[:500]
 
     async def __aenter__(self):
-        try:
-            client = docker.from_env()
-            container = client.containers.get(self.workspace.stem)
-            warning(
-                f"Found duplicated sandbox container id={self.workspace.stem}, killed."
-            )
-            container.remove(force=True)
-        # happend if cannot find the container
-        except NotFound:
-            pass
-        except DockerException as e:
-            error(f"Docker is not accessible: {e}.")
-            sys.exit(1)
-        except Exception as e:
-            error(f"Unexpected error when launching docker containers: {e}.")
-            sys.exit(1)
+        if self._requires_docker():
+            try:
+                client = docker.from_env()
+                container = client.containers.get(self.workspace.stem)
+                warning(
+                    f"Found duplicated sandbox container id={self.workspace.stem}, killed."
+                )
+                container.remove(force=True)
+            # happend if cannot find the container
+            except NotFound:
+                pass
+            except DockerException as e:
+                error(f"Docker is not accessible: {e}.")
+                sys.exit(1)
+            except Exception as e:
+                error(f"Unexpected error when launching docker containers: {e}.")
+                sys.exit(1)
 
         with timer("Connecting MCP servers"):
             await asyncio.gather(

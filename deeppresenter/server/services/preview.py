@@ -5,6 +5,7 @@ import json
 import re
 import uuid
 from collections.abc import Awaitable, Callable
+from html import escape
 from pathlib import Path
 
 from deeppresenter.server.models.artifacts import (
@@ -122,12 +123,14 @@ class PreviewService:
         *,
         slide_id: str | None = None,
         revision: int | None = None,
+        aspect_ratio: str = "16:9",
     ) -> SlideArtifact:
-        """持久化模板模式单页 SlideArtifact（结构化数据，预览图待 C2 补充）。
+        """持久化模板模式单页 SlideArtifact，并生成保底 PNG 预览。
 
         ``slide_data`` 应包含 ``layout_name``、``title``、``subtitle``、``body``、
         ``images``、``extras`` 等字段，由 ``generate_slide`` 工具返回。
-        当前不生成 PNG 预览图；preview_path 为 None。
+        当前先用结构化数据生成轻量 HTML，再复用 HTML 预览渲染器截图；后续可替换
+        为更高保真的单页 PPTX/图片渲染器。
         """
         sid = slide_id or stable_slide_id(task_id, slide_index)
         current_path = slide_dir(self.workspace_base, task_id, sid) / "current.json"
@@ -145,12 +148,20 @@ class PreviewService:
             json.dumps(slide_data, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
+        preview_html = rev_dir / "template_preview.html"
+        preview_html.write_text(
+            build_template_preview_html(slide_data),
+            encoding="utf-8",
+        )
+        preview_rel = Path("slides") / sid / "revisions" / str(rev) / "preview.png"
+        preview_abs = task_dir(self.workspace_base, task_id) / preview_rel
+        await self.renderer(preview_html, preview_abs, aspect_ratio)
 
         from deeppresenter.server.models.artifacts import StructuredContent
         structured = StructuredContent(
             title=slide_data.get("title"),
             subtitle=slide_data.get("subtitle"),
-            body=slide_data.get("body") or [],
+            body=_normalize_text_list(slide_data.get("body")),
             images=slide_data.get("images") or [],
             extras=slide_data.get("extras") or {},
         )
@@ -164,7 +175,7 @@ class PreviewService:
             "layout_name": slide_data.get("layout_name"),
             "structured_data": structured,
             "source_path": str(source_rel),
-            "preview_path": None,
+            "preview_path": str(preview_rel),
             "revision": rev,
         }
         if current:
@@ -289,3 +300,121 @@ async def render_html_preview(
             await page.screenshot(path=str(output_path), full_page=False)
         finally:
             await browser.close()
+
+
+def build_template_preview_html(slide_data: dict) -> str:
+    """把模板模式结构化页面数据转换为可截图的保底 HTML。"""
+    title = escape(str(slide_data.get("title") or "Untitled slide"))
+    subtitle = escape(str(slide_data.get("subtitle") or ""))
+    layout_name = escape(str(slide_data.get("layout_name") or "template"))
+    body_items = _normalize_text_list(slide_data.get("body"))
+    body_html = "\n".join(f"<li>{escape(str(item))}</li>" for item in body_items)
+    image_items = slide_data.get("images") or []
+    image_html = "\n".join(
+        f"<div class=\"image-ref\">{escape(str(item.get('caption') or item.get('path') or item))}</div>"
+        if isinstance(item, dict)
+        else f"<div class=\"image-ref\">{escape(str(item))}</div>"
+        for item in image_items
+    )
+    extras = slide_data.get("extras") or {}
+    extras_html = "\n".join(
+        f"<span>{escape(str(key))}: {escape(str(value))}</span>"
+        for key, value in extras.items()
+    )
+    return f"""<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body {{
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        font-family: Arial, "PingFang SC", sans-serif;
+        background: #f4f7fb;
+        color: #172033;
+      }}
+      body {{
+        box-sizing: border-box;
+        padding: 6.5%;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 28px;
+      }}
+      header {{
+        border-bottom: 4px solid #2f80ed;
+        padding-bottom: 18px;
+      }}
+      .layout {{
+        color: #5a6475;
+        font-size: 18px;
+        text-transform: uppercase;
+        letter-spacing: 0;
+      }}
+      h1 {{
+        margin: 10px 0 0;
+        font-size: 54px;
+        line-height: 1.08;
+      }}
+      h2 {{
+        margin: 14px 0 0;
+        color: #465166;
+        font-size: 26px;
+        font-weight: 500;
+      }}
+      main {{
+        display: grid;
+        align-content: center;
+      }}
+      ul {{
+        margin: 0;
+        padding-left: 34px;
+        font-size: 30px;
+        line-height: 1.45;
+      }}
+      li + li {{
+        margin-top: 14px;
+      }}
+      .images {{
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }}
+      .image-ref {{
+        border: 1px solid #cfd8e6;
+        background: white;
+        padding: 12px 16px;
+        font-size: 18px;
+      }}
+      footer {{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        color: #5a6475;
+        font-size: 16px;
+      }}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="layout">{layout_name}</div>
+      <h1>{title}</h1>
+      {f"<h2>{subtitle}</h2>" if subtitle else ""}
+    </header>
+    <main>
+      {f"<ul>{body_html}</ul>" if body_html else ""}
+      {f"<section class=\"images\">{image_html}</section>" if image_html else ""}
+    </main>
+    <footer>{extras_html}</footer>
+  </body>
+</html>
+"""
+
+
+def _normalize_text_list(value) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    return [str(value)]
