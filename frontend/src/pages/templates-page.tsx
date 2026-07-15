@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { connectTemplateEvents } from "@/lib/sse"
 import { cn } from "@/lib/utils"
 import { useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
@@ -93,12 +92,10 @@ export function TemplatesPage() {
     },
   })
 
+  // The template SSE stream lives in the store (app-wide), so leaving this
+  // page keeps parse progress flowing; here we only refresh the list.
   useEffect(() => {
     void useTemplatesStore.getState().fetchTemplates()
-    const dispose = connectTemplateEvents((event) =>
-      useTemplatesStore.getState().applyTemplateEvent(event),
-    )
-    return dispose
   }, [])
 
   const counts = useMemo(
@@ -177,6 +174,7 @@ export function TemplatesPage() {
                 <button
                   key={filter.value}
                   type="button"
+                  aria-pressed={active}
                   className={cn(
                     "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors",
                     active

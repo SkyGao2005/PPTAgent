@@ -137,7 +137,8 @@
   --secondary-foreground: #39352f;
   --muted: #f6f5f2;
   --muted-foreground: #6b665d;
-  --hint: #8b857b;
+  /* ≥4.5:1 on card (#fff) and page (#f0efeb) backgrounds for WCAG AA. */
+  --hint: #6f6a60;
   --accent: oklch(0.97 0.01 272);
   --accent-foreground: oklch(0.38 0.11 272);
   --destructive: oklch(0.5 0.15 30);
@@ -176,7 +177,8 @@
   --secondary-foreground: #f4f2ed;
   --muted: #2b2a27;
   --muted-foreground: #aaa59b;
-  --hint: #8b857b;
+  /* ≥4.5:1 on dark card (#20201e) backgrounds for WCAG AA. */
+  --hint: #979187;
   --accent: #33312e;
   --accent-foreground: #f4f2ed;
   --destructive: oklch(0.7 0.17 24);

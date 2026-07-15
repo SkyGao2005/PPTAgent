@@ -28,7 +28,7 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { useCreateTaskStore } from "@/stores/create-task-store"
+import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
 
 const suggestions = [
@@ -76,6 +76,14 @@ export function CreatePage() {
   const templatesLoaded = useTemplatesStore((state) => state.loaded)
   const templatesLoadError = useTemplatesStore((state) => state.loadError)
   const readyTemplates = templates.filter((template) => template.status === "ready")
+  // The grid shows only four cards; a template picked from the library must
+  // stay visible even when it is not among the first four.
+  const firstFour = readyTemplates.slice(0, 4)
+  const selectedTemplate = readyTemplates.find((template) => template.id === templateId)
+  const shownTemplates =
+    selectedTemplate && !firstFour.some((template) => template.id === templateId)
+      ? [selectedTemplate, ...firstFour.slice(0, 3)]
+      : firstFour
 
   useEffect(() => {
     if (!templatesLoaded) {
@@ -102,8 +110,14 @@ export function CreatePage() {
         })
       }
       if (accepted.length) {
-        addAttachments(accepted)
-        toast.success(`已添加 ${accepted.length} 个参考文件`)
+        const added = addAttachments(accepted)
+        if (added === accepted.length) {
+          toast.success(`已添加 ${added} 个参考文件`)
+        } else if (added > 0) {
+          toast.warning(`最多 ${MAX_ATTACHMENTS} 个参考文件，仅添加了前 ${added} 个`)
+        } else {
+          toast.error(`最多 ${MAX_ATTACHMENTS} 个参考文件，请先移除部分文件`)
+        }
       }
     },
     [addAttachments],
@@ -162,6 +176,7 @@ export function CreatePage() {
               <Textarea
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
+                aria-label="演示主题"
                 maxLength={200}
                 rows={3}
                 className="min-h-24 resize-none rounded-[10px] bg-[#FDFDFC] p-4 text-[15px] leading-7"
@@ -264,7 +279,7 @@ export function CreatePage() {
                 </div>
               )}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {readyTemplates.slice(0, 4).map((template) => {
+                {shownTemplates.map((template) => {
                   const selected = template.id === templateId
                   return (
                     <button
@@ -313,6 +328,7 @@ export function CreatePage() {
                   </span>
                 </div>
                 <Slider
+                  aria-label="页数"
                   min={5}
                   max={30}
                   step={1}
@@ -335,6 +351,7 @@ export function CreatePage() {
                     <button
                       key={item}
                       type="button"
+                      aria-pressed={ratio === item}
                       className={cn(
                         "flex h-10 items-center justify-center gap-2 rounded-[10px] border-2 text-[13px] font-medium transition-colors",
                         ratio === item

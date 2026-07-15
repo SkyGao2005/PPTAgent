@@ -9,6 +9,8 @@ interface ReferenceAttachment {
   file: File
 }
 
+export const MAX_ATTACHMENTS = 8
+
 interface CreateTaskState {
   topic: string
   pageCount: number
@@ -22,7 +24,8 @@ interface CreateTaskState {
   setRatio: (ratio: "16:9" | "4:3") => void
   setLanguage: (language: string) => void
   setTemplateId: (templateId: string) => void
-  addAttachments: (files: File[]) => void
+  /** Returns how many files were actually added (capped at MAX_ATTACHMENTS). */
+  addAttachments: (files: File[]) => number
   removeAttachment: (attachmentId: string) => void
   createTask: () => Promise<string>
 }
@@ -41,18 +44,24 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   setRatio: (ratio) => set({ ratio }),
   setLanguage: (language) => set({ language }),
   setTemplateId: (templateId) => set({ templateId }),
-  addAttachments: (files) =>
-    set((state) => ({
-      attachments: [
-        ...state.attachments,
-        ...files.map((file) => ({
-          id: crypto.randomUUID(),
-          name: file.name,
-          size: file.size,
-          file,
-        })),
-      ].slice(0, 8),
-    })),
+  addAttachments: (files) => {
+    const room = Math.max(0, MAX_ATTACHMENTS - get().attachments.length)
+    const accepted = files.slice(0, room)
+    if (accepted.length) {
+      set((state) => ({
+        attachments: [
+          ...state.attachments,
+          ...accepted.map((file) => ({
+            id: crypto.randomUUID(),
+            name: file.name,
+            size: file.size,
+            file,
+          })),
+        ],
+      }))
+    }
+    return accepted.length
+  },
   removeAttachment: (attachmentId) =>
     set((state) => ({
       attachments: state.attachments.filter(

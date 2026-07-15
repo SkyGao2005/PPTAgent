@@ -82,6 +82,18 @@ function chatMessageId(): string {
   return crypto.randomUUID()
 }
 
+// Export downloads navigate the browser; only same-origin paths and
+// http(s)/blob URLs are trusted, never javascript:/data: or //host.
+function safeDownloadUrl(url: string | null): string | null {
+  if (!url) {
+    return null
+  }
+  if (/^(https?:|blob:)/i.test(url)) {
+    return url
+  }
+  return url.startsWith("/") && !url.startsWith("//") ? url : null
+}
+
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
   function patchSlide(slideId: string, patch: Partial<SlideView>): void {
     set((state) => {
@@ -134,12 +146,26 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       }
       const slides = new Map(state.slides)
       let slideOrder = state.slideOrder
+      let chats = state.chats
+      let pendingEdits = state.pendingEdits
       const pendingId = index !== null ? placeholderId(index) : null
       if (pendingId && slides.has(pendingId)) {
         const placeholder = slides.get(pendingId)!
         slides.delete(pendingId)
         slides.set(slideId, { ...placeholder, id: slideId, title: title ?? placeholder.title })
         slideOrder = slideOrder.map((id) => (id === pendingId ? slideId : id))
+        // Chats and queued edits keyed on the placeholder must follow the
+        // real slide id, or queued instructions are silently dropped.
+        if (chats.has(pendingId)) {
+          chats = new Map(chats)
+          chats.set(slideId, chats.get(pendingId)!)
+          chats.delete(pendingId)
+        }
+        if (pendingEdits.has(pendingId)) {
+          pendingEdits = new Map(pendingEdits)
+          pendingEdits.set(slideId, pendingEdits.get(pendingId)!)
+          pendingEdits.delete(pendingId)
+        }
       } else {
         slides.set(slideId, {
           id: slideId,
@@ -154,7 +180,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       }
       const selectedSlideId =
         state.selectedSlideId === pendingId ? slideId : state.selectedSlideId
-      return { slides, slideOrder, selectedSlideId }
+      return { slides, slideOrder, selectedSlideId, chats, pendingEdits }
     })
   }
 
@@ -209,8 +235,14 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       patchChat(slideId, receiptId, { chatId: chat_id })
     } catch {
       patchChat(slideId, receiptId, { status: "failed", content: "指令发送失败，请重试" })
+      // A failed POST must not stall the rest of the queue for this slide.
+      flushPendingEdits(slideId)
     }
   }
+
+  // Guards hydrate() against out-of-order responses when the user switches
+  // tasks quickly: only the most recent call may write to the store.
+  let hydrateGeneration = 0
 
   return {
     taskId: null,
@@ -230,6 +262,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     fallbackTotal: 0,
 
     async hydrate(taskId, fallbackTotal = 0) {
+      const generation = ++hydrateGeneration
       set({
         taskId,
         task: null,
@@ -252,6 +285,9 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           api.getTask(taskId),
           api.listSlides(taskId),
         ])
+        if (generation !== hydrateGeneration) {
+          return
+        }
         const slides = new Map<string, SlideView>()
         const slideOrder: string[] = []
         for (const artifact of [...artifacts].sort((a, b) => a.index - b.index)) {
@@ -299,13 +335,17 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           hydrated: true,
         })
       } catch {
+        if (generation !== hydrateGeneration) {
+          return
+        }
         set({ hydrated: true, loadError: "任务不存在或已过期" })
       }
     },
 
     applyEvent(event) {
       const state = get()
-      if (event.seq <= state.lastSeq) {
+      // Reject events from a previous task's stream and stale replays.
+      if (event.task_id !== state.taskId || event.seq <= state.lastSeq) {
         return
       }
       set((current) => ({
@@ -391,6 +431,26 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
               upsertSlide(item.slide_id, item.index, item.title)
               patchSlide(item.slide_id, { title: item.title })
             }
+            // The final outline is authoritative: drop leftover index
+            // placeholders when it has fewer pages than requested, or they
+            // stay "queued" forever and block export.
+            set((current) => {
+              const stale = current.slideOrder.filter((id) => id.startsWith("pending-"))
+              if (!stale.length) {
+                return current
+              }
+              const slides = new Map(current.slides)
+              for (const id of stale) {
+                slides.delete(id)
+              }
+              const slideOrder = current.slideOrder.filter((id) => slides.has(id))
+              const selectedSlideId =
+                current.selectedSlideId && slides.has(current.selectedSlideId)
+                  ? current.selectedSlideId
+                  : (slideOrder[0] ?? null)
+              return { slides, slideOrder, selectedSlideId }
+            })
+            patchTask({ total_slides: outline.length })
           }
           break
         }
@@ -410,10 +470,16 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           if (!event.slide_id) {
             break
           }
-          patchSlide(event.slide_id, {
-            previewUrl: event.artifact_url,
-            revision: (event.payload.revision as number) ?? undefined,
-          })
+          // Spreading `previewUrl: undefined` would erase an existing
+          // preview, so only include fields the event actually carries.
+          const patch: Partial<SlideView> = {}
+          if (event.artifact_url) {
+            patch.previewUrl = event.artifact_url
+          }
+          if (typeof event.payload.revision === "number") {
+            patch.revision = event.payload.revision
+          }
+          patchSlide(event.slide_id, patch)
           break
         }
         case "slide.completed": {
@@ -430,13 +496,14 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
                   { revision, label, created_at: event.created_at, preview_url: event.artifact_url },
                 ]
               : slide?.revisions
-          patchSlide(event.slide_id, {
-            status: "completed",
-            previewUrl: event.artifact_url ?? undefined,
-            revision,
-            revisions,
-            title: (event.payload.title as string) ?? undefined,
-          })
+          const patch: Partial<SlideView> = { status: "completed", revision, revisions }
+          if (event.artifact_url) {
+            patch.previewUrl = event.artifact_url
+          }
+          if (typeof event.payload.title === "string") {
+            patch.title = event.payload.title
+          }
+          patchSlide(event.slide_id, patch)
           flushPendingEdits(event.slide_id)
           break
         }
@@ -477,9 +544,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
             revisions,
           })
           const messages = get().chats.get(event.slide_id) ?? []
-          const receipt = chatId
-            ? messages.find((message) => message.chatId === chatId)
-            : messages.findLast((message) => message.status === "pending")
+          // The POST receipt may not have its chat_id yet when the terminal
+          // event wins the race; fall back to the last pending receipt.
+          const receipt =
+            (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
+            messages.findLast((message) => message.status === "pending")
           if (receipt) {
             patchChat(event.slide_id, receipt.id, {
               status: "applied",
@@ -499,9 +568,9 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           patchSlide(event.slide_id, { status: "failed" })
           const chatId = event.payload.chat_id as string | undefined
           const messages = get().chats.get(event.slide_id) ?? []
-          const receipt = chatId
-            ? messages.find((message) => message.chatId === chatId)
-            : messages.findLast((message) => message.status === "pending")
+          const receipt =
+            (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
+            messages.findLast((message) => message.status === "pending")
           if (receipt) {
             patchChat(event.slide_id, receipt.id, {
               status: "failed",
@@ -514,11 +583,14 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           if (!event.slide_id) {
             break
           }
-          patchSlide(event.slide_id, {
-            status: "completed",
-            previewUrl: event.artifact_url ?? undefined,
-            revision: (event.payload.revision as number) ?? undefined,
-          })
+          const patch: Partial<SlideView> = { status: "completed" }
+          if (event.artifact_url) {
+            patch.previewUrl = event.artifact_url
+          }
+          if (typeof event.payload.revision === "number") {
+            patch.revision = event.payload.revision
+          }
+          patchSlide(event.slide_id, patch)
           break
         }
         case "export.started":
@@ -527,7 +599,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
         case "export.completed": {
           set({ exporting: false })
           const filename = (event.payload.filename as string) ?? "presentation.pptx"
-          const url = event.artifact_url
+          const url = safeDownloadUrl(event.artifact_url)
           toast.success("导出完成", {
             description: filename,
             action: url
@@ -581,7 +653,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (!taskId) {
         return
       }
-      await api.cancelTask(taskId)
+      try {
+        await api.cancelTask(taskId)
+      } catch {
+        toast.error("取消请求失败，请重试")
+      }
     },
 
     async resumeTask() {
@@ -590,7 +666,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
         return
       }
       set({ followLatest: true })
-      await api.resumeTask(taskId)
+      try {
+        await api.resumeTask(taskId)
+      } catch {
+        toast.error("继续生成请求失败，请重试")
+      }
     },
 
     async exportTask(format) {
@@ -651,7 +731,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (!taskId) {
         return
       }
-      await api.undo(taskId, slideId)
+      try {
+        await api.undo(taskId, slideId)
+      } catch {
+        toast.error("撤销失败，请重试")
+      }
     },
 
     async applyRevision(slideId, revision) {
@@ -659,7 +743,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (!taskId) {
         return
       }
-      await api.applyRevision(taskId, slideId, revision)
+      try {
+        await api.applyRevision(taskId, slideId, revision)
+      } catch {
+        toast.error("切换版本失败，请重试")
+      }
     },
 
     async retrySlide(slideId) {
@@ -667,7 +755,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (!taskId) {
         return
       }
-      await api.retrySlide(taskId, slideId)
+      try {
+        await api.retrySlide(taskId, slideId)
+      } catch {
+        toast.error("重试请求失败，请重试")
+      }
     },
 
     async loadRevisions(slideId) {
@@ -675,8 +767,12 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (!taskId) {
         return
       }
-      const revisions = await api.listRevisions(taskId, slideId)
-      patchSlide(slideId, { revisions })
+      try {
+        const revisions = await api.listRevisions(taskId, slideId)
+        patchSlide(slideId, { revisions })
+      } catch {
+        toast.error("获取版本历史失败")
+      }
     },
   }
 })

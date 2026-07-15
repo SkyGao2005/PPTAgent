@@ -88,7 +88,9 @@ const realApi: ApiSurface = {
   sendChat: (taskId, slideId, text, elementId) =>
     request(`/api/tasks/${taskId}/slides/${slideId}/chat`, {
       method: "POST",
-      body: JSON.stringify({ text, element_id: elementId ?? null }),
+      // element_id is optional in the contract; omit it instead of sending
+      // null, which strict backend models may reject with 422.
+      body: JSON.stringify(elementId ? { text, element_id: elementId } : { text }),
     }),
   listRevisions: (taskId, slideId) =>
     request(`/api/tasks/${taskId}/slides/${slideId}/revisions`),
