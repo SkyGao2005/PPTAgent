@@ -258,6 +258,7 @@ class AgentEnv:
     ) -> None:
         if self.event_reporter is None:
             await self._maybe_render_html_preview(tool_call, arguments, result)
+            await self._maybe_capture_template_slide(tool_call, arguments, result)
             return
         try:
             if result.isError:
@@ -276,6 +277,7 @@ class AgentEnv:
                     payload={"tool_call_id": tool_call.id},
                 )
             await self._maybe_render_html_preview(tool_call, arguments, result)
+            await self._maybe_capture_template_slide(tool_call, arguments, result)
         except Exception as e:
             warning(f"Failed to report tool finish event: {e}")
 
@@ -347,6 +349,89 @@ class AgentEnv:
                 except Exception as report_error:
                     warning(f"Failed to report slide preview failure: {report_error}")
             warning(f"Failed to render slide preview: {e}")
+
+    async def _maybe_capture_template_slide(
+        self,
+        tool_call: ToolCall,
+        arguments: dict | None,
+        result: CallToolResult,
+    ) -> None:
+        """当 ``generate_slide`` 工具成功后，持久化模板模式 SlideArtifact。
+
+        与 ``_maybe_render_html_preview`` 对称：HTML 模式通过 inspect_slide
+        获取预览，模板模式通过 generate_slide 获取结构化页面数据。
+        """
+        if (
+            self.preview_service is None
+            or result.isError
+            or tool_call.function.name != "generate_slide"
+        ):
+            return
+        slide_id = None
+        slide_index = None
+        try:
+            from deeppresenter.server.services.preview import (
+                artifact_url,
+                stable_slide_id,
+            )
+
+            # 从工具参数和结果中提取 slide_data
+            slide_data: dict = {}
+            if arguments:
+                slide_data.update(arguments)
+            # 结果文本可能包含 JSON，尝试解析
+            result_text = self._tool_result_text(result)
+            if result_text:
+                try:
+                    import json as _json
+                    parsed = _json.loads(result_text)
+                    if isinstance(parsed, dict):
+                        slide_data.update(parsed)
+                except (_json.JSONDecodeError, TypeError):
+                    pass
+
+            # 确定页码——从参数或上下文计数
+            slide_index = slide_data.get("slide_index") or 1
+            if isinstance(slide_index, str):
+                slide_index = int(slide_index)
+            slide_id = stable_slide_id(self.workspace.stem, slide_index)
+
+            artifact = await self.preview_service.render_template_slide(
+                self.workspace.stem,
+                slide_index,
+                slide_data,
+                slide_id=slide_id,
+            )
+
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_preview_ready(
+                    artifact.slide_id,
+                    artifact.index,
+                    artifact_url(artifact.task_id, artifact.preview_path),
+                )
+                await self.event_reporter.slide_completed(
+                    artifact.slide_id,
+                    artifact.index,
+                )
+        except Exception as e:
+            if (
+                self.event_reporter is not None
+                and slide_id is not None
+                and slide_index is not None
+            ):
+                try:
+                    await self.event_reporter.slide_failed(
+                        slide_id,
+                        slide_index,
+                        f"模板模式第 {slide_index} 页持久化失败：{e}",
+                        payload={
+                            "error": str(e),
+                            "source_preserved": True,
+                        },
+                    )
+                except Exception as report_error:
+                    warning(f"Failed to report template slide failure: {report_error}")
+            warning(f"Failed to capture template slide: {e}")
 
     @staticmethod
     def _tool_result_text(result: CallToolResult) -> str:

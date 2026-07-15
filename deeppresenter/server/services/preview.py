@@ -114,6 +114,68 @@ class PreviewService:
         self._write_index(task_id)
         return artifact
 
+    async def render_template_slide(
+        self,
+        task_id: str,
+        slide_index: int,
+        slide_data: dict,
+        *,
+        slide_id: str | None = None,
+        revision: int | None = None,
+    ) -> SlideArtifact:
+        """持久化模板模式单页 SlideArtifact（结构化数据，预览图待 C2 补充）。
+
+        ``slide_data`` 应包含 ``layout_name``、``title``、``subtitle``、``body``、
+        ``images``、``extras`` 等字段，由 ``generate_slide`` 工具返回。
+        当前不生成 PNG 预览图；preview_path 为 None。
+        """
+        sid = slide_id or stable_slide_id(task_id, slide_index)
+        current_path = slide_dir(self.workspace_base, task_id, sid) / "current.json"
+        current = self._load_current(current_path)
+        rev = revision or (current.revision if current else 1)
+
+        rev_dir = revision_dir(self.workspace_base, task_id, sid, rev)
+        rev_dir.mkdir(parents=True, exist_ok=True)
+
+        # 持久化原始结构化数据供后续预览渲染
+        source_rel = Path("slides") / sid / "revisions" / str(rev) / "source.json"
+        rev_dir.mkdir(parents=True, exist_ok=True)
+        source_path = rev_dir / "source.json"
+        source_path.write_text(
+            json.dumps(slide_data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        from deeppresenter.server.models.artifacts import StructuredContent
+        structured = StructuredContent(
+            title=slide_data.get("title"),
+            subtitle=slide_data.get("subtitle"),
+            body=slide_data.get("body") or [],
+            images=slide_data.get("images") or [],
+            extras=slide_data.get("extras") or {},
+        )
+
+        artifact_kwargs: dict = {
+            "slide_id": sid,
+            "task_id": task_id,
+            "index": slide_index,
+            "status": "completed",
+            "mode": "template",
+            "layout_name": slide_data.get("layout_name"),
+            "structured_data": structured,
+            "source_path": str(source_rel),
+            "preview_path": None,
+            "revision": rev,
+        }
+        if current:
+            artifact_kwargs["created_at"] = current.created_at
+        artifact = SlideArtifact(**artifact_kwargs)
+
+        self._write_json(rev_dir / "slide.json", artifact)
+        self._write_json(current_path, artifact)
+        self._write_index(task_id)
+        return artifact
+
     def list_slides(self, task_id: str) -> list[SlideArtifact]:
         """返回任务当前所有页面，按 1-based 页码排序。"""
         index_path = slides_dir(self.workspace_base, task_id) / SLIDES_INDEX_FILE

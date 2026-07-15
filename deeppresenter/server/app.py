@@ -71,6 +71,27 @@ def create_app(
     )
     app.state.task_manager = manager
 
+    @app.on_event("startup")
+    async def _restore_tasks():
+        """服务启动时从磁盘恢复任务快照，孤儿 running 标记为 failed。"""
+        restored = await TaskManager.restore_snapshots(base)
+        # 将恢复的快照/总线合并到当前 manager
+        for tid, snap in restored._snapshots.items():
+            if tid not in manager._snapshots:
+                manager._snapshots[tid] = snap
+        for tid, bus in restored._buses.items():
+            if tid not in manager._buses:
+                manager._buses[tid] = bus
+        for tid, reporter in restored._reporters.items():
+            if tid not in manager._reporters:
+                manager._reporters[tid] = reporter
+        for tid, ps in restored._preview_services.items():
+            if tid not in manager._preview_services:
+                manager._preview_services[tid] = ps
+        for tid, evt in restored._cancel_events.items():
+            if tid not in manager._cancel_events:
+                manager._cancel_events[tid] = evt
+
     app.include_router(tasks_router)
 
     @app.get("/health")

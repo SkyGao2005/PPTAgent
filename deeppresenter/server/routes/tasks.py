@@ -239,6 +239,41 @@ async def cancel_task(task_id: str, request: Request):
     return {"task_id": task_id, "status": "cancelled", "message": "任务已取消，已完成页面保留"}
 
 
+class RetryRequest(BaseModel):
+    """重试请求体。"""
+
+    retry_failed_slides_only: bool = Field(default=True, description="是否仅重试失败页面")
+
+
+@router.post("/{task_id}/retry")
+async def retry_task(task_id: str, body: RetryRequest, request: Request):
+    """重试失败的任务。"""
+    manager = _get_manager(request)
+    success = await manager.retry(task_id, retry_failed_slides_only=body.retry_failed_slides_only)
+    if not success:
+        snapshot = manager.get_snapshot(task_id)
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail=f"任务 {task_id} 不存在")
+        raise HTTPException(
+            status_code=409,
+            detail=f"任务当前状态为 {snapshot.status.value}，无法重试（仅失败任务可重试）",
+        )
+    return {"task_id": task_id, "status": "running", "message": "任务已重新启动"}
+
+
+@router.post("/{task_id}/export")
+async def export_task(task_id: str, request: Request):
+    """导出任务最终产物。"""
+    manager = _get_manager(request)
+    artifact = await manager.export(task_id)
+    if artifact is None:
+        snapshot = manager.get_snapshot(task_id)
+        if snapshot is None:
+            raise HTTPException(status_code=404, detail=f"任务 {task_id} 不存在")
+        raise HTTPException(status_code=409, detail="任务无可导出产物")
+    return {"task_id": task_id, "artifact_url": artifact, "status": "completed"}
+
+
 @router.get("/{task_id}/artifacts/{artifact_path:path}")
 async def get_artifact(
     task_id: str,

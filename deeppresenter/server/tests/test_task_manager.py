@@ -18,6 +18,8 @@ from deeppresenter.server.models.events import (
     StageName,
     TaskStatus,
 )
+from deeppresenter.server.services.event_bus import EventBus
+from deeppresenter.server.services.event_reporter import EventReporter
 from deeppresenter.server.services.task_manager import (
     SNAPSHOT_FILE,
     TaskManager,
@@ -286,3 +288,142 @@ class TestConcurrency:
         # 任务二不受影响
         snap2 = manager.get_snapshot(id2)
         assert snap2.status != TaskStatus.CANCELLED
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskSnapshot completed_slide_ids
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTaskSnapshotSlideIds:
+    def test_default_empty_list(self):
+        s = TaskSnapshot(task_id="abc")
+        assert s.completed_slide_ids == []
+
+    def test_roundtrip_with_slide_ids(self):
+        s = TaskSnapshot(
+            task_id="abc",
+            completed_slide_ids=["sld-aaa", "sld-bbb"],
+            completed_slides=2,
+        )
+        d = s.to_dict()
+        restored = TaskSnapshot.from_dict(d)
+        assert restored.completed_slide_ids == ["sld-aaa", "sld-bbb"]
+        assert restored.completed_slides == 2
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 重试
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTaskRetry:
+    @pytest.mark.asyncio
+    async def test_retry_failed_task(self, tmp_workspace):
+        """FAILED 任务可以重试并转为 RUNNING。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(instruction="test")
+
+        # 手动设为 FAILED
+        manager._transition_to(task_id, TaskStatus.FAILED,
+                               error_message="模拟失败")
+        # 需要重建 bus（placeholder runner 完成后 bus 已关闭）
+        workspace = task_dir(tmp_workspace, task_id)
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        success = await manager.retry(task_id)
+        assert success
+        snap = manager.get_snapshot(task_id)
+        assert snap.status == TaskStatus.RUNNING
+
+    @pytest.mark.asyncio
+    async def test_retry_non_failed_returns_false(self, tmp_workspace):
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(instruction="test")
+        await asyncio.sleep(0.5)  # 等待 placeholder 完成
+
+        success = await manager.retry(task_id)
+        assert not success  # SUCCEEDED 不可重试
+
+    @pytest.mark.asyncio
+    async def test_retry_nonexistent_returns_false(self, tmp_workspace):
+        manager = TaskManager(tmp_workspace)
+        success = await manager.retry("no_such_task")
+        assert not success
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 导出
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestTaskExport:
+    @pytest.mark.asyncio
+    async def test_export_with_artifact(self, tmp_workspace):
+        """导出应返回快照中的 result_artifact。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(instruction="test")
+
+        # 手动设置快照产物（不依赖 placeholder runner 完成）
+        manager._transition_to(task_id, TaskStatus.SUCCEEDED,
+                               progress=100.0, result_artifact="exports/latest.pptx")
+        # 重建 EventBus（占位执行器完成后会关闭）
+        workspace = task_dir(tmp_workspace, task_id)
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        artifact = await manager.export(task_id)
+        assert artifact == "exports/latest.pptx"
+
+    @pytest.mark.asyncio
+    async def test_export_nonexistent_returns_none(self, tmp_workspace):
+        manager = TaskManager(tmp_workspace)
+        artifact = await manager.export("no_such_task")
+        assert artifact is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 启动恢复
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRestoreSnapshots:
+    @pytest.mark.asyncio
+    async def test_restore_loads_persisted_tasks(self, tmp_workspace):
+        """从磁盘恢复已写入的快照。"""
+        task_id = "restore01"
+        workspace = task_dir(tmp_workspace, task_id)
+        workspace.mkdir(parents=True, exist_ok=True)
+        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.SUCCEEDED,
+                            instruction="已完成任务", progress=100.0,
+                            result_artifact="exports/latest.pptx")
+        (workspace / SNAPSHOT_FILE).write_text(
+            json.dumps(snap.to_dict(), ensure_ascii=False), encoding="utf-8")
+
+        restored = await TaskManager.restore_snapshots(tmp_workspace)
+        assert task_id in restored._snapshots
+        assert restored._snapshots[task_id].status == TaskStatus.SUCCEEDED
+        assert restored._snapshots[task_id].instruction == "已完成任务"
+
+    @pytest.mark.asyncio
+    async def test_orphan_running_marked_failed(self, tmp_workspace):
+        """如果快照 status=running，恢复时应该标记为 failed。"""
+        task_id = "orphan01"
+        workspace = task_dir(tmp_workspace, task_id)
+        workspace.mkdir(parents=True, exist_ok=True)
+        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.RUNNING,
+                            instruction="orphan task")
+        snap_path = workspace / SNAPSHOT_FILE
+        snap_path.write_text(json.dumps(snap.to_dict(), ensure_ascii=False),
+                             encoding="utf-8")
+
+        restored = await TaskManager.restore_snapshots(tmp_workspace)
+        assert task_id in restored._snapshots
+        assert restored._snapshots[task_id].status == TaskStatus.FAILED
+        assert "异常重启" in (restored._snapshots[task_id].error_message or "")
+
+    @pytest.mark.asyncio
+    async def test_empty_workspace(self, tmp_workspace):
+        restored = await TaskManager.restore_snapshots(tmp_workspace)
+        assert len(restored._snapshots) == 0

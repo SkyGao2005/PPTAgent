@@ -42,6 +42,7 @@ class TaskSnapshot:
         total_slides: int = 0,
         completed_slides: int = 0,
         failed_slides: int = 0,
+        completed_slide_ids: Optional[list[str]] = None,
         result_artifact: Optional[str] = None,
         error_message: Optional[str] = None,
         created_at: Optional[str] = None,
@@ -55,6 +56,7 @@ class TaskSnapshot:
         self.total_slides = total_slides
         self.completed_slides = completed_slides
         self.failed_slides = failed_slides
+        self.completed_slide_ids = completed_slide_ids or []
         self.result_artifact = result_artifact
         self.error_message = error_message
         now = datetime.now(timezone.utc).isoformat()
@@ -72,6 +74,7 @@ class TaskSnapshot:
             "total_slides": self.total_slides,
             "completed_slides": self.completed_slides,
             "failed_slides": self.failed_slides,
+            "completed_slide_ids": self.completed_slide_ids,
             "result_artifact": self.result_artifact,
             "error_message": self.error_message,
             "created_at": self.created_at,
@@ -96,6 +99,7 @@ class TaskSnapshot:
             total_slides=data.get("total_slides", 0),
             completed_slides=data.get("completed_slides", 0),
             failed_slides=data.get("failed_slides", 0),
+            completed_slide_ids=data.get("completed_slide_ids") or [],
             result_artifact=data.get("result_artifact"),
             error_message=data.get("error_message"),
             created_at=data.get("created_at"),
@@ -281,6 +285,139 @@ class TaskManager:
 
         return True
 
+    # ── 任务重试 ──────────────────────────────────────────────
+
+    async def retry(self, task_id: str, retry_failed_slides_only: bool = True) -> bool:
+        """重试失败的任务。
+
+        Args:
+            task_id: 任务 ID
+            retry_failed_slides_only: True 时跳过已完成的页面
+
+        Returns:
+            True 表示重试已启动，False 表示任务不存在或状态不允许重试
+        """
+        snapshot = self._snapshots.get(task_id)
+        if snapshot is None:
+            return False
+        if snapshot.status != TaskStatus.FAILED:
+            return False
+        if not validate_task_transition(TaskStatus.FAILED, TaskStatus.RUNNING):
+            return False
+
+        bus = self._buses.get(task_id)
+        reporter = self._reporters.get(task_id)
+        if bus is None or reporter is None:
+            return False
+
+        # 重建 EventBus 和取消信号
+        workspace = task_dir(self.workspace_base, task_id)
+        if bus._closed:
+            bus = EventBus(workspace)
+            self._buses[task_id] = bus
+            reporter = EventReporter(task_id, bus.publish)
+            self._reporters[task_id] = reporter
+        cancel_evt = asyncio.Event()
+        self._cancel_events[task_id] = cancel_evt
+
+        self._transition_to(task_id, TaskStatus.RUNNING, progress=snapshot.progress)
+        await reporter.task_started(
+            f"任务重新执行{'（跳过已完成页面）' if retry_failed_slides_only else ''}"
+        )
+
+        runner = asyncio.create_task(
+            self._run_agent_loop(
+                task_id=task_id,
+                instruction=snapshot.instruction,
+                attachments=[],
+                num_pages=str(snapshot.total_slides) if snapshot.total_slides else None,
+                powerpoint_type="16:9",
+                template=None,
+                convert_type=None,
+                enable_planner=False,
+                language="zh",
+            )
+        )
+        self._runners[task_id] = runner
+        return True
+
+    # ── 任务导出 ──────────────────────────────────────────────
+
+    async def export(self, task_id: str) -> Optional[str]:
+        """触发导出，返回产物相对路径。"""
+        snapshot = self._snapshots.get(task_id)
+        if snapshot is None:
+            return None
+        reporter = self._reporters.get(task_id)
+        bus = self._buses.get(task_id)
+        if reporter is None or bus is None:
+            return None
+
+        await reporter.export_started()
+        try:
+            artifact = snapshot.result_artifact
+            if artifact:
+                await reporter.export_completed(artifact)
+                return artifact
+            # 尝试扫描 exports 目录
+            exports_dir = task_dir(self.workspace_base, task_id) / "exports"
+            if exports_dir.exists():
+                pptx_files = list(exports_dir.glob("*.pptx"))
+                if pptx_files:
+                    rel = str(pptx_files[0].resolve().relative_to(
+                        task_dir(self.workspace_base, task_id).resolve()))
+                    await reporter.export_completed(rel)
+                    return rel
+            await reporter.export_failed("未找到可导出产物")
+            return None
+        except Exception as exc:
+            await reporter.export_failed(str(exc))
+            return None
+
+    # ── 启动恢复 ──────────────────────────────────────────────
+
+    @classmethod
+    async def restore_snapshots(cls, workspace_base: Path) -> "TaskManager":
+        """扫描工作区目录，恢复已知任务快照。
+
+        对状态为 running 的孤儿任务标记为 failed。
+        """
+        base = Path(workspace_base)
+        manager = cls(base)
+
+        if not base.exists():
+            return manager
+
+        for child in base.iterdir():
+            if not child.is_dir():
+                continue
+            snap_path = child / SNAPSHOT_FILE
+            if not snap_path.exists():
+                continue
+            try:
+                data = json.loads(snap_path.read_text(encoding="utf-8"))
+                snapshot = TaskSnapshot.from_dict(data)
+                task_id = snapshot.task_id
+
+                # 孤儿 running → failed
+                if snapshot.status == TaskStatus.RUNNING:
+                    snapshot.status = TaskStatus.FAILED
+                    snapshot.error_message = "服务异常重启，任务标记为失败"
+                    snapshot.updated_at = datetime.now(timezone.utc).isoformat()
+                    manager._save_snapshot(child, snapshot)
+
+                manager._snapshots[task_id] = snapshot
+                # 重建 EventBus（从 events.jsonl 恢复 seq）
+                bus = EventBus(child)
+                manager._buses[task_id] = bus
+                manager._reporters[task_id] = EventReporter(task_id, bus.publish)
+                manager._preview_services[task_id] = PreviewService(base)
+                manager._cancel_events[task_id] = asyncio.Event()
+            except (OSError, json.JSONDecodeError, KeyError):
+                continue
+
+        return manager
+
     # ── 快照持久化 ────────────────────────────────────────────
 
     def _save_snapshot(self, workspace: Path, snapshot: TaskSnapshot) -> None:
@@ -326,6 +463,7 @@ class TaskManager:
         bus = self._buses.get(task_id)
         reporter = self._reporters.get(task_id)
         preview_service = self._preview_services.get(task_id)
+        cancel_evt = self._cancel_events.get(task_id)
         if bus is None or reporter is None:
             return
 
@@ -373,9 +511,17 @@ class TaskManager:
 
             final_artifact: Optional[str] = None
             async for msg in loop.run(request):
+                if cancel_evt and cancel_evt.is_set():
+                    await reporter.task_cancelled("任务已取消，已完成页面保留")
+                    self._transition_to(task_id, TaskStatus.CANCELLED,
+                                        result_artifact=final_artifact)
+                    return
                 if isinstance(msg, (str, Path)):
                     final_artifact = self._artifact_path(task_id, Path(msg))
 
+            # 取消后不再写 succeeded
+            if cancel_evt and cancel_evt.is_set():
+                return
             self._transition_to(
                 task_id,
                 TaskStatus.SUCCEEDED,
