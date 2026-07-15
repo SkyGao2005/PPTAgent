@@ -1,3 +1,4 @@
+from __future__ import annotations
 """任务管理器 —— 任务生命周期、状态机、快照持久化、取消与恢复。
 
 每个任务被包装为 ``asyncio.Task``，拥有独立工作区、EventBus 和状态快照。
@@ -118,7 +119,7 @@ class TaskManager:
         workspace_base: Path,
         *,
         use_placeholder: bool = True,
-        config_path: str | None = None,
+        config_path: Optional[str] = None,
     ) -> None:
         self.workspace_base = Path(workspace_base)
         self.workspace_base.mkdir(parents=True, exist_ok=True)
@@ -370,7 +371,7 @@ class TaskManager:
                 preview_service=preview_service,
             )
 
-            final_artifact: str | None = None
+            final_artifact: Optional[str] = None
             async for msg in loop.run(request):
                 if isinstance(msg, (str, Path)):
                     final_artifact = self._artifact_path(task_id, Path(msg))

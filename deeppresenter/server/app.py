@@ -1,3 +1,4 @@
+from __future__ import annotations
 """DeepPresenter FastAPI 服务入口。
 
 启动方式::
@@ -15,6 +16,7 @@
 
 import os
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI
 
@@ -39,8 +41,8 @@ def _env_flag(name: str, default: bool = False) -> bool:
 def create_app(
     workspace_base: Path | None = None,
     *,
-    use_placeholder: bool | None = None,
-    config_path: str | None = None,
+    use_placeholder: Optional[bool] = None,
+    config_path: Optional[str] = None,
 ) -> FastAPI:
     """创建并配置 FastAPI 应用。
 

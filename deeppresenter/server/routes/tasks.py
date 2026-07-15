@@ -1,9 +1,11 @@
+from __future__ import annotations
 """任务相关 FastAPI 路由 —— 创建、查询、取消、SSE 订阅。
 
 所有路由均挂在 ``/api/tasks`` 下。
 """
 
 import json
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
@@ -23,10 +25,10 @@ class CreateTaskRequest(BaseModel):
 
     instruction: str = Field(..., description="PPT 主题/要求")
     attachments: list[str] = Field(default_factory=list, description="附件文件路径列表")
-    num_pages: str | None = Field(default=None, description="页数，如 '8' 或 '5-10'")
+    num_pages: Optional[str] = Field(default=None, description="页数，如 '8' 或 '5-10'")
     powerpoint_type: str = Field(default="16:9", description="画面比例")
-    template: str | None = Field(default=None, description="模板 ID")
-    convert_type: str | None = Field(
+    template: Optional[str] = Field(default=None, description="模板 ID")
+    convert_type: Optional[str] = Field(
         default=None, description="转换模式 deeppresenter/pptagent"
     )
     enable_planner: bool = Field(default=False, description="是否启用大纲规划")
