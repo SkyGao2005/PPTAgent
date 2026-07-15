@@ -7,6 +7,7 @@ import type { GenerationEvent, TemplateSummary } from "@/types/api"
 interface TemplatesState {
   templates: TemplateSummary[]
   loaded: boolean
+  loadError: string | null
   uploading: boolean
   fetchTemplates: () => Promise<void>
   uploadTemplate: (file: File) => Promise<void>
@@ -27,11 +28,17 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
   return {
     templates: [],
     loaded: false,
+    loadError: null,
     uploading: false,
 
     async fetchTemplates() {
-      const templates = await api.listTemplates()
-      set({ templates, loaded: true })
+      set({ loadError: null })
+      try {
+        const templates = await api.listTemplates()
+        set({ templates, loaded: true })
+      } catch {
+        set({ loadError: "无法连接服务，请检查网络后重试" })
+      }
     },
 
     async uploadTemplate(file) {

@@ -32,7 +32,8 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   pageCount: 12,
   ratio: "16:9",
   language: "zh-CN",
-  templateId: "obsidian",
+  // Selected after the template list loads; never assume a backend id.
+  templateId: "",
   attachments: [],
   creating: false,
   setTopic: (topic) => set({ topic }),

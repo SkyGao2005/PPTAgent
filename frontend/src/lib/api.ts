@@ -36,7 +36,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiError(`Request failed: ${response.statusText}`, response.status)
   }
 
-  return response.json() as Promise<T>
+  // Contract allows empty bodies (204 or bare 200) on delete/retry/apply/undo.
+  if (response.status === 204) {
+    return undefined as T
+  }
+  const text = await response.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 interface ApiSurface {
