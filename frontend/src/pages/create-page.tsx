@@ -91,16 +91,23 @@ export function CreatePage() {
     }
   }, [templatesLoaded])
 
-  // Keep the selection valid: fall back to the first ready template when
-  // nothing is selected yet or the selected one was deleted / never existed.
+  // Keep the selection valid: fall back to the first ready template when the
+  // selected one was deleted / never existed, and clear it entirely when no
+  // template is ready — a stale id must never reach task creation.
   useEffect(() => {
-    if (
-      readyTemplates.length > 0 &&
-      !readyTemplates.some((template) => template.id === templateId)
-    ) {
+    if (!templatesLoaded) {
+      return
+    }
+    if (readyTemplates.length === 0) {
+      if (templateId) {
+        setTemplateId("")
+      }
+      return
+    }
+    if (!readyTemplates.some((template) => template.id === templateId)) {
       setTemplateId(readyTemplates[0].id)
     }
-  }, [readyTemplates, templateId, setTemplateId])
+  }, [templatesLoaded, readyTemplates, templateId, setTemplateId])
 
   const onDrop = useCallback(
     (accepted: File[], rejected: unknown[]) => {

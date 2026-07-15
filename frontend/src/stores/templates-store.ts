@@ -9,6 +9,28 @@ import type { GenerationEvent, TemplateSummary } from "@/types/api"
 // the user leaves the templates page (the create page shows the selection).
 let templateStream: (() => void) | null = null
 
+// Ids the user deleted in this session; a stale GET snapshot taken before
+// the DELETE must not resurrect them.
+const deletedTemplateIds = new Set<string>()
+
+// Per-template epoch, bumped by every SSE event and optimistic mutation.
+// The GET snapshot has no watermark, so ordering is reconstructed locally:
+// a template touched while a request was in flight keeps its local state
+// wholesale — this covers stale ready/failed overwriting a newer SSE state
+// and parse progress running backwards, not just parsing regressions.
+const templateEpochs = new Map<string, number>()
+
+function bumpTemplateEpoch(templateId: string): void {
+  templateEpochs.set(templateId, (templateEpochs.get(templateId) ?? 0) + 1)
+}
+
+// Monotonic stamp per fetchTemplates() run. Uploads record the stamp they
+// completed at: a snapshot whose request predates the upload keeps it, while
+// a template missing from a newer snapshot was genuinely deleted (possibly
+// in another tab) and gets dropped instead of lingering forever.
+let fetchStamp = 0
+const uploadStamps = new Map<string, number>()
+
 interface TemplatesState {
   templates: TemplateSummary[]
   loaded: boolean
@@ -40,27 +62,33 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       templateStream ??= connectTemplateEvents((event) =>
         get().applyTemplateEvent(event),
       )
+      const stamp = ++fetchStamp
+      const epochsAtStart = new Map(templateEpochs)
       set({ loadError: null })
       try {
         const incoming = await api.listTemplates()
-        set((state) => ({
-          // An SSE event may already have moved a template past the snapshot
-          // this GET response was built from; never step back to "parsing".
-          templates: incoming.map((template) => {
-            const existing = state.templates.find((item) => item.id === template.id)
-            return existing &&
-              template.status === "parsing" &&
-              existing.status !== "parsing"
-              ? {
-                  ...template,
-                  status: existing.status,
-                  progress: existing.progress,
-                  error: existing.error,
-                }
-              : template
-          }),
-          loaded: true,
-        }))
+        set((state) => {
+          const touched = (id: string): boolean =>
+            (templateEpochs.get(id) ?? 0) !== (epochsAtStart.get(id) ?? 0)
+          // A template touched (SSE event or optimistic mutation) while this
+          // request was in flight keeps its local state; an untouched one
+          // reflects server state at-or-after the request and is taken as-is.
+          const merged = incoming
+            .filter((template) => !deletedTemplateIds.has(template.id))
+            .map((template) => {
+              const existing = state.templates.find((item) => item.id === template.id)
+              return existing && touched(template.id) ? existing : template
+            })
+          // Local-only entries survive only when their upload completed
+          // during this request's flight; otherwise the server genuinely no
+          // longer has them.
+          const localOnly = state.templates.filter(
+            (item) =>
+              !incoming.some((template) => template.id === item.id) &&
+              (uploadStamps.get(item.id) ?? 0) >= stamp,
+          )
+          return { templates: [...localOnly, ...merged], loaded: true }
+        })
       } catch {
         set({ loadError: "无法连接服务，请检查网络后重试" })
       }
@@ -70,6 +98,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       set({ uploading: true })
       try {
         const template = await api.uploadTemplate(file)
+        uploadStamps.set(template.id, fetchStamp)
         set((state) => ({
           templates: [template, ...state.templates.filter((item) => item.id !== template.id)],
         }))
@@ -88,12 +117,16 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       if (!previous) {
         return
       }
-      patchTemplate(templateId, { status: "parsing", progress: 8, error: null })
+      // Optimistic progress starts at 0 so the server's own parse_started
+      // value can only move it forward, never backwards.
+      bumpTemplateEpoch(templateId)
+      patchTemplate(templateId, { status: "parsing", progress: 0, error: null })
       try {
         await api.retryParse(templateId)
       } catch {
         // Roll back the optimistic "parsing" state so the card does not
         // spin forever after a failed request.
+        bumpTemplateEpoch(templateId)
         patchTemplate(templateId, {
           status: previous.status,
           progress: previous.progress,
@@ -111,6 +144,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
         toast.error("删除模板失败，请重试")
         return
       }
+      deletedTemplateIds.add(templateId)
       set((state) => ({
         templates: state.templates.filter((item) => item.id !== templateId),
       }))
@@ -124,6 +158,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       if (!templateId) {
         return
       }
+      bumpTemplateEpoch(templateId)
       switch (event.type) {
         case "template.parse_started":
           patchTemplate(templateId, { status: "parsing", progress: 3, error: null })

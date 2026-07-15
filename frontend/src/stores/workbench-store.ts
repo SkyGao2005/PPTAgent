@@ -136,6 +136,65 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     })
   }
 
+  // Per-slide epoch, bumped by every SSE-driven revision mutation. A GET has
+  // no watermark, so a response that raced such a mutation (a same-number
+  // revision replaced from an earlier base, a pruned revision resurrected)
+  // cannot be merged — it is discarded wholesale. A response whose epoch is
+  // unchanged reflects server state at-or-after the request, and the server
+  // had already applied everything SSE delivered before it, so replacing the
+  // list is safe.
+  let revisionEpochs = new Map<string, number>()
+
+  function bumpRevisionEpoch(slideId: string): void {
+    revisionEpochs.set(slideId, (revisionEpochs.get(slideId) ?? 0) + 1)
+  }
+
+  // Returns null when the response is stale: the task switched or the
+  // slide's revisions changed while the request was in flight.
+  async function fetchRevisions(slideId: string): Promise<SlideRevision[] | null> {
+    const { taskId } = get()
+    if (!taskId) {
+      return null
+    }
+    const epoch = revisionEpochs.get(slideId) ?? 0
+    const fetched = await api.listRevisions(taskId, slideId)
+    const fresh =
+      get().taskId === taskId && (revisionEpochs.get(slideId) ?? 0) === epoch
+    return fresh ? fetched : null
+  }
+
+  // Slide mutations are serialized per slide: the optimistic status keeps
+  // the UI (undo, version menu, regenerate, export) locked through the whole
+  // REST→SSE window — not just until the HTTP response — and a failed
+  // request rolls the status back.
+  const inflightOps = new Set<string>()
+
+  async function mutateSlide(
+    key: string,
+    slideId: string,
+    optimisticStatus: SlideStatus,
+    errorMessage: string,
+    run: () => Promise<unknown>,
+  ): Promise<void> {
+    if (inflightOps.has(key)) {
+      return
+    }
+    const previousStatus = get().slides.get(slideId)?.status
+    if (!previousStatus) {
+      return
+    }
+    inflightOps.add(key)
+    patchSlide(slideId, { status: optimisticStatus })
+    try {
+      await run()
+    } catch {
+      patchSlide(slideId, { status: previousStatus })
+      toast.error(errorMessage)
+    } finally {
+      inflightOps.delete(key)
+    }
+  }
+
   // Ensure a slide entry exists for an incoming event; replaces the
   // index-based placeholder created from `task.created` when the real
   // slide_id first shows up.
@@ -230,13 +289,23 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       content: "正在修改本页…",
       status: "pending",
     })
+    // Optimistically mark the slide as editing so undo / version switch /
+    // export stay locked through the REST→SSE window; edit.started then
+    // confirms it server-side.
+    const previousStatus = get().slides.get(slideId)?.status
+    patchSlide(slideId, { status: "editing" })
     try {
       const { chat_id } = await api.sendChat(taskId, slideId, text, elementId)
       patchChat(slideId, receiptId, { chatId: chat_id })
     } catch {
+      if (previousStatus) {
+        patchSlide(slideId, { status: previousStatus })
+      }
       patchChat(slideId, receiptId, { status: "failed", content: "指令发送失败，请重试" })
-      // A failed POST must not stall the rest of the queue for this slide.
-      flushPendingEdits(slideId)
+      // Fail-stop: the server may have received the request even though the
+      // HTTP receipt was lost, so dispatching the next queued edit here
+      // could mis-bind its result. The queue resumes on this slide's next
+      // terminal edit event, or when the user sends another instruction.
     }
   }
 
@@ -263,6 +332,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
 
     async hydrate(taskId, fallbackTotal = 0) {
       const generation = ++hydrateGeneration
+      revisionEpochs = new Map()
       set({
         taskId,
         task: null,
@@ -281,10 +351,12 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
         fallbackTotal,
       })
       try {
-        const [task, artifacts] = await Promise.all([
-          api.getTask(taskId),
-          api.listSlides(taskId),
-        ])
+        // Sequential on purpose: `task.last_seq` is the SSE replay watermark,
+        // so the slides snapshot must be taken at-or-after it. Events between
+        // the two snapshots are then replayed by SSE and re-applied
+        // idempotently, instead of falling into a gap neither side covers.
+        const task = await api.getTask(taskId)
+        const artifacts = await api.listSlides(taskId)
         if (generation !== hydrateGeneration) {
           return
         }
@@ -486,6 +558,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           if (!event.slide_id) {
             break
           }
+          bumpRevisionEpoch(event.slide_id)
           const revision = (event.payload.revision as number) ?? 1
           const label = (event.payload.label as string) ?? "初稿"
           const slide = get().slides.get(event.slide_id)
@@ -521,6 +594,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           if (!event.slide_id) {
             break
           }
+          bumpRevisionEpoch(event.slide_id)
           const chatId = event.payload.chat_id as string | undefined
           const action = (event.payload.action as string) ?? ""
           const revision = event.payload.revision as number | undefined
@@ -546,9 +620,13 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           const messages = get().chats.get(event.slide_id) ?? []
           // The POST receipt may not have its chat_id yet when the terminal
           // event wins the race; fall back to the last pending receipt.
+          // Third level: a POST whose HTTP receipt was lost left a failed,
+          // chatId-less receipt — with fail-stop there is no concurrent
+          // dispatch, so this event's outcome belongs to it.
           const receipt =
             (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
-            messages.findLast((message) => message.status === "pending")
+            messages.findLast((message) => message.status === "pending") ??
+            messages.find((message) => message.status === "failed" && !message.chatId)
           if (receipt) {
             patchChat(event.slide_id, receipt.id, {
               status: "applied",
@@ -570,7 +648,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           const messages = get().chats.get(event.slide_id) ?? []
           const receipt =
             (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
-            messages.findLast((message) => message.status === "pending")
+            messages.findLast((message) => message.status === "pending") ??
+            messages.find((message) => message.status === "failed" && !message.chatId)
           if (receipt) {
             patchChat(event.slide_id, receipt.id, {
               status: "failed",
@@ -583,14 +662,49 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           if (!event.slide_id) {
             break
           }
+          const slideId = event.slide_id
+          bumpRevisionEpoch(slideId)
+          const revision =
+            typeof event.payload.revision === "number" ? event.payload.revision : undefined
           const patch: Partial<SlideView> = { status: "completed" }
+          if (revision !== undefined) {
+            patch.revision = revision
+          }
           if (event.artifact_url) {
             patch.previewUrl = event.artifact_url
+          } else if (revision !== undefined) {
+            // §3 of the contract allows reverted events carrying only
+            // revision/label; the canvas must still switch to the target
+            // revision's image instead of keeping the previous one.
+            const known = get()
+              .slides.get(slideId)
+              ?.revisions.find((item) => item.revision === revision)
+            if (known?.preview_url) {
+              patch.previewUrl = known.preview_url
+            } else {
+              // fetchRevisions discards the response if the task switched
+              // or another revision mutation landed meanwhile.
+              void fetchRevisions(slideId)
+                .then((fetched) => {
+                  if (!fetched) {
+                    return
+                  }
+                  const target = fetched.find((item) => item.revision === revision)
+                  const slide = get().slides.get(slideId)
+                  // Backfill only while the slide still points at that
+                  // revision; a newer event may have moved it on.
+                  if (slide?.revision === revision && target?.preview_url) {
+                    patchSlide(slideId, { revisions: fetched, previewUrl: target.preview_url })
+                  } else {
+                    patchSlide(slideId, { revisions: fetched })
+                  }
+                })
+                .catch(() => {
+                  // Best-effort backfill; the revision label stays correct.
+                })
+            }
           }
-          if (typeof event.payload.revision === "number") {
-            patch.revision = event.payload.revision
-          }
-          patchSlide(event.slide_id, patch)
+          patchSlide(slideId, patch)
           break
         }
         case "export.started":
@@ -728,48 +842,53 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
 
     async undo(slideId) {
       const { taskId } = get()
-      if (!taskId) {
+      if (!taskId || get().slides.get(slideId)?.status !== "completed") {
         return
       }
-      try {
-        await api.undo(taskId, slideId)
-      } catch {
-        toast.error("撤销失败，请重试")
-      }
+      await mutateSlide(
+        `${taskId}:undo:${slideId}`,
+        slideId,
+        "editing",
+        "撤销失败，请重试",
+        () => api.undo(taskId, slideId),
+      )
     },
 
     async applyRevision(slideId, revision) {
       const { taskId } = get()
-      if (!taskId) {
+      if (!taskId || get().slides.get(slideId)?.status !== "completed") {
         return
       }
-      try {
-        await api.applyRevision(taskId, slideId, revision)
-      } catch {
-        toast.error("切换版本失败，请重试")
-      }
+      await mutateSlide(
+        `${taskId}:revision:${slideId}:${revision}`,
+        slideId,
+        "editing",
+        "切换版本失败，请重试",
+        () => api.applyRevision(taskId, slideId, revision),
+      )
     },
 
     async retrySlide(slideId) {
       const { taskId } = get()
-      if (!taskId) {
+      const status = get().slides.get(slideId)?.status
+      if (!taskId || (status !== "failed" && status !== "completed")) {
         return
       }
-      try {
-        await api.retrySlide(taskId, slideId)
-      } catch {
-        toast.error("重试请求失败，请重试")
-      }
+      await mutateSlide(
+        `${taskId}:retry:${slideId}`,
+        slideId,
+        "generating",
+        "重试请求失败，请重试",
+        () => api.retrySlide(taskId, slideId),
+      )
     },
 
     async loadRevisions(slideId) {
-      const { taskId } = get()
-      if (!taskId) {
-        return
-      }
       try {
-        const revisions = await api.listRevisions(taskId, slideId)
-        patchSlide(slideId, { revisions })
+        const fetched = await fetchRevisions(slideId)
+        if (fetched) {
+          patchSlide(slideId, { revisions: fetched })
+        }
       } catch {
         toast.error("获取版本历史失败")
       }

@@ -215,8 +215,9 @@ export function TemplatesPage() {
             {visibleTemplates.map((template) => {
               const isCurrent = template.id === selectedTemplateId
               return (
-                // div[role=button]: the failed cover nests a retry <Button>,
-                // and <button> cannot contain another button.
+                // div[role=button] keeps the card's block-level content valid
+                // HTML; retry for failed templates lives in the preview
+                // dialog, so no interactive element is nested here.
                 <div
                   key={template.id}
                   role="button"
@@ -235,11 +236,7 @@ export function TemplatesPage() {
                   }}
                 >
                   <div className="relative">
-                    <TemplateCover
-                      template={template}
-                      showStatus
-                      onRetry={() => void useTemplatesStore.getState().retryParse(template.id)}
-                    />
+                    <TemplateCover template={template} showStatus />
                     {isCurrent && (
                       <span className="absolute top-2.5 left-2.5 rounded-full bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
                         当前使用
@@ -371,6 +368,15 @@ export function TemplatesPage() {
                       onClick={() => applyTemplate(previewTemplate)}
                     >
                       使用此模板并返回创建
+                    </Button>
+                  ) : previewTemplate.status === "failed" ? (
+                    <Button
+                      className="h-11 rounded-xl text-[15px] font-bold"
+                      onClick={() =>
+                        void useTemplatesStore.getState().retryParse(previewTemplate.id)
+                      }
+                    >
+                      重新解析
                     </Button>
                   ) : (
                     <p className="text-xs text-hint">模板解析成功后才能用于生成。</p>

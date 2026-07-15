@@ -9,7 +9,11 @@ import type {
   TemplateSummary,
 } from "@/types/api"
 
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK === "1"
+// Mock mode is a development-only affordance. Gating on DEV makes a
+// production build (`vite build`) statically drop the mock branch even if
+// VITE_USE_MOCK leaks into the build environment; a deliberate mock demo
+// build is still possible via `vite build --mode development`.
+const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === "1"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ""
 

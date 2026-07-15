@@ -2,8 +2,11 @@
 // in real mode a native EventSource connects to the FastAPI endpoint and the
 // server replays missed events based on `last_seq`.
 
-import { USE_MOCK } from "@/lib/api"
 import type { GenerationEvent } from "@/types/api"
+
+// Computed locally (not imported from api.ts) so Rollup can fold the DEV
+// branch per-module and drop the mock chunks from production builds.
+const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === "1"
 
 export type ConnectionState = "connecting" | "open" | "reconnecting"
 
