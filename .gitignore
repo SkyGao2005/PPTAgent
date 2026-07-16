@@ -40,3 +40,8 @@ dist-ssr
 .superset
 !.vscode/extensions.json
 !.dockerignore
+.claude/
+frontend/dist/
+frontend/node_modules/
+.env
+docs/frontend-commit-plan.md
