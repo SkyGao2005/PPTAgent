@@ -20,6 +20,16 @@ const deletedTemplateIds = new Set<string>()
 // and parse progress running backwards, not just parsing regressions.
 const templateEpochs = new Map<string, number>()
 
+interface TemplateEventOverlay {
+  seq: number
+  patch: Partial<TemplateSummary>
+}
+
+// The stream may report a just-uploaded template before POST/listTemplates
+// makes that id visible locally. Keep the latest event as an overlay so the
+// first snapshot cannot strand it in an older parsing state.
+const templateEventOverlays = new Map<string, TemplateEventOverlay>()
+
 function bumpTemplateEpoch(templateId: string): void {
   templateEpochs.set(templateId, (templateEpochs.get(templateId) ?? 0) + 1)
 }
@@ -41,7 +51,7 @@ interface TemplatesState {
   fetchTemplates: () => Promise<void>
   uploadTemplate: (file: File) => Promise<void>
   retryParse: (templateId: string) => Promise<void>
-  deleteTemplate: (templateId: string) => Promise<void>
+  deleteTemplate: (templateId: string) => Promise<boolean>
   applyTemplateEvent: (event: GenerationEvent) => void
 }
 
@@ -62,7 +72,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
     lastEventSeq: 0,
 
     async fetchTemplates() {
-      templateStream ??= connectTemplateEvents((event) =>
+      templateStream ??= connectTemplateEvents(get().lastEventSeq, (event) =>
         get().applyTemplateEvent(event),
       )
       const stamp = ++fetchStamp
@@ -87,7 +97,9 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
             .filter((template) => !deletedTemplateIds.has(template.id))
             .map((template) => {
               const existing = state.templates.find((item) => item.id === template.id)
-              return existing && touched(template.id) ? existing : template
+              const base = existing && touched(template.id) ? existing : template
+              const overlay = templateEventOverlays.get(template.id)
+              return overlay ? { ...base, ...overlay.patch } : base
             })
           // Local-only entries survive only when their upload completed
           // during this request's flight; otherwise the server genuinely no
@@ -108,12 +120,20 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
     },
 
     async uploadTemplate(file) {
+      if (get().uploading) {
+        toast.info("已有模板正在上传，请稍候")
+        return
+      }
       set({ uploading: true })
       try {
         const template = await api.uploadTemplate(file)
         uploadStamps.set(template.id, fetchStamp)
+        const overlay = templateEventOverlays.get(template.id)
         set((state) => ({
-          templates: [template, ...state.templates.filter((item) => item.id !== template.id)],
+          templates: [
+            overlay ? { ...template, ...overlay.patch } : template,
+            ...state.templates.filter((item) => item.id !== template.id),
+          ],
         }))
         toast.info(`正在解析「${file.name}」`, {
           description: "解析完成后即可用于生成",
@@ -132,6 +152,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       }
       // Optimistic progress starts at 0 so the server's own parse_started
       // value can only move it forward, never backwards.
+      templateEventOverlays.delete(templateId)
       bumpTemplateEpoch(templateId)
       const epoch = templateEpochs.get(templateId)
       patchTemplate(templateId, { status: "parsing", progress: 0, error: null })
@@ -160,15 +181,17 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
         await api.deleteTemplate(templateId)
       } catch {
         toast.error("删除模板失败，请重试")
-        return
+        return false
       }
       deletedTemplateIds.add(templateId)
+      templateEventOverlays.delete(templateId)
       set((state) => ({
         templates: state.templates.filter((item) => item.id !== templateId),
       }))
       if (template) {
         toast.success(`已删除模板「${template.name}」`)
       }
+      return true
     },
 
     applyTemplateEvent(event) {
@@ -184,18 +207,19 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       }
       set({ lastEventSeq: event.seq })
       bumpTemplateEpoch(templateId)
+      let patch: Partial<TemplateSummary> | null = null
       switch (event.type) {
         case "template.parse_started":
-          patchTemplate(templateId, { status: "parsing", progress: 3, error: null })
+          patch = { status: "parsing", progress: 3, error: null }
           break
         case "template.parse_progress":
-          patchTemplate(templateId, {
+          patch = {
             status: "parsing",
             progress: (event.payload.progress as number) ?? event.progress ?? 0,
-          })
+          }
           break
         case "template.ready": {
-          patchTemplate(templateId, { status: "ready", progress: 100, error: null })
+          patch = { status: "ready", progress: 100, error: null }
           const template = get().templates.find((item) => item.id === templateId)
           if (template) {
             toast.success(`模板「${template.name}」解析完成`)
@@ -203,14 +227,18 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
           break
         }
         case "template.failed":
-          patchTemplate(templateId, {
+          patch = {
             status: "failed",
             error:
               (event.payload.reason as string | undefined) || event.message || null,
-          })
+          }
           break
         default:
           break
+      }
+      if (patch) {
+        templateEventOverlays.set(templateId, { seq: event.seq, patch })
+        patchTemplate(templateId, patch)
       }
     },
   }

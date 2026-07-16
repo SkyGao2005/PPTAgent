@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDropzone } from "react-dropzone"
-import { SearchIcon, TriangleAlertIcon, UploadIcon } from "lucide-react"
+import { LoaderCircleIcon, SearchIcon, TriangleAlertIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { AppShell } from "@/components/app-shell"
 import { TemplateCover } from "@/components/template-cover"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { usePageMetadata } from "@/lib/use-page-metadata"
 import { useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
 import type { TemplateStatus, TemplateSummary } from "@/types/api"
@@ -53,18 +62,25 @@ function TemplateStatusBadge({ status }: { status: TemplateStatus }) {
 }
 
 export function TemplatesPage() {
+  usePageMetadata("模板库")
   const navigate = useNavigate()
   const setTemplateId = useCreateTaskStore((state) => state.setTemplateId)
   const selectedTemplateId = useCreateTaskStore((state) => state.templateId)
   const templates = useTemplatesStore((state) => state.templates)
   const loaded = useTemplatesStore((state) => state.loaded)
   const loadError = useTemplatesStore((state) => state.loadError)
+  const uploading = useTemplatesStore((state) => state.uploading)
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   // §5.2: upload by click or by dragging a .pptx anywhere onto the page.
   const onDrop = useCallback((accepted: File[], rejected: unknown[]) => {
+    if (useTemplatesStore.getState().uploading) {
+      return
+    }
     if (rejected.length) {
       toast.error("仅支持 .pptx / .ppt 模板文件")
     }
@@ -83,6 +99,7 @@ export function TemplatesPage() {
     onDrop,
     noClick: true,
     noKeyboard: true,
+    disabled: uploading,
     multiple: false,
     accept: {
       "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
@@ -120,6 +137,7 @@ export function TemplatesPage() {
   }, [query, statusFilter, templates])
 
   const previewTemplate = templates.find((template) => template.id === previewId) ?? null
+  const deleteTemplate = templates.find((template) => template.id === deleteId) ?? null
 
   function applyTemplate(template: TemplateSummary): void {
     if (template.status !== "ready") {
@@ -132,12 +150,13 @@ export function TemplatesPage() {
 
   return (
     <AppShell>
-      <main
-        {...getRootProps({
+      <main id="main-content" tabIndex={-1} className="outline-none">
+        <div
+          {...getRootProps({
           className:
             "animate-fade-up relative mx-auto w-full max-w-[1240px] px-6 py-10 lg:px-10",
-        })}
-      >
+          })}
+        >
         <input {...getInputProps()} />
         {isDragActive && (
           <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary bg-accent/80 text-sm font-bold text-primary">
@@ -151,9 +170,14 @@ export function TemplatesPage() {
               {counts.all} 个模板 · {counts.ready} 个已就绪
             </p>
           </div>
-          <Button size="lg" className="h-10 rounded-[10px] px-5" onClick={openFilePicker}>
-            <UploadIcon />
-            上传模板
+          <Button
+            size="lg"
+            className="h-10 rounded-[10px] px-5"
+            disabled={uploading}
+            onClick={openFilePicker}
+          >
+            {uploading ? <LoaderCircleIcon className="animate-spin" /> : <UploadIcon />}
+            {uploading ? "上传中" : "上传模板"}
           </Button>
         </div>
 
@@ -162,6 +186,7 @@ export function TemplatesPage() {
             <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-hint" />
             <Input
               value={query}
+              aria-label="搜索模板名称"
               onChange={(event) => setQuery(event.target.value)}
               className="h-9.5 rounded-[10px] bg-card pl-9"
               placeholder="搜索模板名称…"
@@ -191,7 +216,7 @@ export function TemplatesPage() {
         </div>
 
         {loadError ? (
-          <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-16 text-center">
+          <div role="alert" className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-16 text-center">
             <TriangleAlertIcon className="size-8 text-hint" />
             <h2 className="mt-4 text-[15px] font-medium">模板列表加载失败</h2>
             <p className="mt-1 text-[13px] text-hint">{loadError}</p>
@@ -222,7 +247,7 @@ export function TemplatesPage() {
                   key={template.id}
                   role="button"
                   tabIndex={0}
-                  aria-label={`查看模板「${template.name}」`}
+                  aria-label={`查看模板「${template.name}」，${template.description || "无描述"}，${template.slides} 页，${template.ratio}，状态：${template.status === "ready" ? "已就绪" : template.status === "parsing" ? "解析中" : "解析失败"}${isCurrent ? "，当前使用" : ""}`}
                   className={cn(
                     "overflow-hidden rounded-[14px] border bg-card text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(30,25,15,0.10)]",
                     isCurrent && "border-primary ring-3 ring-primary/10",
@@ -299,6 +324,7 @@ export function TemplatesPage() {
             </Button>
           </div>
         )}
+        </div>
       </main>
 
       <Dialog open={previewTemplate !== null} onOpenChange={(open) => !open && setPreviewId(null)}>
@@ -386,7 +412,7 @@ export function TemplatesPage() {
                     className="h-10 rounded-xl text-[13px] text-hint hover:border-destructive/50 hover:text-destructive"
                     onClick={() => {
                       setPreviewId(null)
-                      void useTemplatesStore.getState().deleteTemplate(previewTemplate.id)
+                      setDeleteId(previewTemplate.id)
                     }}
                   >
                     删除模板
@@ -397,6 +423,53 @@ export function TemplatesPage() {
           </DialogContent>
         )}
       </Dialog>
+
+      <AlertDialog
+        open={deleteTemplate !== null}
+        onOpenChange={(open) => !open && !deleting && setDeleteId(null)}
+      >
+        <AlertDialogContent className="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除模板？</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTemplate
+                ? `「${deleteTemplate.name}」将从模板库永久删除，此操作无法撤销。`
+                : "此操作无法撤销。"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={() => setDeleteId(null)}
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleting || !deleteTemplate}
+              onClick={() => {
+                if (!deleteTemplate) {
+                  return
+                }
+                setDeleting(true)
+                void useTemplatesStore
+                  .getState()
+                  .deleteTemplate(deleteTemplate.id)
+                  .then((deleted) => {
+                    if (deleted) {
+                      setDeleteId(null)
+                    }
+                  })
+                  .finally(() => setDeleting(false))
+              }}
+            >
+              {deleting && <LoaderCircleIcon className="animate-spin" />}
+              确认删除
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   )
 }

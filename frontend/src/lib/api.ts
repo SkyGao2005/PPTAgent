@@ -8,6 +8,7 @@ import type {
   TaskSnapshot,
   TemplateSummary,
 } from "@/types/api"
+import { resolveApiUrl } from "@/lib/api-url"
 
 // Mock mode is a development-only affordance. Gating on DEV makes any
 // `vite build` statically drop the mock branch even if VITE_USE_MOCK leaks
@@ -16,8 +17,6 @@ import type {
 // deliberate mock demo build therefore needs NODE_ENV set explicitly:
 // `NODE_ENV=development vite build --mode development`.
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === "1"
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ""
 
 export class ApiError extends Error {
   readonly status: number
@@ -30,7 +29,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(resolveApiUrl(path), {
     headers:
       init?.body instanceof FormData
         ? init.headers
@@ -52,6 +51,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 interface ApiSurface {
   uploadAttachment: (file: File) => Promise<AttachmentReceipt>
+  deleteAttachment: (attachmentId: string) => Promise<void>
   createTask: (payload: CreateTaskPayload) => Promise<TaskSnapshot>
   getTask: (taskId: string) => Promise<TaskSnapshot>
   listSlides: (taskId: string) => Promise<SlideArtifact[]>
@@ -80,34 +80,50 @@ const realApi: ApiSurface = {
     body.append("file", file)
     return request("/api/attachments", { method: "POST", body })
   },
+  deleteAttachment: (attachmentId) =>
+    request(`/api/attachments/${encodeURIComponent(attachmentId)}`, { method: "DELETE" }),
   createTask: (payload) =>
     request("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
-  getTask: (taskId) => request(`/api/tasks/${taskId}`),
-  listSlides: (taskId) => request(`/api/tasks/${taskId}/slides`),
-  cancelTask: (taskId) => request(`/api/tasks/${taskId}/cancel`, { method: "POST" }),
-  resumeTask: (taskId) => request(`/api/tasks/${taskId}/retry`, { method: "POST" }),
+  getTask: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}`),
+  listSlides: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}/slides`),
+  cancelTask: (taskId) =>
+    request(`/api/tasks/${encodeURIComponent(taskId)}/cancel`, { method: "POST" }),
+  resumeTask: (taskId) =>
+    request(`/api/tasks/${encodeURIComponent(taskId)}/retry`, { method: "POST" }),
   exportTask: (taskId, format) =>
-    request(`/api/tasks/${taskId}/export`, {
+    request(`/api/tasks/${encodeURIComponent(taskId)}/export`, {
       method: "POST",
       body: JSON.stringify({ format }),
     }),
   sendChat: (taskId, slideId, text, elementId) =>
-    request(`/api/tasks/${taskId}/slides/${slideId}/chat`, {
+    request(
+      `/api/tasks/${encodeURIComponent(taskId)}/slides/${encodeURIComponent(slideId)}/chat`,
+      {
       method: "POST",
       // element_id is optional in the contract; omit it instead of sending
       // null, which strict backend models may reject with 422.
       body: JSON.stringify(elementId ? { text, element_id: elementId } : { text }),
-    }),
+      },
+    ),
   listRevisions: (taskId, slideId) =>
-    request(`/api/tasks/${taskId}/slides/${slideId}/revisions`),
+    request(
+      `/api/tasks/${encodeURIComponent(taskId)}/slides/${encodeURIComponent(slideId)}/revisions`,
+    ),
   applyRevision: (taskId, slideId, revision) =>
-    request(`/api/tasks/${taskId}/slides/${slideId}/revisions/${revision}/apply`, {
-      method: "POST",
-    }),
+    request(
+      `/api/tasks/${encodeURIComponent(taskId)}/slides/${encodeURIComponent(slideId)}/revisions/${revision}/apply`,
+      { method: "POST" },
+    ),
   undo: (taskId, slideId) =>
-    request(`/api/tasks/${taskId}/slides/${slideId}/undo`, { method: "POST" }),
+    request(
+      `/api/tasks/${encodeURIComponent(taskId)}/slides/${encodeURIComponent(slideId)}/undo`,
+      { method: "POST" },
+    ),
   retrySlide: (taskId, slideId) =>
-    request(`/api/tasks/${taskId}/slides/${slideId}/retry`, { method: "POST" }),
+    request(
+      `/api/tasks/${encodeURIComponent(taskId)}/slides/${encodeURIComponent(slideId)}/retry`,
+      { method: "POST" },
+    ),
   listTemplates: () => request("/api/templates"),
   uploadTemplate: (file) => {
     const body = new FormData()
@@ -115,9 +131,9 @@ const realApi: ApiSurface = {
     return request("/api/templates", { method: "POST", body })
   },
   deleteTemplate: (templateId) =>
-    request(`/api/templates/${templateId}`, { method: "DELETE" }),
+    request(`/api/templates/${encodeURIComponent(templateId)}`, { method: "DELETE" }),
   retryParse: (templateId) =>
-    request(`/api/templates/${templateId}/retry`, { method: "POST" }),
+    request(`/api/templates/${encodeURIComponent(templateId)}/retry`, { method: "POST" }),
 }
 
 async function mock<T>(run: (server: typeof import("@/mocks/mock-server")) => T): Promise<T> {
@@ -127,6 +143,8 @@ async function mock<T>(run: (server: typeof import("@/mocks/mock-server")) => T)
 
 const mockApi: ApiSurface = {
   uploadAttachment: (file) => mock((server) => server.mockUploadAttachment(file)),
+  deleteAttachment: (attachmentId) =>
+    mock((server) => server.mockDeleteAttachment(attachmentId)),
   createTask: (payload) => mock((server) => server.mockCreateTask(payload)),
   getTask: (taskId) => mock((server) => server.mockGetTask(taskId)),
   listSlides: (taskId) => mock((server) => server.mockListSlides(taskId)),

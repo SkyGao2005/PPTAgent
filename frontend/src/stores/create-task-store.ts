@@ -1,12 +1,15 @@
 import { create } from "zustand"
+import { toast } from "sonner"
 
 import { api } from "@/lib/api"
+import { createClientId } from "@/lib/utils"
 
 interface ReferenceAttachment {
   id: string
   name: string
   size: number
   file: File
+  uploadedId?: string
 }
 
 export const MAX_ATTACHMENTS = 8
@@ -52,7 +55,7 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
         attachments: [
           ...state.attachments,
           ...accepted.map((file) => ({
-            id: crypto.randomUUID(),
+            id: createClientId(),
             name: file.name,
             size: file.size,
             file,
@@ -62,27 +65,51 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
     }
     return accepted.length
   },
-  removeAttachment: (attachmentId) =>
+  removeAttachment: (attachmentId) => {
+    const attachment = get().attachments.find((item) => item.id === attachmentId)
     set((state) => ({
-      attachments: state.attachments.filter(
-        (attachment) => attachment.id !== attachmentId,
-      ),
-    })),
+      attachments: state.attachments.filter((item) => item.id !== attachmentId),
+    }))
+    if (attachment?.uploadedId) {
+      void api.deleteAttachment(attachment.uploadedId).catch(() => {
+        toast.warning("参考文件已移除，但服务端临时文件清理失败")
+      })
+    }
+  },
   async createTask() {
+    if (get().creating) {
+      throw new Error("Task creation is already in progress")
+    }
     const { topic, templateId, pageCount, ratio, language, attachments } = get()
     set({ creating: true })
     try {
-      const receipts = await Promise.all(
-        attachments.map((attachment) => api.uploadAttachment(attachment.file)),
-      )
+      // Upload sequentially and retain each receipt. A retry reuses completed
+      // uploads instead of creating duplicate server-side temporary objects.
+      const attachmentIds: string[] = []
+      for (const attachment of attachments) {
+        let uploadedId = get().attachments.find((item) => item.id === attachment.id)?.uploadedId
+        if (!uploadedId) {
+          const receipt = await api.uploadAttachment(attachment.file)
+          uploadedId = receipt.attachment_id
+          set((state) => ({
+            attachments: state.attachments.map((item) =>
+              item.id === attachment.id ? { ...item, uploadedId } : item,
+            ),
+          }))
+        }
+        attachmentIds.push(uploadedId)
+      }
       const snapshot = await api.createTask({
         topic: topic.trim(),
         template_id: templateId,
         page_count: pageCount,
         ratio,
         language,
-        attachment_ids: receipts.map((receipt) => receipt.attachment_id),
+        attachment_ids: attachmentIds,
       })
+      // Release File/Blob references after a successful handoff. Returning to
+      // the create page must not silently reuse the previous task's files.
+      set({ attachments: [] })
       return snapshot.task_id
     } finally {
       set({ creating: false })

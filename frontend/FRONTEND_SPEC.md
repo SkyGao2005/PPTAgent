@@ -141,7 +141,7 @@ demo 是"暖纸色轻工作台"风格。**不要使用 shadcn 默认的中性灰
 
 选中页高亮主色描边。**跟随规则**：默认自动跟随最新生成页；用户手动点击某页后固定选择、停止跟随；顶栏出现"回到最新"小按钮可恢复跟随。
 
-**中栏**：16:9 大预览卡（生成中为骨架 + "AI 正在撰写本页内容…"）。下方工具条：左侧"版本 v{n} ▾"（DropdownMenu 列出最近版本，选择即切换）+ "↩ 撤销"（无上一版时禁用）；右侧"⟳ 重新生成本页"。预览图 URL 必须带 `?rev={revision}` 防缓存。
+**中栏**：16:9 大预览卡（生成中为骨架 + "AI 正在撰写本页内容…"）。下方工具条：左侧"版本 v{n} ▾"（DropdownMenu 列出最近版本，选择即切换）+ "↩ 撤销"（无上一版时禁用）；右侧"⟳ 重新生成本页"。预览图 URL 必须带内容事件序号形式的缓存键；分支后版本号可复用，不能单独作为缓存键。
 
 **右栏（约 416px）**：AI 修改助手。
 
@@ -174,7 +174,7 @@ applyTemplateEvent(evt)   // SSE template.* 事件更新解析进度/状态
 ```text
 // 数据
 task: TaskSnapshot | null          // 状态、阶段、计时起点、总页数
-slides: Map<slide_id, SlideView>   // { id, index, title, status, previewUrl, revision, revisions[] }
+slides: Map<slide_id, SlideView>   // { id, index, title, status, previewUrl, previewVersion, revision, revisions[] }
 slideOrder: string[]               // 渲染顺序
 chats: Map<slide_id, ChatMessage[]>
 pendingEdits: Map<slide_id, string[]>   // 未完成页的排队指令

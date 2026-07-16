@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react"
 import { Navigate, Route, Routes, useParams } from "react-router-dom"
 
+import { AppErrorBoundary } from "@/components/app-error-boundary"
+
 const CreatePage = lazy(() =>
   import("@/pages/create-page").then((module) => ({ default: module.CreatePage })),
 )
@@ -30,16 +32,18 @@ function LegacyTaskRedirect() {
 
 function App() {
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/" element={<CreatePage />} />
-        <Route path="/templates" element={<TemplatesPage />} />
-        <Route path="/workbench/:taskId" element={<WorkbenchPage />} />
-        <Route path="/create" element={<Navigate to="/" replace />} />
-        <Route path="/tasks/:taskId" element={<LegacyTaskRedirect />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <AppErrorBoundary>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<CreatePage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/workbench/:taskId" element={<WorkbenchPage />} />
+          <Route path="/create" element={<Navigate to="/" replace />} />
+          <Route path="/tasks/:taskId" element={<LegacyTaskRedirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </AppErrorBoundary>
   )
 }
 

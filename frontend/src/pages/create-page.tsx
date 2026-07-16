@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
+import { usePageMetadata } from "@/lib/use-page-metadata"
 import { cn } from "@/lib/utils"
 import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
@@ -53,6 +54,7 @@ function AttachmentIcon({ name }: { name: string }) {
 }
 
 export function CreatePage() {
+  usePageMetadata("新建演示")
   const navigate = useNavigate()
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const {
@@ -111,6 +113,9 @@ export function CreatePage() {
 
   const onDrop = useCallback(
     (accepted: File[], rejected: unknown[]) => {
+      if (creating) {
+        return
+      }
       if (rejected.length) {
         toast.error("部分文件被跳过", {
           description: "仅支持 PDF / Word / Excel，单个文件不超过 20MB",
@@ -127,11 +132,12 @@ export function CreatePage() {
         }
       }
     },
-    [addAttachments],
+    [addAttachments, creating],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    disabled: creating,
     maxSize: 20 * 1024 * 1024,
     accept: {
       "application/pdf": [".pdf"],
@@ -161,7 +167,11 @@ export function CreatePage() {
 
   return (
     <AppShell>
-      <main className="mx-auto w-full max-w-[860px] px-4 py-10 sm:px-6 sm:py-12">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto w-full max-w-[860px] px-4 py-10 outline-none sm:px-6 sm:py-12"
+      >
         <div className="animate-fade-up mb-8">
           <h1 className="font-heading text-[28px] font-bold tracking-tight">新建演示</h1>
           <p className="mt-1.5 text-sm text-hint">
@@ -234,6 +244,7 @@ export function CreatePage() {
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`移除 ${attachment.name}`}
+                    disabled={creating}
                     onClick={() => removeAttachment(attachment.id)}
                   >
                     <Trash2Icon />
@@ -242,6 +253,9 @@ export function CreatePage() {
               ))}
               <div
                 {...getRootProps({
+                  role: "button",
+                  tabIndex: 0,
+                  "aria-label": "添加参考资料，支持点击选择或拖放文件",
                   className: cn(
                     "flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[10px] border-[1.5px] border-dashed px-5 py-6 text-sm text-hint transition-colors hover:border-primary/60 hover:bg-accent/40 hover:text-primary",
                     isDragActive && "border-primary bg-accent/60 text-primary",
@@ -271,8 +285,11 @@ export function CreatePage() {
               </div>
             </CardHeader>
             <CardContent>
-              {templatesLoadError && (
-                <div className="flex items-center justify-between rounded-[10px] border border-dashed px-4 py-3 text-[13px] text-hint">
+              {templatesLoadError ? (
+                <div
+                  role="alert"
+                  className="flex items-center justify-between rounded-[10px] border border-dashed px-4 py-3 text-[13px] text-hint"
+                >
                   模板列表加载失败：{templatesLoadError}
                   <Button
                     type="button"
@@ -284,41 +301,73 @@ export function CreatePage() {
                     重试
                   </Button>
                 </div>
-              )}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {shownTemplates.map((template) => {
-                  const selected = template.id === templateId
-                  return (
-                    <button
-                      key={template.id}
-                      type="button"
-                      className={cn(
-                        "overflow-hidden rounded-xl border-2 text-left transition-all",
-                        selected
-                          ? "border-primary bg-accent/50 ring-3 ring-primary/10"
-                          : "border-border bg-card hover:border-primary/50",
-                      )}
-                      onClick={() => setTemplateId(template.id)}
-                    >
-                      <TemplateCover template={template} />
-                      <div className="flex items-center justify-between gap-2 px-2.5 py-2">
-                        <span className="truncate text-[13px] font-medium">
-                          {template.name}
-                        </span>
-                        {selected ? (
-                          <span className="shrink-0 text-[11px] font-bold text-primary">
-                            ✓ 已选
-                          </span>
-                        ) : (
-                          <span className="shrink-0 text-[10px] text-hint">
-                            {template.ratio}
-                          </span>
+              ) : !templatesLoaded ? (
+                <div
+                  aria-label="正在加载模板"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+                >
+                  {Array.from({ length: 4 }, (_, index) => (
+                    <div key={index} className="skeleton-shimmer aspect-[4/3] rounded-xl" />
+                  ))}
+                </div>
+              ) : shownTemplates.length === 0 ? (
+                <div
+                  role="status"
+                  className="rounded-[10px] border border-dashed px-4 py-5 text-center text-[13px] text-hint"
+                >
+                  <p>当前没有可用模板，请先到模板库上传并等待解析完成。</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => navigate("/templates")}
+                  >
+                    前往模板库
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+                  role="group"
+                  aria-label="选择演示模板"
+                >
+                  {shownTemplates.map((template) => {
+                    const selected = template.id === templateId
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        aria-pressed={selected}
+                        aria-label={`${template.name}，${template.ratio}${selected ? "，已选择" : ""}`}
+                        className={cn(
+                          "overflow-hidden rounded-xl border-2 text-left transition-all",
+                          selected
+                            ? "border-primary bg-accent/50 ring-3 ring-primary/10"
+                            : "border-border bg-card hover:border-primary/50",
                         )}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+                        onClick={() => setTemplateId(template.id)}
+                      >
+                        <TemplateCover template={template} />
+                        <div className="flex items-center justify-between gap-2 px-2.5 py-2">
+                          <span className="truncate text-[13px] font-medium">
+                            {template.name}
+                          </span>
+                          {selected ? (
+                            <span className="shrink-0 text-[11px] font-bold text-primary">
+                              ✓ 已选
+                            </span>
+                          ) : (
+                            <span className="shrink-0 text-[10px] text-hint">
+                              {template.ratio}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

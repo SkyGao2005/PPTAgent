@@ -63,6 +63,7 @@ interface MockTask {
 const tasks = new Map<string, MockTask>()
 let templates: TemplateSummary[] = structuredClone(seedTemplates)
 const templateListeners = new Set<Listener>()
+const templateEvents: GenerationEvent[] = []
 let templateSeq = 0
 let seedParsingAnimated = false
 
@@ -200,6 +201,7 @@ function emitTemplate(partial: Partial<GenerationEvent> & { type: string }): voi
     created_at: now(),
     payload: partial.payload ?? {},
   }
+  templateEvents.push(event)
   for (const listener of templateListeners) {
     listener(event)
   }
@@ -520,6 +522,8 @@ export function mockUploadAttachment(file: File): AttachmentReceipt {
   return { attachment_id: `att-${Date.now().toString(36)}-${file.size.toString(36)}` }
 }
 
+export function mockDeleteAttachment(_attachmentId: string): void {}
+
 export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
   const id = `t${Date.now().toString(36)}`
   const deck = buildDeck(payload.topic, payload.page_count)
@@ -570,6 +574,13 @@ export function mockListSlides(taskId: string): SlideArtifact[] {
 export function mockCancelTask(taskId: string): TaskSnapshot {
   const task = requireTask(taskId)
   clearTimers(task)
+  for (const slide of task.slides) {
+    if (slide.status === "generating") {
+      slide.status = "queued"
+    } else if (slide.status === "editing") {
+      slide.status = slide.revisions.length ? "completed" : "queued"
+    }
+  }
   task.status = "cancelled"
   emit(task, {
     type: "task.cancelled",
@@ -874,7 +885,12 @@ export function mockDeleteTemplate(templateId: string): void {
   templates = templates.filter((item) => item.id !== templateId)
 }
 
-export function mockSubscribeTemplates(onEvent: Listener): () => void {
+export function mockSubscribeTemplates(afterSeq: number, onEvent: Listener): () => void {
+  for (const event of templateEvents) {
+    if (event.seq > afterSeq) {
+      onEvent(event)
+    }
+  }
   templateListeners.add(onEvent)
   return () => templateListeners.delete(onEvent)
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useParams } from "react-router-dom"
 import {
   ArrowUpIcon,
@@ -9,6 +9,8 @@ import {
   HistoryIcon,
   ListStartIcon,
   LoaderCircleIcon,
+  MessageSquareIcon,
+  PanelLeftIcon,
   PauseIcon,
   PlayIcon,
   RotateCcwIcon,
@@ -38,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Label } from "@/components/ui/label"
 import {
   Sheet,
   SheetContent,
@@ -49,6 +52,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { connectTaskEvents } from "@/lib/sse"
 import { cn, formatClock, previewSrc } from "@/lib/utils"
+import { usePageMetadata } from "@/lib/use-page-metadata"
 import { useTemplatesStore } from "@/stores/templates-store"
 import { useWorkbenchStore } from "@/stores/workbench-store"
 import type { SlideView, WorkChatMessage } from "@/stores/workbench-store"
@@ -66,6 +70,18 @@ const STAGE_TEXT: Partial<Record<TaskStage, string>> = {
   research: "解析资料中…",
   plan: "规划大纲中…",
   generate: "逐页生成中…",
+}
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const update = (): void => setMatches(media.matches)
+    update()
+    media.addEventListener("change", update)
+    return () => media.removeEventListener("change", update)
+  }, [query])
+  return matches
 }
 
 // ---- header progress ----
@@ -118,7 +134,19 @@ function SlideThumb({
   paused: boolean
   onSelect: () => void
 }) {
-  const src = previewSrc(slide.previewUrl, slide.revision)
+  const src = previewSrc(slide.previewUrl, slide.previewVersion)
+  const statusText =
+    slide.status === "completed"
+      ? "已完成"
+      : slide.status === "failed"
+        ? "生成失败"
+        : slide.status === "queued"
+          ? paused
+            ? "已暂停"
+            : "排队中"
+          : slide.status === "editing"
+            ? "修改中"
+            : "生成中"
   return (
     <div className="group">
       <div className="mb-1 flex items-center gap-1.5 px-0.5">
@@ -145,7 +173,9 @@ function SlideThumb({
       </div>
       <button
         type="button"
-        aria-label={`选择第 ${slide.index} 页`}
+        aria-label={`第 ${slide.index} 页，${slide.title}，${statusText}`}
+        aria-pressed={selected}
+        aria-current={selected ? "page" : undefined}
         onClick={onSelect}
         className={cn(
           "relative block w-full overflow-hidden rounded-lg border-2 bg-card text-left transition-all",
@@ -179,6 +209,42 @@ function SlideThumb({
         )}
       </button>
     </div>
+  )
+}
+
+function SlidesPanel({
+  slides,
+  ratio,
+  paused,
+  selectedId,
+  onSelect,
+}: {
+  slides: SlideView[]
+  ratio: "16:9" | "4:3"
+  paused: boolean
+  selectedId: string | null
+  onSelect: (slideId: string) => void
+}) {
+  return (
+    <ScrollArea className="h-full">
+      <div className="px-3.5 py-3.5">
+        <div className="mb-2.5 px-0.5 text-[11px] font-bold tracking-[0.08em] text-hint">
+          幻灯片
+        </div>
+        <div className="flex flex-col gap-3">
+          {slides.map((slide) => (
+            <SlideThumb
+              key={slide.id}
+              slide={slide}
+              ratio={ratio}
+              paused={paused}
+              selected={selectedId === slide.id}
+              onSelect={() => onSelect(slide.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </ScrollArea>
   )
 }
 
@@ -235,7 +301,7 @@ function SlideCanvas({
   paused: boolean
   onRetry: () => void
 }) {
-  const src = previewSrc(slide.previewUrl, slide.revision)
+  const src = previewSrc(slide.previewUrl, slide.previewVersion)
   const aspect = ratio === "4:3" ? "aspect-[4/3]" : "aspect-video"
 
   if (slide.status === "failed") {
@@ -349,6 +415,7 @@ function ChatBubble({ message }: { message: WorkChatMessage }) {
 }
 
 function ChatPanel({ slide }: { slide: SlideView | null }) {
+  const inputId = useId()
   const chats = useWorkbenchStore((state) => state.chats)
   const sendChat = useWorkbenchStore((state) => state.sendChat)
   const [draft, setDraft] = useState("")
@@ -415,7 +482,13 @@ function ChatPanel({ slide }: { slide: SlideView | null }) {
         )}
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-label="当前页面的修改记录"
+        className="min-h-0 flex-1 overflow-y-auto px-4 py-4"
+      >
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-2 text-center">
             <span className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-accent text-xl text-primary">
@@ -471,7 +544,11 @@ function ChatPanel({ slide }: { slide: SlideView | null }) {
           </div>
         )}
         <div className="flex items-end gap-2">
+          <Label htmlFor={inputId} className="sr-only">
+            当前页面的修改指令
+          </Label>
           <Textarea
+            id={inputId}
             value={draft}
             rows={1}
             className="max-h-28 min-h-10 flex-1 resize-none rounded-[10px] bg-background/60 text-[13px]"
@@ -561,6 +638,7 @@ export function WorkbenchPage() {
   const requestedPages =
     (location.state as { requestedPages?: number } | null)?.requestedPages ?? 0
   const task = useWorkbenchStore((state) => state.task)
+  usePageMetadata(task?.topic ? `工作台：${task.topic}` : "演示工作台")
   const slidesMap = useWorkbenchStore((state) => state.slides)
   const slideOrder = useWorkbenchStore((state) => state.slideOrder)
   const selectedSlideId = useWorkbenchStore((state) => state.selectedSlideId)
@@ -588,6 +666,9 @@ export function WorkbenchPage() {
   const templatesLoaded = useTemplatesStore((state) => state.loaded)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [revisionsLoading, setRevisionsLoading] = useState(false)
+  const [slidesOpen, setSlidesOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+  const desktopChat = useMediaQuery("(min-width: 80rem)")
   const [nowMs, setNowMs] = useState(() => Date.now())
 
   useEffect(() => {
@@ -637,7 +718,19 @@ export function WorkbenchPage() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
-      if (/INPUT|TEXTAREA/.test((event.target as HTMLElement).tagName)) {
+      const target = event.target instanceof HTMLElement ? event.target : null
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        document.querySelector("[role=dialog], [role=menu], [role=listbox]") ||
+        target?.isContentEditable ||
+        target?.closest(
+          "input, textarea, select, button, a, [role=menu], [role=menuitem], [role=dialog], [role=listbox], [role=option], [contenteditable=true]",
+        )
+      ) {
         return
       }
       if (!selected) {
@@ -659,22 +752,40 @@ export function WorkbenchPage() {
 
   if (!hydrated) {
     return (
-      <div className="flex h-svh items-center justify-center bg-background text-sm text-muted-foreground">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex h-svh items-center justify-center bg-background text-sm text-muted-foreground outline-none"
+      >
         <LoaderCircleIcon className="mr-2 size-4 animate-spin text-primary" />
         正在载入任务…
-      </div>
+      </main>
     )
   }
 
   if (loadError || !task) {
     return (
-      <div className="flex h-svh flex-col items-center justify-center gap-3 bg-background">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex h-svh flex-col items-center justify-center gap-3 bg-background outline-none"
+      >
         <TriangleAlertIcon className="size-8 text-hint" />
-        <div className="text-sm font-medium">{loadError ?? "任务不存在"}</div>
-        <Button variant="outline" size="sm" render={<Link to="/" />}>
-          返回新建任务
-        </Button>
-      </div>
+        <div role="alert" className="text-sm font-medium">{loadError ?? "任务不存在"}</div>
+        <div className="flex gap-2">
+          {taskId && (
+            <Button
+              size="sm"
+              onClick={() => void hydrate(taskId, requestedPages)}
+            >
+              重新加载
+            </Button>
+          )}
+          <Button variant="outline" size="sm" render={<Link to="/" />}>
+            返回新建任务
+          </Button>
+        </div>
+      </main>
     )
   }
 
@@ -703,15 +814,15 @@ export function WorkbenchPage() {
   const undoDisabled = !selected || selected.status !== "completed" || selected.revision <= 1
 
   return (
-    <div className="flex h-svh min-h-[620px] flex-col overflow-hidden bg-background">
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
       {/* ══ top bar ══ */}
-      <header className="z-30 flex h-14 shrink-0 items-center gap-4 border-b bg-card pr-3 pl-5">
+      <header className="z-30 flex h-14 shrink-0 items-center gap-2 overflow-x-auto border-b bg-card px-3 sm:gap-4 sm:pr-3 sm:pl-5">
         <Link to="/" className="flex shrink-0 items-center gap-2.5 text-foreground" title="返回创建">
           <BrandMark />
-          <span className="font-heading text-[15px] font-bold">PPTAgent</span>
+          <span className="font-heading hidden text-[15px] font-bold sm:inline">PPTAgent</span>
         </Link>
-        <span className="h-[22px] w-px shrink-0 bg-border" />
-        <div className="min-w-0">
+        <span className="hidden h-[22px] w-px shrink-0 bg-border sm:block" />
+        <div className="hidden min-w-0 md:block">
           <div className="max-w-72 truncate text-[13px] font-bold">{task.topic}</div>
           <div className="flex items-center gap-1.5 text-[11px] text-hint">
             {template && (
@@ -734,7 +845,7 @@ export function WorkbenchPage() {
         </div>
 
         {/* center progress: running / completed / failed / cancelled */}
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-3.5">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-3.5 lg:flex">
           {running && (
             <>
               <span role="status" className="whitespace-nowrap text-xs text-muted-foreground">
@@ -795,16 +906,19 @@ export function WorkbenchPage() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <RunLogSheet />
+          <div className="hidden sm:block">
+            <RunLogSheet />
+          </div>
           {(running || isBooting) && (
             <Button
               variant="outline"
               size="sm"
               className="h-8 text-muted-foreground hover:border-destructive/50 hover:bg-card hover:text-destructive"
               onClick={() => setCancelOpen(true)}
+              aria-label="取消生成"
             >
               <PauseIcon data-icon="inline-start" />
-              取消生成
+              <span className="hidden sm:inline">取消生成</span>
             </Button>
           )}
           {cancelled && (
@@ -813,9 +927,10 @@ export function WorkbenchPage() {
               size="sm"
               className="h-8 border-primary/60 bg-accent text-accent-foreground hover:bg-accent hover:text-primary"
               onClick={() => void resumeTask()}
+              aria-label="继续生成"
             >
               <PlayIcon data-icon="inline-start" />
-              继续生成
+              <span className="hidden sm:inline">继续生成</span>
             </Button>
           )}
           {task.status === "failed" && (
@@ -824,21 +939,29 @@ export function WorkbenchPage() {
               size="sm"
               className="h-8 border-primary/60 bg-accent text-accent-foreground hover:bg-accent hover:text-primary"
               onClick={() => void resumeTask()}
+              aria-label="重试生成"
             >
               <RotateCcwIcon data-icon="inline-start" />
-              重试生成
+              <span className="hidden sm:inline">重试生成</span>
             </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button size="sm" className="h-8 px-3.5" disabled={exportDisabled} />}
+              render={
+                <Button
+                  size="sm"
+                  className="h-8 px-3.5"
+                  aria-label={exporting ? "导出中" : "导出"}
+                  disabled={exportDisabled}
+                />
+              }
             >
               {exporting ? (
                 <LoaderCircleIcon data-icon="inline-start" className="animate-spin" />
               ) : (
                 <DownloadIcon data-icon="inline-start" />
               )}
-              {exporting ? "导出中" : "导出"}
+              <span className="hidden sm:inline">{exporting ? "导出中" : "导出"}</span>
               <ChevronDownIcon data-icon="inline-end" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -876,31 +999,38 @@ export function WorkbenchPage() {
         </div>
       )}
 
+      <div className="flex h-10 shrink-0 items-center gap-2 border-b bg-card px-3 xl:hidden">
+        <Button
+          variant="outline"
+          size="xs"
+          className="lg:hidden"
+          onClick={() => setSlidesOpen(true)}
+        >
+          <PanelLeftIcon />
+          幻灯片
+        </Button>
+        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+          {selected ? `第 ${selected.index} 页 · ${selected.title}` : task.topic}
+        </span>
+        <Button variant="outline" size="xs" onClick={() => setChatOpen(true)}>
+          <MessageSquareIcon />
+          修改助手
+        </Button>
+      </div>
+
       {/* ══ three columns ══ */}
-      <main className="flex min-h-0 flex-1">
-        <aside className="w-[236px] shrink-0 border-r bg-muted">
-          <ScrollArea className="h-full">
-            <div className="px-3.5 py-3.5">
-              <div className="mb-2.5 px-0.5 text-[11px] font-bold tracking-[0.08em] text-hint">
-                幻灯片
-              </div>
-              <div className="flex flex-col gap-3">
-                {slides.map((slide) => (
-                  <SlideThumb
-                    key={slide.id}
-                    slide={slide}
-                    ratio={task.ratio}
-                    paused={cancelled}
-                    selected={selected?.id === slide.id}
-                    onSelect={() => selectSlide(slide.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          </ScrollArea>
+      <main id="main-content" tabIndex={-1} className="flex min-h-0 flex-1 outline-none">
+        <aside className="hidden w-[236px] shrink-0 border-r bg-muted lg:block">
+          <SlidesPanel
+            slides={slides}
+            ratio={task.ratio}
+            paused={cancelled}
+            selectedId={selected?.id ?? null}
+            onSelect={selectSlide}
+          />
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col items-center justify-center overflow-auto px-8 py-6">
+        <section className="flex min-w-0 flex-1 flex-col items-center justify-center overflow-auto px-3 py-4 sm:px-6 sm:py-6">
           {isBooting ? (
             <BootCard topic={task.topic} stage={task.stage} total={task.total_slides} />
           ) : (
@@ -1014,10 +1144,43 @@ export function WorkbenchPage() {
           )}
         </section>
 
-        <aside className="w-[360px] shrink-0 border-l">
-          <ChatPanel slide={selected} />
+        <aside className="hidden w-[360px] shrink-0 border-l xl:block">
+          {desktopChat && <ChatPanel slide={selected} />}
         </aside>
       </main>
+
+      <Sheet open={slidesOpen} onOpenChange={setSlidesOpen}>
+        <SheetContent side="left" className="w-[min(86vw,300px)] gap-0 bg-muted p-0 lg:hidden">
+          <SheetHeader className="border-b bg-card">
+            <SheetTitle>幻灯片</SheetTitle>
+            <SheetDescription>选择要查看或修改的页面</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1">
+            <SlidesPanel
+              slides={slides}
+              ratio={task.ratio}
+              paused={cancelled}
+              selectedId={selected?.id ?? null}
+              onSelect={(slideId) => {
+                selectSlide(slideId)
+                setSlidesOpen(false)
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={chatOpen} onOpenChange={setChatOpen}>
+        <SheetContent side="right" className="w-[min(94vw,390px)] gap-0 p-0 xl:hidden">
+          <SheetHeader className="sr-only">
+            <SheetTitle>AI 修改助手</SheetTitle>
+            <SheetDescription>针对当前页面发送修改指令</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 pt-10">
+            {!desktopChat && <ChatPanel slide={selected} />}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* cancel confirm */}
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>

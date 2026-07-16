@@ -173,6 +173,23 @@ describe("fetchTemplates merge", () => {
 })
 
 describe("template SSE ordering", () => {
+  it("buffers an event for an id that only appears in a later snapshot", async () => {
+    const templateId = "m0-arrives-late"
+    useTemplatesStore.getState().applyTemplateEvent({
+      ...progressEvent(templateId, 100, 1),
+      type: "template.ready",
+    })
+    mockApi.listTemplates.mockResolvedValue([
+      template({ id: templateId, status: "parsing", progress: 8 }),
+    ])
+
+    await useTemplatesStore.getState().fetchTemplates()
+
+    const current = useTemplatesStore.getState().templates[0]
+    expect(current.status).toBe("ready")
+    expect(current.progress).toBe(100)
+  })
+
   it("drops replayed and out-of-order events", () => {
     useTemplatesStore.setState({
       templates: [template({ id: "m5-seq", status: "parsing", progress: 50 })],

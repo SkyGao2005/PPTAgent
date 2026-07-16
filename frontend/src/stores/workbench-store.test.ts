@@ -24,7 +24,18 @@ const mockApi = vi.hoisted(() => ({
   retrySlide: vi.fn(),
 }))
 
-vi.mock("@/lib/api", () => ({ api: mockApi, USE_MOCK: true }))
+vi.mock("@/lib/api", () => ({
+  api: mockApi,
+  ApiError: class ApiError extends Error {
+    readonly status: number
+
+    constructor(message: string, status: number) {
+      super(message)
+      this.status = status
+    }
+  },
+  USE_MOCK: true,
+}))
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), {
     success: vi.fn(),
@@ -35,6 +46,8 @@ vi.mock("sonner", () => ({
 }))
 
 import { useWorkbenchStore } from "@/stores/workbench-store"
+
+const stored = new Map<string, string>()
 
 function snapshot(overrides: Partial<TaskSnapshot> = {}): TaskSnapshot {
   return {
@@ -80,7 +93,30 @@ async function hydrateTask(totalSlides: number): Promise<void> {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  stored.clear()
+  vi.stubGlobal("localStorage", {
+    getItem: (key: string) => stored.get(key) ?? null,
+    setItem: (key: string, value: string) => stored.set(key, value),
+    removeItem: (key: string) => stored.delete(key),
+    clear: () => stored.clear(),
+  })
   useWorkbenchStore.setState(useWorkbenchStore.getInitialState(), true)
+})
+
+describe("refresh persistence", () => {
+  it("restores the selected slide, chat history, and queued edits", async () => {
+    await hydrateTask(2)
+    await useWorkbenchStore.getState().sendChat("pending-2", "保留这条排队指令")
+    useWorkbenchStore.getState().selectSlide("pending-2")
+
+    useWorkbenchStore.setState(useWorkbenchStore.getInitialState(), true)
+    await hydrateTask(2)
+
+    const state = useWorkbenchStore.getState()
+    expect(state.selectedSlideId).toBe("pending-2")
+    expect(state.pendingEdits.get("pending-2")).toEqual(["保留这条排队指令"])
+    expect(state.chats.get("pending-2")?.[0]?.content).toBe("保留这条排队指令")
+  })
 })
 
 describe("applyEvent guards", () => {
@@ -716,5 +752,129 @@ describe("hydrate snapshot ordering", () => {
     const taskOrder = mockApi.getTask.mock.invocationCallOrder[0]
     const slidesOrder = mockApi.listSlides.mock.invocationCallOrder[0]
     expect(taskOrder).toBeLessThan(slidesOrder)
+  })
+})
+
+describe("terminal edge cases", () => {
+  it("does not guess between multiple chat receipts whose HTTP response was lost", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    useWorkbenchStore.setState({
+      chats: new Map([
+        [
+          "s1",
+          [
+            { id: "r1", role: "system", content: "失败 1", status: "failed" },
+            { id: "r2", role: "system", content: "失败 2", status: "failed" },
+          ],
+        ],
+      ]),
+    })
+
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 3,
+        slide_id: "s1",
+        message: "已修改",
+        payload: { chat_id: "unknown", action: "修改", revision: 2 },
+      }),
+    )
+
+    expect(
+      useWorkbenchStore.getState().chats.get("s1")?.map((message) => message.status),
+    ).toEqual(["failed", "failed"])
+  })
+
+  it("settles editing slides and receipts when a task is cancelled", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    mockApi.sendChat.mockReturnValue(new Promise(() => {}))
+    void useWorkbenchStore.getState().sendChat("s1", "精简文案")
+
+    applyEvent(event({ type: "task.cancelled", seq: 3, status: "cancelled" }))
+
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("completed")
+    const receipt = useWorkbenchStore
+      .getState()
+      .chats.get("s1")
+      ?.find((message) => message.role === "system")
+    expect(receipt?.status).toBe("failed")
+  })
+
+  it("drops queued state together with placeholders removed by the final outline", async () => {
+    await hydrateTask(4)
+    await useWorkbenchStore.getState().sendChat("pending-4", "换个配色")
+
+    useWorkbenchStore.getState().applyEvent(
+      event({
+        type: "stage.completed",
+        seq: 1,
+        stage: "plan",
+        payload: {
+          outline: [
+            { slide_id: "s1", index: 1, title: "封面" },
+            { slide_id: "s2", index: 2, title: "目录" },
+          ],
+        },
+      }),
+    )
+
+    const state = useWorkbenchStore.getState()
+    expect(state.chats.has("pending-4")).toBe(false)
+    expect(state.pendingEdits.has("pending-4")).toBe(false)
+  })
+
+  it("clears a stale preview when a reverted event has no resolvable artifact", async () => {
+    const artifact: SlideArtifact = {
+      slide_id: "s1",
+      task_id: "t1",
+      index: 1,
+      title: "封面",
+      summary: "",
+      status: "completed",
+      mode: "html",
+      revision: 2,
+      preview_url: "https://cdn.example/stale.png",
+    }
+    mockApi.getTask.mockResolvedValue(snapshot({ total_slides: 1 }))
+    mockApi.listSlides.mockResolvedValue([artifact])
+    mockApi.listRevisions.mockRejectedValue(new Error("network"))
+    await useWorkbenchStore.getState().hydrate("t1", 1)
+
+    useWorkbenchStore.getState().applyEvent(
+      event({
+        type: "edit.reverted",
+        seq: 1,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+
+    const slide = useWorkbenchStore.getState().slides.get("s1")
+    expect(slide?.revision).toBe(1)
+    expect(slide?.previewUrl).toBeNull()
   })
 })

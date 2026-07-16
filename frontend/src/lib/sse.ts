@@ -3,6 +3,7 @@
 // server replays missed events based on `last_seq`.
 
 import type { GenerationEvent } from "@/types/api"
+import { resolveApiUrl } from "@/lib/api-url"
 
 // Computed locally (not imported from api.ts) so Rollup can fold the DEV
 // branch per-module and drop the mock chunks from production builds.
@@ -34,9 +35,10 @@ export function connectTaskEvents(
     }
   }
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ""
   const params = new URLSearchParams({ last_seq: String(lastSeq) })
-  const source = new EventSource(`${baseUrl}/api/tasks/${taskId}/events?${params}`)
+  const source = new EventSource(
+    `${resolveApiUrl(`/api/tasks/${encodeURIComponent(taskId)}/events`)}?${params}`,
+  )
 
   source.onopen = () => onStatusChange("open")
   source.onerror = () => onStatusChange("reconnecting")
@@ -48,6 +50,7 @@ export function connectTaskEvents(
 }
 
 export function connectTemplateEvents(
+  lastSeq: number,
   onEvent: (event: GenerationEvent) => void,
 ): () => void {
   if (USE_MOCK) {
@@ -57,7 +60,7 @@ export function connectTemplateEvents(
       if (closed) {
         return
       }
-      unsubscribe = server.mockSubscribeTemplates(onEvent)
+      unsubscribe = server.mockSubscribeTemplates(lastSeq, onEvent)
     })
     return () => {
       closed = true
@@ -65,8 +68,8 @@ export function connectTemplateEvents(
     }
   }
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ""
-  const source = new EventSource(`${baseUrl}/api/templates/events`)
+  const params = new URLSearchParams({ last_seq: String(lastSeq) })
+  const source = new EventSource(`${resolveApiUrl("/api/templates/events")}?${params}`)
   source.onmessage = (message) => {
     onEvent(JSON.parse(message.data) as GenerationEvent)
   }

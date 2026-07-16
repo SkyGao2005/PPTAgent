@@ -1,6 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-vi.mock("@/lib/api", () => ({ api: {}, USE_MOCK: true }))
+const mockApi = vi.hoisted(() => ({
+  uploadAttachment: vi.fn(),
+  deleteAttachment: vi.fn(),
+  createTask: vi.fn(),
+}))
+
+vi.mock("@/lib/api", () => ({ api: mockApi, USE_MOCK: true }))
+vi.mock("sonner", () => ({
+  toast: { warning: vi.fn() },
+}))
 
 import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 
@@ -9,7 +18,48 @@ function fakeFile(name: string): File {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks()
+  mockApi.deleteAttachment.mockResolvedValue(undefined)
   useCreateTaskStore.setState(useCreateTaskStore.getInitialState(), true)
+})
+
+describe("createTask attachment lifecycle", () => {
+  it("reuses successful partial uploads on retry and clears files after success", async () => {
+    const store = useCreateTaskStore.getState()
+    store.setTopic("季度复盘")
+    store.setTemplateId("tpl")
+    store.addAttachments([fakeFile("a.pdf"), fakeFile("b.pdf")])
+
+    mockApi.uploadAttachment
+      .mockResolvedValueOnce({ attachment_id: "att-a" })
+      .mockRejectedValueOnce(new Error("network"))
+    await expect(store.createTask()).rejects.toThrow("network")
+
+    mockApi.uploadAttachment.mockResolvedValueOnce({ attachment_id: "att-b" })
+    mockApi.createTask.mockResolvedValue({ task_id: "t1" })
+    await expect(useCreateTaskStore.getState().createTask()).resolves.toBe("t1")
+
+    expect(mockApi.uploadAttachment).toHaveBeenCalledTimes(3)
+    expect(mockApi.createTask).toHaveBeenCalledWith(
+      expect.objectContaining({ attachment_ids: ["att-a", "att-b"] }),
+    )
+    expect(useCreateTaskStore.getState().attachments).toEqual([])
+  })
+
+  it("cleans an already-uploaded temporary attachment when the user removes it", async () => {
+    const store = useCreateTaskStore.getState()
+    store.setTopic("季度复盘")
+    store.setTemplateId("tpl")
+    store.addAttachments([fakeFile("a.pdf"), fakeFile("b.pdf")])
+    mockApi.uploadAttachment
+      .mockResolvedValueOnce({ attachment_id: "att-a" })
+      .mockRejectedValueOnce(new Error("network"))
+    await expect(store.createTask()).rejects.toThrow()
+
+    const uploaded = useCreateTaskStore.getState().attachments[0]
+    useCreateTaskStore.getState().removeAttachment(uploaded.id)
+    await vi.waitFor(() => expect(mockApi.deleteAttachment).toHaveBeenCalledWith("att-a"))
+  })
 })
 
 describe("addAttachments", () => {
