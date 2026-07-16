@@ -319,6 +319,8 @@ class AgentEnv:
                 html_path = self.workspace / html_path
             slide_index = parse_slide_index(html_path)
             slide_id = stable_slide_id(self.workspace.stem, slide_index)
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_started(slide_id, slide_index)
             artifact = await self.preview_service.render_html_slide(
                 self.workspace.stem,
                 html_path,
@@ -403,6 +405,8 @@ class AgentEnv:
             if isinstance(slide_index, str):
                 slide_index = int(slide_index)
             slide_id = stable_slide_id(self.workspace.stem, slide_index)
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_started(slide_id, slide_index)
 
             artifact = await self.preview_service.render_template_slide(
                 self.workspace.stem,

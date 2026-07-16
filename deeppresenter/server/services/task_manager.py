@@ -10,7 +10,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Literal, Optional
 
 from deeppresenter.server.models.artifacts import task_dir
 from deeppresenter.server.models.events import (
@@ -88,6 +88,8 @@ class TaskSnapshot:
     def from_dict(cls, data: Dict[str, Any]) -> "TaskSnapshot":
         """从字典恢复快照。"""
         status = data.get("status", "queued")
+        if status == "succeeded":
+            status = "completed"
         if isinstance(status, str):
             status = TaskStatus(status)
         stage = data.get("current_stage")
@@ -217,27 +219,25 @@ class TaskManager:
             },
         )
 
-        if self.use_placeholder:
-            runner_coro = self._run_placeholder(
-                task_id=task_id,
-                instruction=instruction,
-            )
-        else:
-            runner_coro = self._run_agent_loop(
-                task_id=task_id,
-                instruction=instruction,
-                attachments=attachments or [],
-                num_pages=num_pages,
-                powerpoint_type=powerpoint_type,
-                template=template,
-                convert_type=convert_type,
-                enable_planner=enable_planner,
-                language=language,
-            )
-
         async def _runner_with_semaphore():
             async with self._concurrency_sem:
-                await runner_coro
+                if self.use_placeholder:
+                    await self._run_placeholder(
+                        task_id=task_id,
+                        instruction=instruction,
+                    )
+                else:
+                    await self._run_agent_loop(
+                        task_id=task_id,
+                        instruction=instruction,
+                        attachments=attachments or [],
+                        num_pages=num_pages,
+                        powerpoint_type=powerpoint_type,
+                        template=template,
+                        convert_type=convert_type,
+                        enable_planner=enable_planner,
+                        language=language,
+                    )
 
         runner = asyncio.create_task(_runner_with_semaphore())
         self._runners[task_id] = runner
@@ -279,7 +279,7 @@ class TaskManager:
             return False
 
         # 终态不可取消
-        if snapshot.status in (TaskStatus.SUCCEEDED, TaskStatus.FAILED, TaskStatus.CANCELLED):
+        if snapshot.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED):
             return False
 
         if not validate_task_transition(snapshot.status, TaskStatus.CANCELLED):
@@ -351,21 +351,19 @@ class TaskManager:
 
         # 从快照恢复原始生成参数
         params = snapshot.generation_params
-        runner_coro = self._run_agent_loop(
-            task_id=task_id,
-            instruction=params.get("instruction", snapshot.instruction),
-            attachments=params.get("attachments") or [],
-            num_pages=params.get("num_pages"),
-            powerpoint_type=params.get("powerpoint_type", "16:9"),
-            template=params.get("template"),
-            convert_type=params.get("convert_type"),
-            enable_planner=params.get("enable_planner", False),
-            language=params.get("language", "zh"),
-        )
-
         async def _retry_with_semaphore():
             async with self._concurrency_sem:
-                await runner_coro
+                await self._run_agent_loop(
+                    task_id=task_id,
+                    instruction=params.get("instruction", snapshot.instruction),
+                    attachments=params.get("attachments") or [],
+                    num_pages=params.get("num_pages"),
+                    powerpoint_type=params.get("powerpoint_type", "16:9"),
+                    template=params.get("template"),
+                    convert_type=params.get("convert_type"),
+                    enable_planner=params.get("enable_planner", False),
+                    language=params.get("language", "zh"),
+                )
 
         runner = asyncio.create_task(_retry_with_semaphore())
         self._runners[task_id] = runner
@@ -373,11 +371,11 @@ class TaskManager:
 
     # ── 任务导出 ──────────────────────────────────────────────
 
-    async def export(self, task_id: str) -> Optional[str]:
+    async def export(self, task_id: str, fmt: Literal["pptx", "pdf"] = "pptx") -> Optional[str]:
         """触发导出，返回产物相对路径。
 
         先检查快照中记录的 result_artifact 是否在磁盘上存在，
-        不存在则扫描 exports/ 目录，仍找不到则返回 None。
+        不存在则扫描任务根目录和 exports/ 目录，仍找不到则返回 None。
         """
         snapshot = self._snapshots.get(task_id)
         if snapshot is None:
@@ -390,30 +388,47 @@ class TaskManager:
         await reporter.export_started()
         try:
             root = task_dir(self.workspace_base, task_id)
+            suffix = f".{fmt}"
+
+            def _relative_if_exists(path: Path) -> Optional[str]:
+                if path.exists() and path.is_file():
+                    try:
+                        return str(path.resolve().relative_to(root.resolve()))
+                    except ValueError:
+                        return None
+                return None
 
             # 1. 检查快照记录的产物是否在磁盘上
             artifact = snapshot.result_artifact
             if artifact:
-                full_path = root / artifact
-                if full_path.exists():
-                    await reporter.export_completed(artifact)
-                    return artifact
+                artifact_path = root / artifact
+                if artifact_path.suffix.lower() == suffix:
+                    rel = _relative_if_exists(artifact_path)
+                    if rel:
+                        await reporter.export_completed(rel)
+                        return rel
 
-            # 2. 扫描 exports 目录
-            exports_dir = root / "exports"
-            if exports_dir.exists():
-                pptx_files = sorted(
-                    exports_dir.glob("*.pptx"),
+                sibling = artifact_path.with_suffix(suffix)
+                rel = _relative_if_exists(sibling)
+                if rel:
+                    await reporter.export_completed(rel)
+                    return rel
+
+            # 2. 扫描任务根目录和 exports 目录
+            search_dirs = [root, root / "exports"]
+            for export_dir in search_dirs:
+                if not export_dir.exists():
+                    continue
+                files = sorted(
+                    export_dir.glob(f"*{suffix}"),
                     key=lambda p: p.stat().st_mtime,
                     reverse=True,
                 )
-                for pptx in pptx_files:
-                    try:
-                        rel = str(pptx.resolve().relative_to(root.resolve()))
+                for file in files:
+                    rel = _relative_if_exists(file)
+                    if rel:
                         await reporter.export_completed(rel)
                         return rel
-                    except ValueError:
-                        continue
 
             await reporter.export_failed("未找到可导出产物")
             return None
@@ -566,12 +581,12 @@ class TaskManager:
                 if isinstance(msg, (str, Path)):
                     final_artifact = self._artifact_path(task_id, Path(msg))
 
-            # 取消后不再写 succeeded
+            # 取消后不再写 completed
             if cancel_evt and cancel_evt.is_set():
                 return
             self._transition_to(
                 task_id,
-                TaskStatus.SUCCEEDED,
+                TaskStatus.COMPLETED,
                 progress=100.0,
                 result_artifact=final_artifact,
             )
@@ -649,7 +664,7 @@ class TaskManager:
             # task.completed
             self._transition_to(
                 task_id,
-                TaskStatus.SUCCEEDED,
+                TaskStatus.COMPLETED,
                 progress=100.0,
                 result_artifact="exports/latest.pptx",
             )

@@ -34,6 +34,7 @@ async def test_task_events(tmp_workspace):
         EventType.TASK_COMPLETED.value,
     ]
     assert events[0]["status"] == TaskStatus.QUEUED.value
+    assert events[-1]["status"] == "completed"
     assert events[-1]["progress"] == 100
     assert events[-1]["artifact_url"] == "exports/latest.pptx"
 
@@ -127,3 +128,14 @@ async def test_slide_and_export_events(tmp_workspace):
     assert events[4]["type"] == EventType.EXPORT_COMPLETED.value
 
     await bus.close()
+
+
+@pytest.mark.asyncio
+async def test_emit_publish_failure_warns_without_raising():
+    async def broken_publish(_event):
+        raise OSError("disk full")
+
+    reporter = EventReporter("abc12345", broken_publish)
+
+    with pytest.warns(RuntimeWarning, match="Failed to publish event task.created"):
+        await reporter.task_created()

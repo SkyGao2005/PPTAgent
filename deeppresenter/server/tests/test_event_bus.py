@@ -13,6 +13,7 @@ import pytest
 
 from deeppresenter.server.models.events import EventType, GenerationEvent, StageName
 from deeppresenter.server.services.event_bus import (
+    EOF_EVENT,
     HEARTBEAT_EVENT,
     HEARTBEAT_INTERVAL,
     EventBus,
@@ -262,7 +263,7 @@ class TestSubscribe:
 
     @pytest.mark.asyncio
     async def test_close_terminates_subscriber(self, tmp_workspace):
-        """关闭总线后订阅者应抛出 StopAsyncIteration。"""
+        """关闭总线后订阅者应先收到 eof，再停止迭代。"""
         bus = EventBus(tmp_workspace)
 
         gen = bus.subscribe(last_seq=9999)
@@ -270,7 +271,8 @@ class TestSubscribe:
         # 关闭总线 —— 向所有订阅者队列发送关闭哨兵
         await bus.close()
 
-        # 生成器应收到哨兵并停止迭代
+        # 生成器应收到 eof，然后停止迭代
+        assert await gen.__anext__() == EOF_EVENT
         with pytest.raises(StopAsyncIteration):
             await gen.__anext__()
 
@@ -284,6 +286,7 @@ class TestSubscribe:
         gen = bus.subscribe(last_seq=0)
         first = await gen.__anext__()
         assert first["type"] == "task.created"
+        assert await gen.__anext__() == EOF_EVENT
         with pytest.raises(StopAsyncIteration):
             await gen.__anext__()
 

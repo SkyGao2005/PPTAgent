@@ -20,6 +20,7 @@ HtmlPreviewRenderer = Callable[[Path, Path, str], Awaitable[None]]
 
 _SLIDE_HTML_RE = re.compile(r"^slide[_-](\d+)\.html$", re.IGNORECASE)
 SLIDES_INDEX_FILE = "index.json"
+_PREVIEW_DEVICE_SCALE_FACTOR = 1.5
 _VIEWPORTS = {
     "16:9": (1280, 720),
     "4:3": (960, 720),
@@ -295,7 +296,10 @@ async def render_html_preview(
             ],
         )
         try:
-            page = await browser.new_page(viewport={"width": width, "height": height})
+            page = await browser.new_page(
+                viewport={"width": width, "height": height},
+                device_scale_factor=_PREVIEW_DEVICE_SCALE_FACTOR,
+            )
             await page.goto(html_path.as_uri(), wait_until="networkidle")
             await page.screenshot(path=str(output_path), full_page=False)
         finally:

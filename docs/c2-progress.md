@@ -145,7 +145,7 @@ PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-pla
   - `GET /health` 返回 `{"status":"ok"}`。
   - `POST /api/tasks` 可创建任务并返回 `task_id`。
   - `GET /api/tasks/{task_id}/events?last_seq=0` 可回放 `task.created`、阶段事件和 `task.completed`。
-  - `GET /api/tasks/{task_id}` 返回 `succeeded`、`progress=100` 和 `result_artifact`。
+  - `GET /api/tasks/{task_id}` 返回 `completed`、`progress=100` 和 `result_artifact`。
 - 完善逐页预览读取能力：
   - `PreviewService.render_html_slide()` 每次写入 `current.json` 后同步维护 `slides/index.json`。
   - 新增 `PreviewService.list_slides()`、`get_slide()`、`revision_count()`。
@@ -205,37 +205,66 @@ PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-pla
   - 修复 `inspect_manuscript` 导入时触发 HuggingFace 下载的问题，语言检测改为仅使用本地缓存，未命中则返回 `unknown`。
   - 修复 `AgentEnv` 只接受单个 text/image block 的限制，支持工具返回 `TextContent + ImageContent`，避免读取预览图片时中断。
   - 强化 Design Agent HTML 结构约束，要求可见文本必须包裹在块级语义元素内，减少 html2pptx 裸文本校验失败。
-  - 真实任务 `59f7a380` 结果：prepare/research/generate/export 全流程完成，`slide.preview_ready` 已发出，`task.completed` 状态为 `succeeded`。
+  - 真实任务 `59f7a380` 结果：prepare/research/generate/export 全流程完成，`slide.preview_ready` 已发出，`task.completed` 状态为 `completed`。
   - 真实产物：`.local-workspace/59f7a380/test_slide.pptx`、`test_slide.pdf`、`slides/.../preview.png`。
 - 当前 server 测试结果：`93 passed, 1 skipped in 2.45s`。
 
+### 2026-07-16
+
+- 拉取远端最新代码，同步到 `c3d7b51`：
+  - C1 新增 `generation_params`，retry 可恢复原始创建参数。
+  - C1 新增导出文件存在性检查和 exports 目录兜底扫描。
+  - C1 新增 `max_concurrent` 并发 semaphore 和环境变量配置。
+  - C1 加固 `EventReporter.emit()`，事件发布失败只发 warning，不中断任务。
+- 修复 pull 后 server 全量测试中的 2 个 retry 失败：
+  - 新增 `RecordingRetryManager` 测试替身，避免 retry 参数单测误启动真实 `AgentLoop` 并访问 Docker socket。
+  - `TaskManager.create()` / `retry()` 改为拿到 semaphore 后再创建并 await runner coroutine，避免排队/取消时出现 coroutine never awaited。
+- 补充异常场景测试：
+  - EventReporter 发布失败时发出 `RuntimeWarning`，调用方不抛异常。
+  - HTML 预览 renderer 失败时不写 `current.json` 和 `slides/index.json`，保留源文件由上层发布失败事件。
+  - `slides/index.json` 损坏时 `PreviewService.list_slides()` 可回退扫描各页 `current.json`。
+  - artifact API 拒绝路径穿越，缺失产物返回 404。
+  - 未知 slide 返回 404，创建任务缺少 instruction 返回 422。
+- 当前 server 测试结果：`107 passed, 1 skipped in 3.69s`。
+- pull 后真实 AgentLoop 端到端复测：
+  - 真实任务 `3ae618ee` 结果：`inspect_slide` 首次捕获裸文本问题后自动 edit 修复，第二次检查通过。
+  - SSE 事件包含 `slide.preview_ready`、`export.completed`、`task.completed`。
+  - 最终快照状态为 `completed`，`generation_params` 保留创建参数，`slides[0].preview_url` 正常。
+  - 真实产物：`.local-workspace/3ae618ee/项目收尾测试.pptx`、`项目收尾测试.pdf`、`slides/sld-e4c061116cf5/revisions/1/preview.png`。
+- 前端工作台分支联调验证：
+  - `feat/frontend-workbench` 目前不可直接 merge 到 C2 分支，否则会删除后端目录；本次使用临时 worktree 做兼容验证。
+  - 临时补齐缺失 UI 组件和 API 适配层后，`npm run build` 通过。
+  - 真实任务 `c3b69265` 通过当前 C2 后端生成完成，前端工作台显示“生成完成 · 共 1 页”，缩略图和主画布均加载同一个 `preview.png`，图片尺寸 `1280x720`。
+  - 发现并临时修复一个前端体验问题：任务完成后 EventSource 断开会显示“连接中断”，应仅在任务 `running` 时展示重连提示。
+- 2026-07-16 联调收尾：
+  - 多页任务 `6ee93905` 验证 `slide.started -> slide.preview_ready -> slide.completed` 顺序正常，前端不再停留在“排队中”。
+  - 预览渲染倍率调整为 1.5，真实预览文件尺寸为 `1920x1080`。
+  - 修复 PDF 导出格式：`POST /api/tasks/{task_id}/export` 读取 `format=pdf|pptx`，PDF 请求返回真实 `.pdf` 文件及 `filename`，避免前端把 PPTX 下载成 `.pdf` 后无法打开。
+
 ## 已发现问题和待处理点
 
-1. `TaskStatus` 使用 `succeeded`，但部分文档/示例仍可能出现 `completed`。需要在模型、API 文档、前端约定中统一。
+1. `TaskStatus` 已按根 README 统一对外输出 `completed`，并兼容读取旧工作区里的 `succeeded`。
 2. 当前虚拟环境已安装完整 PPTAgent 运行依赖；真实 LLM 生成仍需要本地 `deeppresenter/config.yaml` 填入可用模型 API key。
-3. TaskManager 已接入真实 `AgentLoop`，并已完成 1 页真实 LLM/MCP 端到端冒烟测试；后续仍需扩大到多页任务和模板任务。
-4. HTML 预览已接入 `inspect_slide` 成功路径，并在完整 AgentLoop 真实生成中验证可发出 `slide.preview_ready`。
+3. TaskManager 已接入真实 `AgentLoop`，并已完成 1 页和 2 页真实 LLM/MCP 端到端冒烟测试；后续仍需扩大到失败重试真实链路和模板任务。
+4. HTML 预览已接入 `inspect_slide` 成功路径，并在完整 AgentLoop 真实生成中验证可发出 `slide.started`、`slide.preview_ready`、`slide.completed`。
 5. 模板模式已能基于结构化数据生成保底 PNG 预览，但尚未验证真实 `generate_slide()` 返回结构与模板视觉还原度。
 6. Docker sandbox 已通过本地构建准备完成，并已验证 sandbox MCP 连接和真实任务工具调用；后续需要观察多页并发任务稳定性。
+7. 前端分支需要正式补接口适配：创建任务字段映射、`GET /slides` 返回对象解包、缺失模板/附件接口的占位或真实实现。
 
 ## 下一步计划
 
-1. 补齐完整运行依赖并做真实链路冒烟测试：
-   - 配置 `DEEPPRESENTER_CONFIG_FILE` 或默认 `deeppresenter/config.yaml`，填入可用模型 API key。
-   - 准备 `deeppresenter/mcp.json`，验证 sandbox MCP 可连接。
-   - 启动 FastAPI 后创建一个最小任务，验证 SSE 阶段事件、逐页预览和最终产物。
+1. 扩大真实链路验证：
+   - 用 2-3 页任务验证多页 `slide.preview_ready`、导出和并发限制。
+   - 构造真实失败任务后验证 `POST /retry` 能恢复原始参数并重新进入队列。
+   - 用模板任务验证 `AgentEnv._maybe_capture_template_slide()` 在真实 `generate_slide()` 返回结构下的事件和 artifact。
 2. 补充 API/任务快照与 C2 产物的进一步对齐：
    - 后续可根据前端需要裁剪 `GET /api/tasks/{task_id}` 内联 slides 字段规模。
    - artifact URL 统一用 `/api/tasks/{task_id}/artifacts/{path}`。
-   - 预览失败时当前只记录 warning；后续可增加标准 warning 事件。
+   - 预览失败当前会发 `slide.failed` 并保留源文件；后续可按前端需要补 warning 类型事件。
 3. 模板模式真实链路验证：
-   - 用真实或 mock `generate_slide()` 结果验证 `AgentEnv._maybe_capture_template_slide()` 事件和 artifact。
    - 根据真实返回结构调整 `slide_index`、`layout_name`、`structured_data` 提取逻辑。
    - 后续可替换当前保底 HTML 预览为更高保真的模板单页截图。
-4. 补真实链路验证：
-   - 用 mock 或最小真实任务验证阶段事件顺序。
-   - 确认工具事件 payload 不泄漏大文本。
-5. 每次与 C1 合并后：
+4. 每次与 C1 合并后：
    - 运行 server 单测。
    - 更新本文档的“已完成”和“待处理点”。
    - 在提交信息中标明 C2 修改范围。

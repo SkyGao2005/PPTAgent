@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # ── 哨兵常量 ────────────────────────────────────────────────────
 
 HEARTBEAT_EVENT = {"type": "heartbeat"}
+EOF_EVENT = {"type": "eof"}
 HEARTBEAT_INTERVAL = 30  # 心跳间隔（秒）
 _CLOSE_SENTINEL = object()  # 内部哨兵，通知订阅者优雅退出
 
@@ -98,6 +99,7 @@ class EventBus:
                 yield event
 
             if self._closed:
+                yield EOF_EVENT
                 return
 
             # 第二阶段 —— 实时订阅
@@ -111,6 +113,7 @@ class EventBus:
                     continue
 
                 if raw is _CLOSE_SENTINEL:
+                    yield EOF_EVENT
                     return
 
                 yield raw

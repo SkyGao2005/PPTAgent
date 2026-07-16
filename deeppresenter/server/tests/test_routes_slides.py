@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from deeppresenter.server.models.artifacts import task_dir
+from deeppresenter.server.models.events import TaskStatus
 
 
 @pytest.fixture
@@ -134,3 +135,112 @@ def test_slide_routes_return_404_for_unknown_task(tmp_workspace):
 
     response = client.get("/api/tasks/missing/slides")
     assert response.status_code == 404
+
+
+def test_get_unknown_slide_returns_404(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"instruction": "测试未知页面"})
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    response = client.get(f"/api/tasks/{task_id}/slides/sld-missing")
+
+    assert response.status_code == 404
+
+
+def test_artifact_route_rejects_path_traversal(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"instruction": "测试路径安全"})
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    secret = tmp_workspace / "secret.txt"
+    secret.write_text("secret", encoding="utf-8")
+
+    response = client.get(f"/api/tasks/{task_id}/artifacts/%2E%2E/secret.txt")
+
+    assert response.status_code == 403
+
+
+def test_artifact_route_returns_404_for_missing_file(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"instruction": "测试缺失产物"})
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    response = client.get(f"/api/tasks/{task_id}/artifacts/slides/missing.png")
+
+    assert response.status_code == 404
+
+
+def test_export_route_returns_download_url(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"instruction": "测试导出下载"})
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    root = task_dir(tmp_workspace, task_id)
+    exports = root / "exports"
+    exports.mkdir(parents=True, exist_ok=True)
+    (exports / "latest.pptx").write_bytes(b"pptx")
+
+    snapshot = app.state.task_manager.get_snapshot(task_id)
+    snapshot.status = TaskStatus.COMPLETED
+    snapshot.result_artifact = "exports/latest.pptx"
+
+    response = client.post(f"/api/tasks/{task_id}/export")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "completed"
+    assert body["format"] == "pptx"
+    assert body["filename"] == "latest.pptx"
+    assert body["artifact_path"] == "exports/latest.pptx"
+    assert body["download_url"].endswith(
+        f"/api/tasks/{task_id}/artifacts/exports/latest.pptx"
+    )
+
+
+def test_export_route_returns_pdf_when_requested(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"instruction": "测试 PDF 导出"})
+    assert response.status_code == 201
+    task_id = response.json()["task_id"]
+
+    root = task_dir(tmp_workspace, task_id)
+    (root / "manuscript.pptx").write_bytes(b"pptx")
+    (root / "manuscript.pdf").write_bytes(b"%PDF")
+
+    snapshot = app.state.task_manager.get_snapshot(task_id)
+    snapshot.status = TaskStatus.COMPLETED
+    snapshot.result_artifact = "manuscript.pptx"
+
+    response = client.post(f"/api/tasks/{task_id}/export", json={"format": "pdf"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["format"] == "pdf"
+    assert body["filename"] == "manuscript.pdf"
+    assert body["artifact_path"] == "manuscript.pdf"
+    assert body["download_url"].endswith(
+        f"/api/tasks/{task_id}/artifacts/manuscript.pdf"
+    )
+
+
+def test_create_task_requires_instruction(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks", json={"num_pages": "1"})
+
+    assert response.status_code == 422

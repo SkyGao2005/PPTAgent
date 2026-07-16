@@ -32,6 +32,10 @@ async def fake_renderer(html_path: Path, output_path: Path, aspect_ratio: str) -
     output_path.write_bytes(b"fake-png")
 
 
+async def failing_renderer(html_path: Path, output_path: Path, aspect_ratio: str) -> None:
+    raise RuntimeError("render failed")
+
+
 def test_parse_slide_index():
     assert parse_slide_index(Path("slide_01.html")) == 1
     assert parse_slide_index(Path("slide-12.html")) == 12
@@ -174,6 +178,46 @@ async def test_render_html_slide_rejects_outside_workspace(tmp_workspace):
 
     with pytest.raises(ValueError):
         await service.render_html_slide("abc12345", html)
+
+
+@pytest.mark.asyncio
+async def test_render_html_slide_renderer_failure_preserves_no_current(tmp_workspace):
+    task_id = "abc12345"
+    root = task_dir(tmp_workspace, task_id)
+    html_dir = root / "slides"
+    html_dir.mkdir(parents=True)
+    html = html_dir / "slide_01.html"
+    html.write_text("<html><body>hello</body></html>", encoding="utf-8")
+
+    service = PreviewService(tmp_workspace, renderer=failing_renderer)
+
+    with pytest.raises(RuntimeError, match="render failed"):
+        await service.render_html_slide(task_id, html)
+
+    sid = stable_slide_id(task_id, 1)
+    assert not (slide_dir(tmp_workspace, task_id, sid) / "current.json").exists()
+    assert not (slides_dir(tmp_workspace, task_id) / SLIDES_INDEX_FILE).exists()
+
+
+@pytest.mark.asyncio
+async def test_list_slides_falls_back_when_index_is_corrupt(tmp_workspace):
+    task_id = "abc12345"
+    root = task_dir(tmp_workspace, task_id)
+    html_dir = root / "slides"
+    html_dir.mkdir(parents=True)
+    html = html_dir / "slide_01.html"
+    html.write_text("<html><body>hello</body></html>", encoding="utf-8")
+
+    service = PreviewService(tmp_workspace, renderer=fake_renderer)
+    artifact = await service.render_html_slide(task_id, html)
+    (slides_dir(tmp_workspace, task_id) / SLIDES_INDEX_FILE).write_text(
+        "{not-json", encoding="utf-8"
+    )
+
+    slides = service.list_slides(task_id)
+
+    assert len(slides) == 1
+    assert slides[0].slide_id == artifact.slide_id
 
 
 @pytest.mark.asyncio

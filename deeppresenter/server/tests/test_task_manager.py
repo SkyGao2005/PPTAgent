@@ -37,6 +37,17 @@ def tmp_workspace() -> Path:
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+class RecordingRetryManager(TaskManager):
+    """TaskManager test double that records retry runner parameters."""
+
+    def __init__(self, workspace_base: Path):
+        super().__init__(workspace_base, use_placeholder=True)
+        self.retry_calls = []
+
+    async def _run_agent_loop(self, **kwargs):
+        self.retry_calls.append(kwargs)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # TaskSnapshot
 # ═══════════════════════════════════════════════════════════════════════
@@ -80,6 +91,13 @@ class TestTaskSnapshot:
         s = TaskSnapshot.from_dict(d)
         assert s.status == TaskStatus.RUNNING
         assert s.current_stage == StageName.GENERATE
+
+    def test_from_dict_accepts_legacy_succeeded_status(self):
+        """旧工作区中的 succeeded 快照应恢复为对外统一的 completed。"""
+        s = TaskSnapshot.from_dict({"task_id": "abc", "status": "succeeded"})
+
+        assert s.status == TaskStatus.COMPLETED
+        assert s.to_dict()["status"] == "completed"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -137,8 +155,8 @@ class TestTaskCreate:
 
         snapshot = manager.get_snapshot(task_id)
         assert snapshot is not None
-        # 占位执行器最终会走到 succeeded
-        assert snapshot.status in (TaskStatus.RUNNING, TaskStatus.SUCCEEDED)
+        # 占位执行器最终会走到 completed
+        assert snapshot.status in (TaskStatus.RUNNING, TaskStatus.COMPLETED)
 
     @pytest.mark.asyncio
     async def test_real_runner_receives_generation_options(self, tmp_workspace):
@@ -321,15 +339,6 @@ class TestTaskRetry:
     @pytest.mark.asyncio
     async def test_retry_failed_task(self, tmp_workspace):
         """FAILED 任务可以重试并转为 RUNNING。"""
-
-        class RecordingRetryManager(TaskManager):
-            def __init__(self, workspace_base: Path):
-                super().__init__(workspace_base, use_placeholder=True)
-                self.retry_calls = []
-
-            async def _run_agent_loop(self, **kwargs):
-                self.retry_calls.append(kwargs)
-
         manager = RecordingRetryManager(tmp_workspace)
         task_id = await manager.create(instruction="test")
 
@@ -355,7 +364,7 @@ class TestTaskRetry:
         await asyncio.sleep(0.5)  # 等待 placeholder 完成
 
         success = await manager.retry(task_id)
-        assert not success  # SUCCEEDED 不可重试
+        assert not success  # completed 不可重试
 
     @pytest.mark.asyncio
     async def test_retry_nonexistent_returns_false(self, tmp_workspace):
@@ -381,7 +390,7 @@ class TestTaskExport:
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         snap = TaskSnapshot(
-            task_id=task_id, status=TaskStatus.SUCCEEDED,
+            task_id=task_id, status=TaskStatus.COMPLETED,
             progress=100.0, result_artifact="exports/latest.pptx",
         )
         manager._snapshots[task_id] = snap
@@ -390,6 +399,27 @@ class TestTaskExport:
 
         artifact = await manager.export(task_id)
         assert artifact == "exports/latest.pptx"
+
+    @pytest.mark.asyncio
+    async def test_export_pdf_prefers_matching_sibling(self, tmp_workspace):
+        """请求 PDF 时应返回同 stem 的 PDF，而不是把 PPTX 伪装成 PDF。"""
+        task_id = "exp00002"
+        workspace = task_dir(tmp_workspace, task_id)
+        workspace.mkdir(parents=True)
+        (workspace / "manuscript.pptx").write_bytes(b"pptx-data")
+        (workspace / "manuscript.pdf").write_bytes(b"%PDF-data")
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snap = TaskSnapshot(
+            task_id=task_id, status=TaskStatus.COMPLETED,
+            progress=100.0, result_artifact="manuscript.pptx",
+        )
+        manager._snapshots[task_id] = snap
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        artifact = await manager.export(task_id, fmt="pdf")
+        assert artifact == "manuscript.pdf"
 
     @pytest.mark.asyncio
     async def test_export_nonexistent_returns_none(self, tmp_workspace):
@@ -410,7 +440,7 @@ class TestRestoreSnapshots:
         task_id = "restore01"
         workspace = task_dir(tmp_workspace, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
-        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.SUCCEEDED,
+        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.COMPLETED,
                             instruction="已完成任务", progress=100.0,
                             result_artifact="exports/latest.pptx")
         (workspace / SNAPSHOT_FILE).write_text(
@@ -418,7 +448,7 @@ class TestRestoreSnapshots:
 
         restored = await TaskManager.restore_snapshots(tmp_workspace)
         assert task_id in restored._snapshots
-        assert restored._snapshots[task_id].status == TaskStatus.SUCCEEDED
+        assert restored._snapshots[task_id].status == TaskStatus.COMPLETED
         assert restored._snapshots[task_id].instruction == "已完成任务"
 
     @pytest.mark.asyncio
@@ -477,7 +507,7 @@ class TestRetryParams:
     @pytest.mark.asyncio
     async def test_retry_restores_params(self, tmp_workspace):
         """retry() 应使用 generation_params 而非硬编码默认值。"""
-        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        manager = RecordingRetryManager(tmp_workspace)
         task_id = await manager.create(
             instruction="retry 参数测试",
             num_pages="8",
@@ -493,11 +523,14 @@ class TestRetryParams:
         params_after = manager.get_snapshot(task_id).generation_params
         assert params_after == params_before
         assert params_after["num_pages"] == "8"
+        await manager._runners[task_id]
+        assert manager.retry_calls[0]["instruction"] == "retry 参数测试"
+        assert manager.retry_calls[0]["num_pages"] == "8"
 
     @pytest.mark.asyncio
     async def test_retry_clears_error_message(self, tmp_workspace):
         """重试后 error_message 应清空。"""
-        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        manager = RecordingRetryManager(tmp_workspace)
         task_id = await manager.create(instruction="test")
         manager._transition_to(task_id, TaskStatus.FAILED, error_message="旧错误")
         workspace = task_dir(tmp_workspace, task_id)
@@ -507,6 +540,7 @@ class TestRetryParams:
         await manager.retry(task_id)
         snap = manager.get_snapshot(task_id)
         assert snap.error_message is None
+        await manager._runners[task_id]
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -527,7 +561,7 @@ class TestExportRobustness:
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         snap = TaskSnapshot(
-            task_id=task_id, status=TaskStatus.SUCCEEDED,
+            task_id=task_id, status=TaskStatus.COMPLETED,
             result_artifact="exports/missing.pptx",  # 不存在
         )
         manager._snapshots[task_id] = snap
@@ -546,7 +580,7 @@ class TestExportRobustness:
         workspace.mkdir(parents=True, exist_ok=True)
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
-        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.SUCCEEDED)
+        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.COMPLETED)
         manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
         manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
@@ -577,8 +611,8 @@ class TestConcurrencyLimit:
         await asyncio.sleep(1.2)
         snap1 = manager.get_snapshot(id1)
         snap2 = manager.get_snapshot(id2)
-        assert snap1.status == TaskStatus.SUCCEEDED
-        assert snap2.status == TaskStatus.SUCCEEDED
+        assert snap1.status == TaskStatus.COMPLETED
+        assert snap2.status == TaskStatus.COMPLETED
 
     @pytest.mark.asyncio
     async def test_max_concurrent_notation(self, tmp_workspace):

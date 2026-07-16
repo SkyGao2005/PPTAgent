@@ -261,17 +261,36 @@ async def retry_task(task_id: str, body: RetryRequest, request: Request):
     return {"task_id": task_id, "status": "running", "message": "任务已重新启动"}
 
 
+class ExportRequest(BaseModel):
+    """导出请求体。"""
+
+    format: str = Field(default="pptx", description="导出格式：pptx 或 pdf")
+
+
 @router.post("/{task_id}/export")
-async def export_task(task_id: str, request: Request):
+async def export_task(task_id: str, request: Request, body: ExportRequest | None = None):
     """导出任务最终产物。"""
     manager = _get_manager(request)
-    artifact = await manager.export(task_id)
+    fmt = (body.format if body else "pptx").lower()
+    if fmt not in {"pptx", "pdf"}:
+        raise HTTPException(status_code=422, detail="导出格式仅支持 pptx 或 pdf")
+
+    artifact = await manager.export(task_id, fmt=fmt)  # type: ignore[arg-type]
     if artifact is None:
         snapshot = manager.get_snapshot(task_id)
         if snapshot is None:
             raise HTTPException(status_code=404, detail=f"任务 {task_id} 不存在")
         raise HTTPException(status_code=409, detail="任务无可导出产物")
-    return {"task_id": task_id, "artifact_url": artifact, "status": "completed"}
+    url = artifact_url(task_id, artifact)
+    return {
+        "task_id": task_id,
+        "format": fmt,
+        "artifact_path": artifact,
+        "artifact_url": url,
+        "download_url": url,
+        "filename": artifact.rsplit("/", 1)[-1],
+        "status": "completed",
+    }
 
 
 @router.get("/{task_id}/artifacts/{artifact_path:path}")

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class EventType(str, Enum):
@@ -70,22 +70,23 @@ class TaskStatus(str, Enum):
 
     QUEUED = "queued"        # 排队等待
     RUNNING = "running"      # 运行中
-    SUCCEEDED = "succeeded"  # 成功完成
+    COMPLETED = "completed"  # 成功完成
+    SUCCEEDED = "completed"  # 兼容旧代码命名；API 对外统一输出 completed
     FAILED = "failed"        # 执行失败
     CANCELLED = "cancelled"  # 用户取消
 
 
 # ── 状态机 ──────────────────────────────────────────────────────
 
-#: 任务状态合法转移表。终态（succeeded / cancelled）无出边。
+#: 任务状态合法转移表。终态（completed / cancelled）无出边。
 VALID_TASK_TRANSITIONS: Dict[TaskStatus, set] = {
     TaskStatus.QUEUED: {TaskStatus.RUNNING, TaskStatus.CANCELLED},
     TaskStatus.RUNNING: {
-        TaskStatus.SUCCEEDED,
+        TaskStatus.COMPLETED,
         TaskStatus.FAILED,
         TaskStatus.CANCELLED,
     },
-    TaskStatus.SUCCEEDED: set(),
+    TaskStatus.COMPLETED: set(),
     TaskStatus.FAILED: {TaskStatus.RUNNING},  # 允许重试
     TaskStatus.CANCELLED: set(),
 }
@@ -163,6 +164,13 @@ class GenerationEvent(BaseModel):
         default_factory=dict,
         description="少量扩展数据；请勿放入大段文本",
     )
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _normalize_legacy_status(cls, value):
+        if value == "succeeded":
+            return "completed"
+        return value
 
 
 # ── 进度计算 ────────────────────────────────────────────────────

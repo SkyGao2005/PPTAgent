@@ -45,7 +45,7 @@ class TestTaskStateMachine:
         legal = [
             (TaskStatus.QUEUED, TaskStatus.RUNNING),
             (TaskStatus.QUEUED, TaskStatus.CANCELLED),
-            (TaskStatus.RUNNING, TaskStatus.SUCCEEDED),
+            (TaskStatus.RUNNING, TaskStatus.COMPLETED),
             (TaskStatus.RUNNING, TaskStatus.FAILED),
             (TaskStatus.RUNNING, TaskStatus.CANCELLED),
             (TaskStatus.FAILED, TaskStatus.RUNNING),  # 重试
@@ -57,9 +57,9 @@ class TestTaskStateMachine:
     def test_illegal_transitions(self):
         """终态不能跳出，逆向转移必须拒绝。"""
         illegal = [
-            (TaskStatus.SUCCEEDED, TaskStatus.RUNNING),
+            (TaskStatus.COMPLETED, TaskStatus.RUNNING),
             (TaskStatus.CANCELLED, TaskStatus.RUNNING),
-            (TaskStatus.SUCCEEDED, TaskStatus.FAILED),
+            (TaskStatus.COMPLETED, TaskStatus.FAILED),
             (TaskStatus.CANCELLED, TaskStatus.QUEUED),
             (TaskStatus.FAILED, TaskStatus.CANCELLED),
         ]
@@ -69,7 +69,7 @@ class TestTaskStateMachine:
 
     def test_terminal_states_have_no_exits(self):
         """终态不应有任何出边。"""
-        for state in (TaskStatus.SUCCEEDED, TaskStatus.CANCELLED):
+        for state in (TaskStatus.COMPLETED, TaskStatus.CANCELLED):
             assert VALID_TASK_TRANSITIONS.get(state, set()) == set()
 
 
@@ -231,6 +231,7 @@ class TestJsonlParsing:
             assert len(events) == 2, f"心跳/EOF 应被跳过，得到了 {len(events)} 条"
             assert events[0].seq == 1
             assert events[1].seq == 2
+            assert events[1].status == TaskStatus.COMPLETED
         finally:
             Path(tmp).unlink()
 

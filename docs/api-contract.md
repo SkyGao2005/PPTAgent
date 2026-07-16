@@ -35,12 +35,12 @@
 ### 2.3 任务状态机
 
 ```
-queued → running → succeeded
+queued → running → completed
                  → failed → (retry) → running
                  → cancelled
 ```
 
-终态（succeeded / failed / cancelled）不可再转换，cancelled 不可 retry。
+终态（completed / failed / cancelled）不可再转换，cancelled 不可 retry。
 
 ---
 
@@ -75,7 +75,7 @@ queued → running → succeeded
 | seq | int | ✓ | 单任务递增事件序号，从 1 开始 |
 | type | string | ✓ | 事件类型，见 3.3 |
 | stage | string | 部分 | prepare / plan / research / generate / edit / export |
-| status | string | 部分 | queued / running / succeeded / failed / cancelled |
+| status | string | 部分 | queued / running / completed / failed / cancelled |
 | progress | float | | 总进度 0~100，无法计算时为 null |
 | stage_progress | float | | 当前阶段进度 0~100，无法计算时为 null |
 | message | string | 建议 | 用户可读的简短说明（中文或英文） |
@@ -94,7 +94,7 @@ queued → running → succeeded
 |------|---------|---------|
 | `task.created` | 任务创建成功 | status=queued, progress=0 |
 | `task.started` | 任务开始执行 | status=running, progress=0 |
-| `task.completed` | 任务全部完成 | status=succeeded, progress=100, artifact_url |
+| `task.completed` | 任务全部完成 | status=completed, progress=100, artifact_url |
 | `task.failed` | 任务失败 | status=failed, message 含错误信息 |
 | `task.cancelled` | 用户取消任务 | status=cancelled, progress 停留在当前值 |
 
@@ -427,21 +427,33 @@ Response 200:
 - `path` 限制在 `workspace/<task_id>/` 目录内，做路径穿越校验
 - 常见路径：
   - `slides/<slide_id>/revisions/<n>/preview.png` — 单页缩略图
-  - `exports/latest.pptx` — 最终导出文件
+  - `exports/latest.pptx` — 最终 PPTX 导出文件
+  - `manuscript.pdf` — 最终 PDF 导出文件
   - `outline.json` — 大纲
   - `manuscript.md` — 稿件
 
-#### POST /api/tasks/{task_id}/export — 导出 PPTX
+#### POST /api/tasks/{task_id}/export — 导出 PPTX / PDF
 
 ```
+Request:
+{
+  "format": "pptx"
+}
+
 Response 200:
 {
   "task_id": "abc12345",
+  "format": "pptx",
+  "artifact_path": "exports/latest.pptx",
   "artifact_url": "/api/tasks/abc12345/artifacts/exports/latest.pptx",
+  "download_url": "/api/tasks/abc12345/artifacts/exports/latest.pptx",
+  "filename": "latest.pptx",
   "status": "completed"
 }
 ```
 
+- `format` 支持 `pptx` / `pdf`，省略时默认为 `pptx`
+- 请求 `pdf` 时优先返回同 stem 的 `.pdf` 产物，避免把 PPTX 字节命名为 PDF
 - 读取每页最新成功的 revision，合并导出
 - 发出 `export.started` → `export.completed` / `export.failed` 事件
 

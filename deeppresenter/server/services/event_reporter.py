@@ -100,7 +100,7 @@ class EventReporter:
     ) -> None:
         await self.emit(
             EventType.TASK_COMPLETED,
-            status=TaskStatus.SUCCEEDED,
+            status=TaskStatus.COMPLETED,
             progress=100,
             artifact_url=artifact_url,
             message=message or "任务已完成",
@@ -170,7 +170,10 @@ class EventReporter:
         await self.stage_progress(stage, 100, message=message, payload=data)
 
     async def slide_started(
-        self, slide_id: str, slide_index: int, total_slides: int
+        self,
+        slide_id: str,
+        slide_index: int,
+        total_slides: int | None = None,
     ) -> None:
         await self.emit(
             EventType.SLIDE_STARTED,
