@@ -372,15 +372,19 @@ class TestTaskRetry:
 class TestTaskExport:
     @pytest.mark.asyncio
     async def test_export_with_artifact(self, tmp_workspace):
-        """导出应返回快照中的 result_artifact。"""
-        manager = TaskManager(tmp_workspace, use_placeholder=True)
-        task_id = await manager.create(instruction="test")
-
-        # 手动设置快照产物（不依赖 placeholder runner 完成）
-        manager._transition_to(task_id, TaskStatus.SUCCEEDED,
-                               progress=100.0, result_artifact="exports/latest.pptx")
-        # 重建 EventBus（占位执行器完成后会关闭）
+        """导出应返回快照中的 result_artifact（文件在磁盘上存在时）。"""
+        task_id = "exp00001"
         workspace = task_dir(tmp_workspace, task_id)
+        exports_dir = workspace / "exports"
+        exports_dir.mkdir(parents=True)
+        (exports_dir / "latest.pptx").write_bytes(b"pptx-data")
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snap = TaskSnapshot(
+            task_id=task_id, status=TaskStatus.SUCCEEDED,
+            progress=100.0, result_artifact="exports/latest.pptx",
+        )
+        manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
         manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
 
@@ -438,3 +442,149 @@ class TestRestoreSnapshots:
     async def test_empty_workspace(self, tmp_workspace):
         restored = await TaskManager.restore_snapshots(tmp_workspace)
         assert len(restored._snapshots) == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 重试——参数保留
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRetryParams:
+    @pytest.mark.asyncio
+    async def test_snapshot_stores_generation_params(self, tmp_workspace):
+        """create() 时应把全部生成参数写入 generation_params。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(
+            instruction="模板测试",
+            num_pages="5",
+            powerpoint_type="4:3",
+            template="acme",
+            convert_type="pptagent",
+            enable_planner=True,
+            language="zh",
+        )
+        snap = manager.get_snapshot(task_id)
+        assert snap is not None
+        params = snap.generation_params
+        assert params["instruction"] == "模板测试"
+        assert params["num_pages"] == "5"
+        assert params["powerpoint_type"] == "4:3"
+        assert params["template"] == "acme"
+        assert params["convert_type"] == "pptagent"
+        assert params["enable_planner"] is True
+        assert params["language"] == "zh"
+
+    @pytest.mark.asyncio
+    async def test_retry_restores_params(self, tmp_workspace):
+        """retry() 应使用 generation_params 而非硬编码默认值。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(
+            instruction="retry 参数测试",
+            num_pages="8",
+        )
+        # 手动设为 FAILED
+        manager._transition_to(task_id, TaskStatus.FAILED, error_message="失败")
+        workspace = task_dir(tmp_workspace, task_id)
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        params_before = manager.get_snapshot(task_id).generation_params
+
+        await manager.retry(task_id)
+        params_after = manager.get_snapshot(task_id).generation_params
+        assert params_after == params_before
+        assert params_after["num_pages"] == "8"
+
+    @pytest.mark.asyncio
+    async def test_retry_clears_error_message(self, tmp_workspace):
+        """重试后 error_message 应清空。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = await manager.create(instruction="test")
+        manager._transition_to(task_id, TaskStatus.FAILED, error_message="旧错误")
+        workspace = task_dir(tmp_workspace, task_id)
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        await manager.retry(task_id)
+        snap = manager.get_snapshot(task_id)
+        assert snap.error_message is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 导出——文件存在性
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestExportRobustness:
+    @pytest.mark.asyncio
+    async def test_export_artifact_not_on_disk_falls_back(self, tmp_workspace):
+        """快照有 artifact 但磁盘上不存在，应扫描 exports/ 目录。"""
+        task_id = "exp01"
+        workspace = task_dir(tmp_workspace, task_id)
+        exports_dir = workspace / "exports"
+        exports_dir.mkdir(parents=True)
+        fake_pptx = exports_dir / "output.pptx"
+        fake_pptx.write_bytes(b"fake-pptx-data")
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snap = TaskSnapshot(
+            task_id=task_id, status=TaskStatus.SUCCEEDED,
+            result_artifact="exports/missing.pptx",  # 不存在
+        )
+        manager._snapshots[task_id] = snap
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        artifact = await manager.export(task_id)
+        assert artifact is not None
+        assert artifact.endswith("output.pptx")
+
+    @pytest.mark.asyncio
+    async def test_export_no_artifact_returns_none(self, tmp_workspace):
+        """既无 result_artifact 也无 exports/，返回 None。"""
+        task_id = "exp02"
+        workspace = task_dir(tmp_workspace, task_id)
+        workspace.mkdir(parents=True, exist_ok=True)
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.SUCCEEDED)
+        manager._snapshots[task_id] = snap
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+
+        artifact = await manager.export(task_id)
+        assert artifact is None
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TaskManager 并发控制
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestConcurrencyLimit:
+    @pytest.mark.asyncio
+    async def test_semaphore_limits_concurrent_runners(self, tmp_workspace):
+        """max_concurrent=1 时第二个任务排队，最终两者都完成。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True, max_concurrent=1)
+
+        id1 = await manager.create(instruction="任务一")
+        id2 = await manager.create(instruction="任务二")
+
+        # 两个任务都已创建（QUEUED 状态）
+        assert manager.get_snapshot(id1) is not None
+        assert manager.get_snapshot(id2) is not None
+
+        # max_concurrent=1 加 Semaphore 排队，两个任务最终都应完成
+        await asyncio.sleep(1.2)
+        snap1 = manager.get_snapshot(id1)
+        snap2 = manager.get_snapshot(id2)
+        assert snap1.status == TaskStatus.SUCCEEDED
+        assert snap2.status == TaskStatus.SUCCEEDED
+
+    @pytest.mark.asyncio
+    async def test_max_concurrent_notation(self, tmp_workspace):
+        """验证 max_concurrent 通过创建信号量生效。"""
+        manager = TaskManager(tmp_workspace, max_concurrent=3)
+        assert manager._concurrency_sem._value == 3
+
+        manager2 = TaskManager(tmp_workspace, max_concurrent=1)
+        assert manager2._concurrency_sem._value == 1

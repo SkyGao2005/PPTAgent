@@ -46,24 +46,33 @@ class EventReporter:
         """发布一条事件。
 
         ``seq`` 由 EventBus 覆写，这里只提供满足 Pydantic 校验的占位值。
+        事件发布失败只记录 warning，不向上抛出——避免生成流程因事件上报异常而中断。
         """
-        await self._publish(
-            GenerationEvent(
-                task_id=self.task_id,
-                seq=1,
-                type=event_type,
-                stage=stage,
-                status=status,
-                progress=progress,
-                stage_progress=stage_progress,
-                message=message,
-                slide_id=slide_id,
-                slide_index=slide_index,
-                total_slides=total_slides,
-                artifact_url=artifact_url,
-                payload=payload or {},
+        import warnings
+
+        try:
+            await self._publish(
+                GenerationEvent(
+                    task_id=self.task_id,
+                    seq=1,
+                    type=event_type,
+                    stage=stage,
+                    status=status,
+                    progress=progress,
+                    stage_progress=stage_progress,
+                    message=message,
+                    slide_id=slide_id,
+                    slide_index=slide_index,
+                    total_slides=total_slides,
+                    artifact_url=artifact_url,
+                    payload=payload or {},
+                )
             )
-        )
+        except Exception:
+            warnings.warn(
+                f"Failed to publish event {event_type.value} for task {self.task_id}",
+                RuntimeWarning,
+            )
 
     async def task_created(
         self,

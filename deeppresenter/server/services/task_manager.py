@@ -43,6 +43,7 @@ class TaskSnapshot:
         completed_slides: int = 0,
         failed_slides: int = 0,
         completed_slide_ids: Optional[list[str]] = None,
+        generation_params: Optional[Dict[str, Any]] = None,
         result_artifact: Optional[str] = None,
         error_message: Optional[str] = None,
         created_at: Optional[str] = None,
@@ -57,6 +58,7 @@ class TaskSnapshot:
         self.completed_slides = completed_slides
         self.failed_slides = failed_slides
         self.completed_slide_ids = completed_slide_ids or []
+        self.generation_params = generation_params or {}
         self.result_artifact = result_artifact
         self.error_message = error_message
         now = datetime.now(timezone.utc).isoformat()
@@ -75,6 +77,7 @@ class TaskSnapshot:
             "completed_slides": self.completed_slides,
             "failed_slides": self.failed_slides,
             "completed_slide_ids": self.completed_slide_ids,
+            "generation_params": self.generation_params,
             "result_artifact": self.result_artifact,
             "error_message": self.error_message,
             "created_at": self.created_at,
@@ -100,6 +103,7 @@ class TaskSnapshot:
             completed_slides=data.get("completed_slides", 0),
             failed_slides=data.get("failed_slides", 0),
             completed_slide_ids=data.get("completed_slide_ids") or [],
+            generation_params=data.get("generation_params") or {},
             result_artifact=data.get("result_artifact"),
             error_message=data.get("error_message"),
             created_at=data.get("created_at"),
@@ -124,11 +128,14 @@ class TaskManager:
         *,
         use_placeholder: bool = True,
         config_path: Optional[str] = None,
+        max_concurrent: int = 2,
     ) -> None:
         self.workspace_base = Path(workspace_base)
         self.workspace_base.mkdir(parents=True, exist_ok=True)
         self.use_placeholder = use_placeholder
         self.config_path = config_path
+        # 并发控制
+        self._concurrency_sem = asyncio.Semaphore(max_concurrent)
         # task_id → asyncio.Task（包装 AgentLoop 的协程）
         self._runners: Dict[str, asyncio.Task] = {}
         # task_id → EventBus
@@ -177,11 +184,22 @@ class TaskManager:
         self._cancel_events[task_id] = cancel_evt
 
         # 写入初始快照
+        params = {
+            "instruction": instruction,
+            "attachments": attachments or [],
+            "num_pages": num_pages,
+            "powerpoint_type": powerpoint_type,
+            "template": template,
+            "convert_type": convert_type,
+            "enable_planner": enable_planner,
+            "language": language,
+        }
         snapshot = TaskSnapshot(
             task_id=task_id,
             status=TaskStatus.QUEUED,
             instruction=instruction,
             total_slides=0,
+            generation_params=params,
         )
         self._snapshots[task_id] = snapshot
         self._save_snapshot(workspace, snapshot)
@@ -216,7 +234,12 @@ class TaskManager:
                 enable_planner=enable_planner,
                 language=language,
             )
-        runner = asyncio.create_task(runner_coro)
+
+        async def _runner_with_semaphore():
+            async with self._concurrency_sem:
+                await runner_coro
+
+        runner = asyncio.create_task(_runner_with_semaphore())
         self._runners[task_id] = runner
 
         return task_id
@@ -320,31 +343,42 @@ class TaskManager:
         cancel_evt = asyncio.Event()
         self._cancel_events[task_id] = cancel_evt
 
-        self._transition_to(task_id, TaskStatus.RUNNING, progress=snapshot.progress)
+        self._transition_to(task_id, TaskStatus.RUNNING, progress=snapshot.progress,
+                            error_message=None)
         await reporter.task_started(
             f"任务重新执行{'（跳过已完成页面）' if retry_failed_slides_only else ''}"
         )
 
-        runner = asyncio.create_task(
-            self._run_agent_loop(
-                task_id=task_id,
-                instruction=snapshot.instruction,
-                attachments=[],
-                num_pages=str(snapshot.total_slides) if snapshot.total_slides else None,
-                powerpoint_type="16:9",
-                template=None,
-                convert_type=None,
-                enable_planner=False,
-                language="zh",
-            )
+        # 从快照恢复原始生成参数
+        params = snapshot.generation_params
+        runner_coro = self._run_agent_loop(
+            task_id=task_id,
+            instruction=params.get("instruction", snapshot.instruction),
+            attachments=params.get("attachments") or [],
+            num_pages=params.get("num_pages"),
+            powerpoint_type=params.get("powerpoint_type", "16:9"),
+            template=params.get("template"),
+            convert_type=params.get("convert_type"),
+            enable_planner=params.get("enable_planner", False),
+            language=params.get("language", "zh"),
         )
+
+        async def _retry_with_semaphore():
+            async with self._concurrency_sem:
+                await runner_coro
+
+        runner = asyncio.create_task(_retry_with_semaphore())
         self._runners[task_id] = runner
         return True
 
     # ── 任务导出 ──────────────────────────────────────────────
 
     async def export(self, task_id: str) -> Optional[str]:
-        """触发导出，返回产物相对路径。"""
+        """触发导出，返回产物相对路径。
+
+        先检查快照中记录的 result_artifact 是否在磁盘上存在，
+        不存在则扫描 exports/ 目录，仍找不到则返回 None。
+        """
         snapshot = self._snapshots.get(task_id)
         if snapshot is None:
             return None
@@ -355,19 +389,32 @@ class TaskManager:
 
         await reporter.export_started()
         try:
+            root = task_dir(self.workspace_base, task_id)
+
+            # 1. 检查快照记录的产物是否在磁盘上
             artifact = snapshot.result_artifact
             if artifact:
-                await reporter.export_completed(artifact)
-                return artifact
-            # 尝试扫描 exports 目录
-            exports_dir = task_dir(self.workspace_base, task_id) / "exports"
+                full_path = root / artifact
+                if full_path.exists():
+                    await reporter.export_completed(artifact)
+                    return artifact
+
+            # 2. 扫描 exports 目录
+            exports_dir = root / "exports"
             if exports_dir.exists():
-                pptx_files = list(exports_dir.glob("*.pptx"))
-                if pptx_files:
-                    rel = str(pptx_files[0].resolve().relative_to(
-                        task_dir(self.workspace_base, task_id).resolve()))
-                    await reporter.export_completed(rel)
-                    return rel
+                pptx_files = sorted(
+                    exports_dir.glob("*.pptx"),
+                    key=lambda p: p.stat().st_mtime,
+                    reverse=True,
+                )
+                for pptx in pptx_files:
+                    try:
+                        rel = str(pptx.resolve().relative_to(root.resolve()))
+                        await reporter.export_completed(rel)
+                        return rel
+                    except ValueError:
+                        continue
+
             await reporter.export_failed("未找到可导出产物")
             return None
         except Exception as exc:

@@ -63,11 +63,16 @@ def create_app(
     if use_placeholder is None:
         use_placeholder = _env_flag("DEEPPRESENTER_SERVER_PLACEHOLDER", default=False)
     resolved_config_path = config_path or os.getenv("DEEPPRESENTER_CONFIG_FILE")
+    try:
+        max_concurrent = int(os.getenv("DEEPPRESENTER_MAX_CONCURRENT_TASKS", "2"))
+    except ValueError:
+        max_concurrent = 2
 
     manager = TaskManager(
         workspace_base=base,
         use_placeholder=use_placeholder,
         config_path=resolved_config_path,
+        max_concurrent=max_concurrent,
     )
     app.state.task_manager = manager
 

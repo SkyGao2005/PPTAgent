@@ -404,7 +404,7 @@ def build_template_preview_html(slide_data: dict) -> str:
     </header>
     <main>
       {f"<ul>{body_html}</ul>" if body_html else ""}
-      {f"<section class=\"images\">{image_html}</section>" if image_html else ""}
+      {("<section class='images'>" + image_html + "</section>") if image_html else ""}
     </main>
     <footer>{extras_html}</footer>
   </body>
