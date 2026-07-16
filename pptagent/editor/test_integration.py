@@ -274,6 +274,84 @@ def test_features(prs):
     print(f"  ✓ features: {len(slices)} slices (text={text_count}, mixed={mixed_count}), persistent + queryable")
 
 
+# ---------- 9. preview rendering ----------
+
+def test_preview(prs):
+    """PreviewRenderer generates self-contained HTML previews."""
+    from pptagent.editor.preview import PreviewRenderer
+    import tempfile, os
+
+    renderer = PreviewRenderer()
+
+    # Single slide render
+    result = renderer.render(prs.slides[1], slide_idx=2, total_slides=13)
+    assert len(result.html) > 500, "Preview should be substantial"
+    assert "第2页" in result.html
+    assert "slide" in result.html.lower()
+
+    # Save to file
+    out = renderer.save_preview(prs.slides[1], "/tmp/preview_test.html",
+                                slide_idx=2, total_slides=13)
+    assert os.path.exists("/tmp/preview_test.html")
+    assert os.path.getsize("/tmp/preview_test.html") > 500
+
+    # Batch render all slides
+    results = renderer.render_all(prs)
+    assert len(results) == len(prs.slides)
+
+    # Save all to directory
+    saved = renderer.save_all_previews(prs, "/tmp/preview_batch")
+    assert len(saved) == len(prs.slides)
+    assert os.path.exists("/tmp/preview_batch/slide_01.html")
+
+    # Content change detection
+    old_checksum = result.checksum
+    from pptagent.editor.editor import SlideEditor
+    editor = SlideEditor(prs.slides[1], prs)
+    editor.edit_text(div_id=1, paragraph_id=0, new_text="Preview change")
+    result2 = renderer.render(prs.slides[1], slide_idx=2, total_slides=13)
+    assert result2.checksum != old_checksum, "Edit should change checksum"
+    editor.undo()
+
+    print(f"  ✓ preview: {len(saved)} files in /tmp/preview_batch/")
+
+# ---------- 10. export optimization ----------
+
+def test_export(prs):
+    """Optimized export with validation, progress, and reporting."""
+    import tempfile, os
+    from pptagent.editor.exporter import (
+        optimized_save, ExportOptions, export_with_report, format_file_size
+    )
+    from pptagent.editor.editor import SlideEditor
+
+    output = tempfile.mktemp(suffix=".pptx")
+
+    # Basic export
+    result = optimized_save(prs, output)
+    assert result.success
+    assert os.path.exists(output)
+    assert os.path.getsize(output) > 1000
+    assert result.total_slides == len(prs.slides)
+
+    # Progress tracking
+    progress = []
+    opts = ExportOptions(
+        progress_callback=lambda c, t, title: progress.append((c, t)),
+        validate_images_exist=True,
+        validate_text_bounds=True,
+    )
+    result2 = optimized_save(prs, output, opts)
+    assert len(progress) == len(prs.slides)
+
+    # Summary is readable
+    s = result.summary()
+    assert "导出成功" in s
+    assert "1.4 MB" in s or "KB" in s
+
+    print(f"  ✓ export: {format_file_size(result.file_size_bytes)}, {len(progress)} progress steps, {len(result.warnings)} warnings")
+
+
 # ====================================================================
 # main
 # ====================================================================
@@ -295,6 +373,8 @@ def main():
         ("styles",         test_restyle),
         ("batch",          test_batch),
         ("features",       test_features),
+        ("preview",        test_preview),
+        ("export",         test_export),
     ]
 
     passed = 0

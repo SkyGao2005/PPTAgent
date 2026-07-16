@@ -65,6 +65,27 @@ class ParagraphCountChange:
         )
 
 
+@dataclass
+class StyleChange:
+    """A font or color change on a shape (from restyle)."""
+    shape_idx: int
+    element_name: str
+    old_font: dict
+    new_font: dict
+
+    def describe(self) -> str:
+        changes = []
+        for key in ("name", "size", "color", "bold"):
+            o = self.old_font.get(key)
+            n = self.new_font.get(key)
+            if o != n:
+                label = {"name": "字体", "size": "字号", "color": "颜色", "bold": "加粗"}.get(key, key)
+                changes.append(f"{label}: {o} → {n}")
+        if not changes:
+            return f"元素[{self.shape_idx}]「{self.element_name}」: 样式变更（无细节）"
+        return f"元素[{self.shape_idx}]「{self.element_name}」: " + ", ".join(changes)
+
+
 # ── slide-level diff ─────────────────────────────────────────
 
 @dataclass
@@ -73,6 +94,7 @@ class SlideDiff:
     slide_idx: int
     text_changes: list[TextChange] = field(default_factory=list)
     image_changes: list[ImageChange] = field(default_factory=list)
+    style_changes: list[StyleChange] = field(default_factory=list)
     count_changes: list[ParagraphCountChange] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -82,7 +104,7 @@ class SlideDiff:
 
     @property
     def total_changes(self) -> int:
-        return len(self.text_changes) + len(self.image_changes) + len(self.count_changes)
+        return len(self.text_changes) + len(self.image_changes) + len(self.count_changes) + len(self.style_changes)
 
     def summary(self) -> str:
         """One-line summary of all changes on this slide."""
@@ -93,6 +115,8 @@ class SlideDiff:
             parts.append(f"{len(self.text_changes)}处文字修改")
         if self.image_changes:
             parts.append(f"{len(self.image_changes)}处图片变更")
+        if self.style_changes:
+            parts.append(f"{len(self.style_changes)}处样式变更")
         if self.count_changes:
             parts.append(f"{len(self.count_changes)}处段落增减")
         return f"第{self.slide_idx}页: {', '.join(parts)}"
@@ -104,6 +128,8 @@ class SlideDiff:
             lines.append(f"   [文字] {c.describe()}")
         for c in self.image_changes:
             lines.append(f"   [图片] {c.describe()}")
+        for c in self.style_changes:
+            lines.append(f"   [样式] {c.describe()}")
         for c in self.count_changes:
             lines.append(f"   [结构] {c.describe()}")
         return "\n".join(lines)
@@ -175,6 +201,21 @@ class DiffEngine:
                         old_image=old_img,
                         new_image=new_img,
                     ))
+
+            # -- font / style comparison --
+            old_font = old_s.get("font", {}) or {}
+            new_font = new_s.get("font", {}) or {}
+            font_changed = any(
+                old_font.get(k) != new_font.get(k)
+                for k in ("name", "size", "color", "bold")
+            )
+            if font_changed:
+                diff.style_changes.append(StyleChange(
+                    shape_idx=shape_idx,
+                    element_name=el_name,
+                    old_font=old_font,
+                    new_font=new_font,
+                ))
 
         return diff
 

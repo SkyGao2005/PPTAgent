@@ -10,7 +10,12 @@ from pathlib import Path
 from pptagent.document import Document
 from pptagent.pptgen import PPTAgent
 from pptagent.presentation import Presentation
+from pptagent.editor.artifact import ArtifactStore
 from pptagent.editor.editor import SlideEditor
+from pptagent.editor.service import (
+    DEFAULT_REGISTRY,
+    SlideEditService,
+)
 from pptagent.editor.version import VersionManager
 from pptagent.editor.version_store import VersionStore
 
@@ -78,6 +83,53 @@ class VersionedPPTAgent(PPTAgent):
     def list_editors(self) -> dict[int, SlideEditor]:
         """Return all active editors keyed by slide index."""
         return dict(self._editors)
+
+    # ── direction D: conversational editing & versioning ────────
+
+    def get_edit_service(
+        self,
+        slide_idx: int,
+        task_id: str | None = None,
+        llm=None,
+        outline: str | None = None,
+        regenerate_fn=None,
+        workspace=None,
+        max_revisions: int = 10,
+    ) -> "SlideEditService":
+        """Return (creating & registering if needed) a conversational edit service.
+
+        The service targets one slide (1-based ``slide_idx``) and is registered
+        in the shared :data:`pptagent.editor.service.DEFAULT_REGISTRY` so the
+        FastAPI routes can resolve it by ``(task_id, slide_id)``.
+        """
+        if not hasattr(self, "empty_prs") or slide_idx > len(self.empty_prs.slides):
+            raise IndexError(f"Slide {slide_idx} out of range")
+        slide = self.empty_prs.slides[slide_idx - 1]
+        slide_id = f"s{slide_idx}"
+        existing = DEFAULT_REGISTRY.get(task_id, slide_id)
+        if existing is not None:
+            return existing
+
+        store = None
+        ws = workspace or self._workspace
+        if ws is not None:
+            store = ArtifactStore(ws, task_id)
+
+        svc = SlideEditService(
+            slide=slide,
+            presentation=self.empty_prs,
+            doc=getattr(self, "document", None),
+            llm=llm or getattr(self, "language_model", None),
+            task_id=task_id,
+            slide_id=slide_id,
+            mode="template",
+            outline=outline,
+            store=store,
+            regenerate_fn=regenerate_fn,
+            max_revisions=max_revisions,
+        )
+        DEFAULT_REGISTRY.register(task_id, slide_id, svc)
+        return svc
 
     # ── version commit ────────────────────────────────────────
 

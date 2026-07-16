@@ -24,7 +24,21 @@ def _shape_to_dict(shape) -> dict[str, Any]:
         "element_name": getattr(shape, "name", f"shape_{getattr(shape, 'shape_idx', 0)}"),
         "paragraphs": [],
         "images": [],
+        "font": {},      # font metadata for style diff
     }
+
+    # Font metadata (from first paragraph's font — represents the shape's style)
+    if hasattr(shape, "text_frame") and shape.text_frame.is_textframe:
+        for para in shape.text_frame.paragraphs:
+            if hasattr(para, "font") and para.idx != -1:
+                f = para.font
+                data["font"] = {
+                    "name": getattr(f, "name", None),
+                    "size": getattr(f, "size", None),
+                    "color": getattr(f, "color", None),
+                    "bold": getattr(f, "bold", None),
+                }
+                break  # first valid paragraph determines the style
 
     if hasattr(shape, "text_frame") and shape.text_frame.is_textframe:
         for para in shape.text_frame.paragraphs:
