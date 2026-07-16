@@ -136,37 +136,81 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     })
   }
 
+  // Attributes a terminal edit event to its chat receipt. A chat_id match is
+  // definitive. Without one there are two possible owners: a failed,
+  // chatId-less receipt (a POST whose HTTP receipt was lost but that the
+  // server may still have processed) and the newest pending receipt whose
+  // POST response lost the race against SSE. When only one candidate exists
+  // it is the owner; when both exist the backend gives us no client request
+  // id to tell them apart, and binding to either could attribute one
+  // instruction's outcome to another — so bind to neither.
+  function findReceipt(
+    messages: WorkChatMessage[],
+    chatId: string | undefined,
+  ): WorkChatMessage | undefined {
+    const matched = chatId
+      ? messages.find((message) => message.chatId === chatId)
+      : undefined
+    if (matched) {
+      return matched
+    }
+    const lost = messages.find(
+      (message) => message.status === "failed" && !message.chatId,
+    )
+    const pending = messages.findLast(
+      (message) => message.status === "pending" && !message.chatId,
+    )
+    return lost && pending ? undefined : (lost ?? pending)
+  }
+
   // Per-slide epoch, bumped by every SSE-driven revision mutation. A GET has
   // no watermark, so a response that raced such a mutation (a same-number
   // revision replaced from an earlier base, a pruned revision resurrected)
   // cannot be merged — it is discarded wholesale. A response whose epoch is
   // unchanged reflects server state at-or-after the request, and the server
   // had already applied everything SSE delivered before it, so replacing the
-  // list is safe.
+  // list is safe. Epoch numbers restart at zero on hydrate, so freshness
+  // checks must also compare hydrateGeneration or a pre-hydrate request
+  // could pass as fresh (ABA when re-entering the same task).
   let revisionEpochs = new Map<string, number>()
 
   function bumpRevisionEpoch(slideId: string): void {
     revisionEpochs.set(slideId, (revisionEpochs.get(slideId) ?? 0) + 1)
   }
 
-  // Returns null when the response is stale: the task switched or the
-  // slide's revisions changed while the request was in flight.
+  // Per-slide epoch, bumped by every SSE event touching the slide. An
+  // optimistic mutation records the epoch it started at; its HTTP-failure
+  // rollback applies only while the epoch is unchanged — a late rejection
+  // must not clobber a state the server already confirmed via SSE.
+  let statusEpochs = new Map<string, number>()
+
+  function bumpStatusEpoch(slideId: string): void {
+    statusEpochs.set(slideId, (statusEpochs.get(slideId) ?? 0) + 1)
+  }
+
+  // Returns null when the response is stale: the task switched, the task
+  // was re-hydrated, or the slide's revisions changed while the request
+  // was in flight.
   async function fetchRevisions(slideId: string): Promise<SlideRevision[] | null> {
     const { taskId } = get()
     if (!taskId) {
       return null
     }
+    const generation = hydrateGeneration
     const epoch = revisionEpochs.get(slideId) ?? 0
     const fetched = await api.listRevisions(taskId, slideId)
     const fresh =
-      get().taskId === taskId && (revisionEpochs.get(slideId) ?? 0) === epoch
+      get().taskId === taskId &&
+      generation === hydrateGeneration &&
+      (revisionEpochs.get(slideId) ?? 0) === epoch
     return fresh ? fetched : null
   }
 
-  // Slide mutations are serialized per slide: the optimistic status keeps
-  // the UI (undo, version menu, regenerate, export) locked through the whole
-  // REST→SSE window — not just until the HTTP response — and a failed
-  // request rolls the status back.
+  // Concurrent slide mutations are rejected, not queued: the optimistic
+  // status keeps the UI (undo, version menu, regenerate, export) locked
+  // through the whole REST→SSE window — not just until the HTTP response —
+  // and a second operation during that window is dropped with feedback, so
+  // the user re-issues it against the settled state.
   const inflightOps = new Set<string>()
 
   async function mutateSlide(
@@ -184,11 +228,21 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       return
     }
     inflightOps.add(key)
+    const generation = hydrateGeneration
+    const epoch = statusEpochs.get(slideId) ?? 0
     patchSlide(slideId, { status: optimisticStatus })
     try {
       await run()
     } catch {
-      patchSlide(slideId, { status: previousStatus })
+      // Roll back only while this mutation still owns the status: if SSE
+      // touched the slide (or the task re-hydrated) meanwhile, the server
+      // outcome wins over the late HTTP failure.
+      if (
+        generation === hydrateGeneration &&
+        (statusEpochs.get(slideId) ?? 0) === epoch
+      ) {
+        patchSlide(slideId, { status: previousStatus })
+      }
       toast.error(errorMessage)
     } finally {
       inflightOps.delete(key)
@@ -293,12 +347,20 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     // export stay locked through the REST→SSE window; edit.started then
     // confirms it server-side.
     const previousStatus = get().slides.get(slideId)?.status
+    const generation = hydrateGeneration
+    const epoch = statusEpochs.get(slideId) ?? 0
     patchSlide(slideId, { status: "editing" })
     try {
       const { chat_id } = await api.sendChat(taskId, slideId, text, elementId)
       patchChat(slideId, receiptId, { chatId: chat_id })
     } catch {
-      if (previousStatus) {
+      // Same epoch binding as mutateSlide: a late rejection must not clobber
+      // a status SSE already moved on.
+      if (
+        previousStatus &&
+        generation === hydrateGeneration &&
+        (statusEpochs.get(slideId) ?? 0) === epoch
+      ) {
         patchSlide(slideId, { status: previousStatus })
       }
       patchChat(slideId, receiptId, { status: "failed", content: "指令发送失败，请重试" })
@@ -333,6 +395,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     async hydrate(taskId, fallbackTotal = 0) {
       const generation = ++hydrateGeneration
       revisionEpochs = new Map()
+      statusEpochs = new Map()
       set({
         taskId,
         task: null,
@@ -420,6 +483,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
       if (event.task_id !== state.taskId || event.seq <= state.lastSeq) {
         return
       }
+      // Any slide-scoped event is server-side activity on that slide: an
+      // optimistic rollback armed before this point must no longer fire.
+      if (event.slide_id) {
+        bumpStatusEpoch(event.slide_id)
+      }
       set((current) => ({
         lastSeq: event.seq,
         logs: [
@@ -483,6 +551,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
             const slides = new Map(current.slides)
             for (const [id, slide] of slides) {
               if (slide.status === "generating") {
+                bumpStatusEpoch(id)
                 slides.set(id, { ...slide, status: "queued" })
               }
             }
@@ -562,13 +631,19 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           const revision = (event.payload.revision as number) ?? 1
           const label = (event.payload.label as string) ?? "初稿"
           const slide = get().slides.get(event.slide_id)
-          const revisions =
-            slide && !slide.revisions.some((item) => item.revision === revision)
-              ? [
-                  ...slide.revisions,
-                  { revision, label, created_at: event.created_at, preview_url: event.artifact_url },
-                ]
-              : slide?.revisions
+          // A regeneration from an earlier base reuses an existing revision
+          // number: the entry is replaced and everything above it is pruned,
+          // the same branch semantics as edit.applied.
+          const existing = slide?.revisions.find((item) => item.revision === revision)
+          const entry: SlideRevision = {
+            revision,
+            label,
+            created_at: event.created_at,
+            preview_url: event.artifact_url ?? existing?.preview_url ?? null,
+          }
+          const revisions = slide
+            ? [...slide.revisions.filter((item) => item.revision < revision), entry]
+            : undefined
           const patch: Partial<SlideView> = { status: "completed", revision, revisions }
           if (event.artifact_url) {
             patch.previewUrl = event.artifact_url
@@ -617,22 +692,19 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
             revision: revision ?? slide?.revision,
             revisions,
           })
-          const messages = get().chats.get(event.slide_id) ?? []
-          // The POST receipt may not have its chat_id yet when the terminal
-          // event wins the race; fall back to the last pending receipt.
-          // Third level: a POST whose HTTP receipt was lost left a failed,
-          // chatId-less receipt — with fail-stop there is no concurrent
-          // dispatch, so this event's outcome belongs to it.
-          const receipt =
-            (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
-            messages.findLast((message) => message.status === "pending") ??
-            messages.find((message) => message.status === "failed" && !message.chatId)
+          const receipt = findReceipt(get().chats.get(event.slide_id) ?? [], chatId)
           if (receipt) {
-            patchChat(event.slide_id, receipt.id, {
+            const patch: Partial<WorkChatMessage> = {
               status: "applied",
               content: event.message,
               action: action || undefined,
-            })
+            }
+            // Stamp the chat_id so this receipt stops matching future
+            // unattributed events.
+            if (chatId && !receipt.chatId) {
+              patch.chatId = chatId
+            }
+            patchChat(event.slide_id, receipt.id, patch)
           }
           flushPendingEdits(event.slide_id)
           break
@@ -645,16 +717,16 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           // the per-slide retry path (§8.6).
           patchSlide(event.slide_id, { status: "failed" })
           const chatId = event.payload.chat_id as string | undefined
-          const messages = get().chats.get(event.slide_id) ?? []
-          const receipt =
-            (chatId ? messages.find((message) => message.chatId === chatId) : undefined) ??
-            messages.findLast((message) => message.status === "pending") ??
-            messages.find((message) => message.status === "failed" && !message.chatId)
+          const receipt = findReceipt(get().chats.get(event.slide_id) ?? [], chatId)
           if (receipt) {
-            patchChat(event.slide_id, receipt.id, {
+            const patch: Partial<WorkChatMessage> = {
               status: "failed",
               content: event.message || "修改失败，可重新发送指令",
-            })
+            }
+            if (chatId && !receipt.chatId) {
+              patch.chatId = chatId
+            }
+            patchChat(event.slide_id, receipt.id, patch)
           }
           break
         }
@@ -788,8 +860,18 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
     },
 
     async exportTask(format) {
-      const { taskId } = get()
-      if (!taskId) {
+      const { taskId, task, slides, exporting } = get()
+      if (!taskId || !task || exporting) {
+        return
+      }
+      // Mirrors the export trigger's disabled state: the menu may already be
+      // open when SSE flips a slide back to generating/editing, so the
+      // action itself must re-check instead of trusting the UI gate.
+      const allDone =
+        slides.size > 0 &&
+        [...slides.values()].every((slide) => slide.status === "completed")
+      if (task.status === "running" || !allDone) {
+        toast.info("请等待所有页面完成后再导出")
         return
       }
       set({ exporting: true })
@@ -842,7 +924,10 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
 
     async undo(slideId) {
       const { taskId } = get()
-      if (!taskId || get().slides.get(slideId)?.status !== "completed") {
+      const slide = get().slides.get(slideId)
+      // Undo below v2 is a server-side no-op that would strand the
+      // optimistic "editing" status: no edit.reverted ever arrives.
+      if (!taskId || slide?.status !== "completed" || slide.revision <= 1) {
         return
       }
       await mutateSlide(
@@ -856,7 +941,19 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
 
     async applyRevision(slideId, revision) {
       const { taskId } = get()
-      if (!taskId || get().slides.get(slideId)?.status !== "completed") {
+      const slide = get().slides.get(slideId)
+      if (!taskId || !slide) {
+        return
+      }
+      if (slide.status !== "completed") {
+        // Not queued: the slide moved on while the menu was open. Tell the
+        // user to redo the switch once the current update settles.
+        toast.info("本页正在更新，完成后请重新选择版本")
+        return
+      }
+      // Applying the current revision is a server-side no-op (no
+      // edit.reverted event), which would strand the optimistic "editing".
+      if (slide.revision === revision) {
         return
       }
       await mutateSlide(

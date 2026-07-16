@@ -51,10 +51,14 @@ beforeEach(() => {
   useTemplatesStore.setState(useTemplatesStore.getInitialState(), true)
 })
 
-function progressEvent(templateId: string, progress: number): GenerationEvent {
+function progressEvent(
+  templateId: string,
+  progress: number,
+  seq: number,
+): GenerationEvent {
   return {
     task_id: "templates",
-    seq: 1,
+    seq,
     type: "template.parse_progress",
     stage: "template",
     status: "running",
@@ -86,9 +90,9 @@ describe("fetchTemplates merge", () => {
     const fetching = useTemplatesStore.getState().fetchTemplates()
 
     // While the GET is in flight, SSE advances two templates.
-    useTemplatesStore.getState().applyTemplateEvent(progressEvent("m1-progress", 80))
+    useTemplatesStore.getState().applyTemplateEvent(progressEvent("m1-progress", 80, 1))
     useTemplatesStore.getState().applyTemplateEvent({
-      ...progressEvent("m1-finished", 100),
+      ...progressEvent("m1-finished", 100, 2),
       type: "template.ready",
     })
 
@@ -133,6 +137,23 @@ describe("fetchTemplates merge", () => {
     expect(ids).not.toContain("m3-deleted-elsewhere")
   })
 
+  it("ignores a stale concurrent snapshot that resolves after a newer one", async () => {
+    let resolveStale!: (value: TemplateSummary[]) => void
+    mockApi.listTemplates.mockReturnValueOnce(
+      new Promise<TemplateSummary[]>((resolve) => (resolveStale = resolve)),
+    )
+    const stale = useTemplatesStore.getState().fetchTemplates()
+
+    mockApi.listTemplates.mockResolvedValueOnce([template({ id: "m4-fresh" })])
+    await useTemplatesStore.getState().fetchTemplates()
+
+    resolveStale([template({ id: "m4-stale" })])
+    await stale
+
+    const ids = useTemplatesStore.getState().templates.map((item) => item.id)
+    expect(ids).toEqual(["m4-fresh"])
+  })
+
   it("does not resurrect a template deleted in this session", async () => {
     useTemplatesStore.setState({
       templates: [template({ id: "m2-doomed" }), template({ id: "m2-keep" })],
@@ -148,5 +169,55 @@ describe("fetchTemplates merge", () => {
 
     const ids = useTemplatesStore.getState().templates.map((item) => item.id)
     expect(ids).toEqual(["m2-keep"])
+  })
+})
+
+describe("template SSE ordering", () => {
+  it("drops replayed and out-of-order events", () => {
+    useTemplatesStore.setState({
+      templates: [template({ id: "m5-seq", status: "parsing", progress: 50 })],
+    })
+    const { applyTemplateEvent } = useTemplatesStore.getState()
+
+    applyTemplateEvent(progressEvent("m5-seq", 80, 5))
+    // Replay / out-of-order: 80% must not run back to 30%.
+    applyTemplateEvent(progressEvent("m5-seq", 30, 4))
+    let current = useTemplatesStore.getState().templates[0]
+    expect(current.progress).toBe(80)
+
+    applyTemplateEvent({
+      ...progressEvent("m5-seq", 100, 6),
+      type: "template.ready",
+    })
+    // ready must not fall back to a stale progress with an equal seq.
+    applyTemplateEvent(progressEvent("m5-seq", 90, 6))
+    current = useTemplatesStore.getState().templates[0]
+    expect(current.status).toBe("ready")
+  })
+})
+
+describe("retryParse rollback binding", () => {
+  it("keeps streamed parse progress when the HTTP request fails late", async () => {
+    useTemplatesStore.setState({
+      templates: [
+        template({ id: "m6-retry", status: "failed", error: "解析失败" }),
+      ],
+    })
+
+    let rejectRetry!: (reason: Error) => void
+    mockApi.retryParse.mockReturnValue(
+      new Promise((_, reject) => (rejectRetry = reject)),
+    )
+    const pending = useTemplatesStore.getState().retryParse("m6-retry")
+
+    // The server accepted the retry and already streams progress.
+    useTemplatesStore.getState().applyTemplateEvent(progressEvent("m6-retry", 42, 1))
+
+    rejectRetry(new Error("network"))
+    await pending
+
+    const current = useTemplatesStore.getState().templates[0]
+    expect(current.status).toBe("parsing")
+    expect(current.progress).toBe(42)
   })
 })

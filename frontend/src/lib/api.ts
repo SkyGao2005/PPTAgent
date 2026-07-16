@@ -9,10 +9,12 @@ import type {
   TemplateSummary,
 } from "@/types/api"
 
-// Mock mode is a development-only affordance. Gating on DEV makes a
-// production build (`vite build`) statically drop the mock branch even if
-// VITE_USE_MOCK leaks into the build environment; a deliberate mock demo
-// build is still possible via `vite build --mode development`.
+// Mock mode is a development-only affordance. Gating on DEV makes any
+// `vite build` statically drop the mock branch even if VITE_USE_MOCK leaks
+// into the build environment: Vite defaults NODE_ENV to "production" for
+// builds regardless of --mode, and DEV follows NODE_ENV, not the mode. A
+// deliberate mock demo build therefore needs NODE_ENV set explicitly:
+// `NODE_ENV=development vite build --mode development`.
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === "1"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ""

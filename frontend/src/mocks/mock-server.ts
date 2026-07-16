@@ -602,10 +602,14 @@ export function mockRetrySlide(taskId: string, slideId: string): void {
   later(task, () => {
     if (isRegen) {
       slide.deck.bullets = revisedBullets(slide.deck.bullets)
+      // Branching semantics: regenerating from an earlier revision prunes
+      // everything above it, and the new entry takes the next number after
+      // the base — keeping revision === index + 1, so the number stored
+      // here always matches the one completeSlide reports.
       slide.revisions = [
         ...slide.revisions.slice(0, slide.currentRev + 1),
         {
-          revision: slide.revisions.length + 1,
+          revision: slide.currentRev + 2,
           label: "重新生成",
           created_at: now(),
           snapshot: structuredClone(slide.deck),

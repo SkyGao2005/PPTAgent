@@ -36,6 +36,8 @@ interface TemplatesState {
   loaded: boolean
   loadError: string | null
   uploading: boolean
+  /** Watermark of the shared template SSE stream; replayed events are dropped. */
+  lastEventSeq: number
   fetchTemplates: () => Promise<void>
   uploadTemplate: (file: File) => Promise<void>
   retryParse: (templateId: string) => Promise<void>
@@ -57,6 +59,7 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
     loaded: false,
     loadError: null,
     uploading: false,
+    lastEventSeq: 0,
 
     async fetchTemplates() {
       templateStream ??= connectTemplateEvents((event) =>
@@ -67,6 +70,13 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       set({ loadError: null })
       try {
         const incoming = await api.listTemplates()
+        // A newer fetch was issued while this one was in flight; its
+        // response owns the store — an older snapshot resolving late must
+        // not overwrite it (the per-template epochs only shield templates
+        // that were individually touched, not the list as a whole).
+        if (stamp !== fetchStamp) {
+          return
+        }
         set((state) => {
           const touched = (id: string): boolean =>
             (templateEpochs.get(id) ?? 0) !== (epochsAtStart.get(id) ?? 0)
@@ -90,6 +100,9 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
           return { templates: [...localOnly, ...merged], loaded: true }
         })
       } catch {
+        if (stamp !== fetchStamp) {
+          return
+        }
         set({ loadError: "无法连接服务，请检查网络后重试" })
       }
     },
@@ -120,18 +133,23 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       // Optimistic progress starts at 0 so the server's own parse_started
       // value can only move it forward, never backwards.
       bumpTemplateEpoch(templateId)
+      const epoch = templateEpochs.get(templateId)
       patchTemplate(templateId, { status: "parsing", progress: 0, error: null })
       try {
         await api.retryParse(templateId)
       } catch {
         // Roll back the optimistic "parsing" state so the card does not
-        // spin forever after a failed request.
-        bumpTemplateEpoch(templateId)
-        patchTemplate(templateId, {
-          status: previous.status,
-          progress: previous.progress,
-          error: previous.error,
-        })
+        // spin forever after a failed request — but only while no SSE event
+        // touched the template: a late HTTP failure must not clobber parse
+        // progress that already started streaming.
+        if (templateEpochs.get(templateId) === epoch) {
+          bumpTemplateEpoch(templateId)
+          patchTemplate(templateId, {
+            status: previous.status,
+            progress: previous.progress,
+            error: previous.error,
+          })
+        }
         toast.error("重新解析请求失败，请重试")
       }
     },
@@ -158,6 +176,13 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       if (!templateId) {
         return
       }
+      // The template stream carries one monotonic seq; a replayed or
+      // out-of-order event (reconnect replay, ready → stale progress,
+      // 80% → 30%) must not run the state backwards.
+      if (event.seq <= get().lastEventSeq) {
+        return
+      }
+      set({ lastEventSeq: event.seq })
       bumpTemplateEpoch(templateId)
       switch (event.type) {
         case "template.parse_started":

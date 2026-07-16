@@ -4,7 +4,12 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import type { GenerationEvent, SlideRevision, TaskSnapshot } from "@/types/api"
+import type {
+  GenerationEvent,
+  SlideArtifact,
+  SlideRevision,
+  TaskSnapshot,
+} from "@/types/api"
 
 const mockApi = vi.hoisted(() => ({
   getTask: vi.fn(),
@@ -396,6 +401,16 @@ describe("optimistic slide locking", () => {
         payload: { revision: 1, label: "初稿" },
       }),
     )
+    // Undo needs something to undo: bring the slide to v2 first.
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 3,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v2.png",
+        payload: { chat_id: "c0", action: "更换配色", revision: 2 },
+      }),
+    )
 
     let rejectUndo!: (reason: Error) => void
     mockApi.undo.mockReturnValue(
@@ -411,6 +426,284 @@ describe("optimistic slide locking", () => {
     rejectUndo(new Error("network"))
     await pending
     expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("completed")
+  })
+})
+
+describe("revision switching guards", () => {
+  async function completedSlideAtV2(): Promise<void> {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v1.png",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 3,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v2.png",
+        payload: { chat_id: "c0", action: "更换配色", revision: 2 },
+      }),
+    )
+  }
+
+  it("no-ops when applying the slide's current revision", async () => {
+    await completedSlideAtV2()
+    await useWorkbenchStore.getState().applyRevision("s1", 2)
+    expect(mockApi.applyRevision).not.toHaveBeenCalled()
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("completed")
+  })
+
+  it("rejects (not queues) a switch while the slide is busy", async () => {
+    await completedSlideAtV2()
+    mockApi.applyRevision.mockReturnValue(new Promise(() => {}))
+    void useWorkbenchStore.getState().applyRevision("s1", 1)
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("editing")
+
+    await useWorkbenchStore.getState().applyRevision("s1", 1)
+    expect(mockApi.applyRevision).toHaveBeenCalledTimes(1)
+  })
+
+  it("no-ops undo at the first revision", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    await useWorkbenchStore.getState().undo("s1")
+    expect(mockApi.undo).not.toHaveBeenCalled()
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("completed")
+  })
+})
+
+describe("late HTTP failure vs SSE outcome", () => {
+  it("keeps the SSE terminal state when the retry's HTTP response fails late", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({ type: "slide.failed", seq: 2, slide_id: "s1", status: "failed" }),
+    )
+
+    let rejectRetry!: (reason: Error) => void
+    mockApi.retrySlide.mockReturnValue(
+      new Promise((_, reject) => (rejectRetry = reject)),
+    )
+    const pending = useWorkbenchStore.getState().retrySlide("s1")
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("generating")
+
+    // SSE delivers the real outcome before the HTTP response fails.
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 3,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v1.png",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+
+    rejectRetry(new Error("network"))
+    await pending
+    expect(useWorkbenchStore.getState().slides.get("s1")?.status).toBe("completed")
+  })
+})
+
+describe("fetchRevisions across re-hydrate", () => {
+  function artifact(): SlideArtifact {
+    return {
+      slide_id: "s1",
+      task_id: "t1",
+      index: 1,
+      title: "封面",
+      summary: "",
+      status: "completed",
+      mode: "html",
+      revision: 1,
+      preview_url: "https://cdn.example/v1.png",
+    }
+  }
+
+  it("discards a revisions response issued before a re-hydrate of the same task", async () => {
+    mockApi.getTask.mockResolvedValue(snapshot({ total_slides: 1 }))
+    mockApi.listSlides.mockResolvedValue([artifact()])
+    await useWorkbenchStore.getState().hydrate("t1", 1)
+
+    let resolveFetch!: (value: SlideRevision[]) => void
+    mockApi.listRevisions.mockReturnValue(
+      new Promise<SlideRevision[]>((resolve) => (resolveFetch = resolve)),
+    )
+    const load = useWorkbenchStore.getState().loadRevisions("s1")
+
+    // Same task re-enters (refresh / back-forward): epochs restart at zero,
+    // which must not let the pre-hydrate response pass as fresh (ABA).
+    await useWorkbenchStore.getState().hydrate("t1", 1)
+
+    resolveFetch([
+      {
+        revision: 1,
+        label: "初稿",
+        created_at: "2026-07-15T08:00:00.000Z",
+        preview_url: "https://cdn.example/v1.png",
+      },
+    ])
+    await load
+
+    expect(useWorkbenchStore.getState().slides.get("s1")?.revisions).toEqual([])
+  })
+})
+
+describe("ambiguous receipt attribution", () => {
+  it("binds an unmatched terminal event to neither receipt when a lost POST and a new pending coexist", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+
+    // Instruction A: the POST fails, but the server may still process it.
+    mockApi.sendChat.mockRejectedValueOnce(new Error("network"))
+    await useWorkbenchStore.getState().sendChat("s1", "换个配色")
+
+    // Instruction B: dispatched, POST still in flight.
+    mockApi.sendChat.mockReturnValue(new Promise(() => {}))
+    void useWorkbenchStore.getState().sendChat("s1", "精简文案")
+
+    // A's outcome arrives with a chat_id the client never learned. It could
+    // be A's or (in the receipt race) B's — bind neither.
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 3,
+        slide_id: "s1",
+        message: "已更换配色",
+        payload: { chat_id: "c-a", action: "更换配色", revision: 2 },
+      }),
+    )
+
+    const receipts = (useWorkbenchStore.getState().chats.get("s1") ?? []).filter(
+      (message) => message.role === "system" && message.status !== "info",
+    )
+    expect(receipts[0]?.status).toBe("failed")
+    expect(receipts[1]?.status).toBe("pending")
+  })
+})
+
+describe("revision branching", () => {
+  it("replaces a same-number revision and prunes the branch above it", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v1.png",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 3,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v2.png",
+        payload: { chat_id: "c1", action: "更换配色", revision: 2 },
+      }),
+    )
+    applyEvent(
+      event({
+        type: "edit.applied",
+        seq: 4,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v3.png",
+        payload: { chat_id: "c2", action: "精简文案", revision: 3 },
+      }),
+    )
+    // Switch back to v1, then regenerate: the new v2 replaces the old one
+    // and the old v3 is pruned.
+    applyEvent(
+      event({
+        type: "edit.reverted",
+        seq: 5,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v1.png",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    applyEvent(
+      event({ type: "slide.started", seq: 6, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 7,
+        slide_id: "s1",
+        artifact_url: "https://cdn.example/v2-new.png",
+        payload: { revision: 2, label: "重新生成" },
+      }),
+    )
+
+    const slide = useWorkbenchStore.getState().slides.get("s1")
+    expect(slide?.revision).toBe(2)
+    expect(slide?.revisions.map((item) => [item.revision, item.label])).toEqual([
+      [1, "初稿"],
+      [2, "重新生成"],
+    ])
+  })
+})
+
+describe("export guard", () => {
+  it("refuses to export while a slide is editing even if the menu was already open", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    applyEvent(event({ type: "task.completed", seq: 3, status: "succeeded" }))
+    applyEvent(event({ type: "edit.started", seq: 4, slide_id: "s1" }))
+
+    await useWorkbenchStore.getState().exportTask("pptx")
+    expect(mockApi.exportTask).not.toHaveBeenCalled()
+    expect(useWorkbenchStore.getState().exporting).toBe(false)
   })
 })
 

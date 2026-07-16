@@ -946,6 +946,10 @@ export function WorkbenchPage() {
                         {[...revisions].reverse().map((revision) => (
                           <DropdownMenuItem
                             key={revision.revision}
+                            // Applying the current revision is a no-op on the
+                            // server; the store guards it too, but the menu
+                            // should not offer it in the first place.
+                            disabled={revision.revision === selected.revision}
                             onClick={() => void applyRevision(selected.id, revision.revision)}
                           >
                             <span
