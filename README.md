@@ -1,244 +1,481 @@
-# B 组开发规划：新前端交互工作台
 
-分支：`feat/frontend-workbench`
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=icip-cas&project=PPTAgent&lang=as">অসমীয়া</a>
+      </div>
+    </div>
+  </details>
+</div>
 
-人员：2 人（B1、B2）
+<div align="center">
+  <img src="resource/pptagent-logo.jpg" width="240px" alt="https://github.com/icip-cas/PPTAgent">
+</div>
 
-周期：两周，与模板、任务进度和局部编辑组并行开发
+<table>
+  <tr>
+    <td width="50%">
+      <video controls width="100%" src="https://github.com/user-attachments/assets/314bed6a-185e-4c81-9de5-35728e83e22a">
+      </video>
+    </td>
+    <td width="50%">
+      <video controls width="100%" src="https://github.com/user-attachments/assets/96eee616-5f79-4ea1-bd7f-bcaa466eda9e">
+      </video>
+    </td>
+  </tr>
+</table>
 
-## 本组目标
+We **strongly recommend** deploying our fine-tuned model for the best experience with our agent project. According to our experiments, it **significantly outperforms existing open-source models**.
 
-使用 React + TypeScript + Vite 重写 PPTAgent 的主要 Web 界面，做成一个清晰、精美且真正适合“生成中查看、选页聊天修改”的 PPT 工作台。
+| Format | HuggingFace | ModelScope |
+|--------|-------------|------------|
+| GGUF (Quantized) | [Forceless/DeepPresenter-9B-GGUF](https://huggingface.co/Forceless/DeepPresenter-9B-GGUF) | [forceless/DeepPresenter-9B-GGUF](https://modelscope.cn/models/forceless/DeepPresenter-9B-GGUF) |
+| Full Weights | [Forceless/DeepPresenter-9B](https://huggingface.co/Forceless/DeepPresenter-9B) | [forceless/DeepPresenter-9B](https://modelscope.cn/models/forceless/DeepPresenter-9B) |
 
-本组完成后，用户应能顺畅完成：
+## 📅 News
 
-> 选择或上传模板 → 输入生成要求 → 进入任务工作台 → 查看阶段和逐页进度 → 生成一页就预览一页 → 选中页面对话修改 → 切换版本或撤销 → 导出 PPT。
+- **[2026/04]** 🎉 [DeepPresenter](https://arxiv.org/abs/2602.22839) accepted to **ACL 2026**!
+- **[2026/03]** 🤗 We released fine-tuned models and taskset on [Hugging Face](https://huggingface.co/collections/ICIP/deeppresenter).
+- **[2026/01]** 🆕 Freeform & template generation now support PPTX export and offline mode. Context management added to prevent context overflow.
+- **[2025/12]** 🔥 Released **DeepPresenter** codebase with major upgrades — Deep Research Integration, Free-Form Visual Design, Autonomous Asset Creation, Text-to-Image Generation, and an Agent Environment with sandbox & 20+ tools.
+- **[2025/09]** 🛠️ MCP server support added — see [MCP Server](PPTAgent/DOC.md#mcp-server-) for configuration details.
+- **[2025/08]** 🎉 [PPTAgent](https://arxiv.org/abs/2501.03936) accepted to **EMNLP 2025**!
+- **[2025/05]** ⭐ Reached **1,000 stars** on GitHub!
+- **[2025/01]** 🔓 Open-sourced the PPTAgent codebase.
 
-## 当前代码判断
+## Usage 📖
 
-- 当前 `webui.py` 使用 Gradio，能够流式显示 `ChatMessage` 和工具调用，但主要是原始日志，不是产品化进度。
-- 模板、页数、附件和聊天都挤在同一块界面，后续加入页级状态、版本和局部修改会越来越难维护。
-- 当前页面没有稳定的任务详情路由，刷新后难以恢复到原任务。
-- 没有缩略图列表、中央画布、当前页聊天和版本切换所需的状态结构。
-- `webui.py` 保留为旧演示入口；新前端只调用统一 FastAPI，不直接访问 Agent、MCP 或工作区文件。
+> [!IMPORTANT]
+> Windows is not supported. If you are on Windows, please use WSL.
+>
+> We strongly recommend starting with the CLI and minimum task to confirm dependencies and environment is configured correctly.
 
-## 技术栈
+### Configuration
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Zustand
-- 原生 `fetch` + `EventSource`
+If you use the CLI, `pptagent onboard` can help create and update these configurations interactively. If you use Docker Compose or build from source, you should prepare them manually:
 
-两周内不额外引入复杂 SSR、微前端或大型组件平台。若某个通用组件确实需要无障碍交互，可按需采用少量 Headless/Radix 组件。
-
-## P0 工作范围
-
-1. 新建任务页：主题、附件、模板、页数、比例和语言。
-2. 模板库：系统模板、用户模板、上传和解析状态。
-3. 三栏 PPT 工作台：左侧页面列表、中间预览、右侧当前页聊天。
-4. 顶部任务栏：阶段进度、模板、取消、导出。
-5. 通过 SSE 接收任务、模板、页面、编辑和导出事件。
-6. 页面生成完成后立即更新对应缩略图和中央预览。
-7. 当前页聊天、快捷修改指令、修改状态和失败重试入口。
-8. 页面版本列表、切换和撤销。
-9. SSE 断线重连、按 `seq` 去重和刷新恢复。
-10. 加载、空、失败、取消、完成等完整状态。
-
-## P1 工作范围
-
-- 点击模板 schema 对应元素后定向修改。
-- 修改前后并排预览或文字 diff。
-- 任务历史列表和搜索。
-- 更丰富的模板主色、字体和比例展示。
-
-本期不实现 PowerPoint 式像素级拖拽编辑，不做多人实时协作和账户权限系统。
-
-## 页面信息架构
-
-```text
-/
-  新建任务
-
-/templates
-  模板库、上传、解析状态
-
-/tasks/:taskId
-  PPT 编辑工作台
+```bash
+cp deeppresenter/config.yaml.example deeppresenter/config.yaml
+cp deeppresenter/mcp.json.example deeppresenter/mcp.json
 ```
 
-## 编辑工作台布局
+#### Optional Services That Improve Quality
 
-### 左侧：页面导航
+The following services can noticeably improve generation quality, especially for research depth, PDF parsing, and visual asset creation:
 
-- 预计页数确认后立即显示页面 skeleton。
-- 每页显示页码、缩略图和状态。
-- 状态包含：等待、生成中、已完成、修改中、失败。
-- 失败页面提供单页重试，不阻塞其他页面。
-- 用户切换页面时，中央预览和右侧聊天必须同步切换。
+- **Tavily**: improves web search quality. Apply for an API key at [tavily.com](https://www.tavily.com/), then set `TAVILY_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json).
+- **MinerU**: improves PDF parsing quality. You can either apply for an API key at [mineru.net](https://mineru.net/apiManage/docs) and set `MINERU_API_KEY` in [`deeppresenter/mcp.json`](deeppresenter/mcp.json), or deploy MinerU locally and set `MINERU_API_URL` instead.
+- **Text-to-image model**: improves image generation quality. Configure `t2i_model` in [`deeppresenter/config.yaml`](deeppresenter/config.yaml).
 
-### 中间：页面预览
 
-- 展示当前页最新成功版本。
-- 显示当前页码、revision 和更新时间。
-- 图片 URL 带 revision/hash，避免缓存旧图。
-- 修改产生新版本时保留上一版，支持切换或撤销。
-- 预览缺失时显示明确占位和重试，不显示空白区域。
+If you want a fully offline setup, deploy MinerU locally and set `offline_mode: true` in `deeppresenter/config.yaml` to avoid loading network-dependent tools such as web search.
 
-### 右侧：当前页聊天
+More configurable variables can be found in [constants.py](deeppresenter/utils/constants.py).
 
-- 顶部固定显示“正在修改第 N 页”，避免指令发错对象。
-- 支持自然语言输入。
-- 快捷指令：精简文字、改成三点、重新排版、替换配色、换图、重新生成本页。
-- 尚未生成完成的页面允许先提交指令，但需要提示“页面完成后自动执行”。
-- 显示修改开始、预览就绪、应用成功、失败和撤销事件。
+### 1. Personal Use / OpenClaw Integration: CLI
 
-### 顶部任务栏
+> [!NOTE]
+> On macOS, the CLI may automatically install several local dependencies, including Homebrew, Node.js, Docker, poppler, Playwright, and llama.cpp.
+>
+> On Linux, you should prepare the environment by yourself.
 
-- 任务标题和模板名。
-- 当前阶段及总进度。
-- 正在生成第几页/共几页。
-- 取消任务、重新连接和导出。
-- 导出完成后提供最终文件链接。
+Use this mode if you want the fastest local setup or want to plug DeepPresenter into OpenClaw through the CLI.
 
-### 运行详情抽屉
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-- 原始 Agent 消息、工具调用和错误详情放在可折叠区域。
-- 主界面进度只显示结构化事件，不解析自然语言日志猜测阶段。
+# First-time interactive setup
+uvx pptagent onboard
 
-## 视觉方向
+# Generate a presentation
+uvx pptagent generate "Single Page with Title: Hello World" -o hello.pptx
 
-- 整体采用浅色 AI 工作台风格，突出 PPT 画布而不是大面积装饰。
-- 主色用于操作和进度；等待、成功、警告、失败使用统一状态色。
-- 卡片圆角、阴影、边框和间距使用统一 tokens。
-- 动画只用于 skeleton、状态切换和预览更新，避免影响编辑效率。
-- 默认桌面端优先，同时保证常见笔记本宽度可用；窄屏时右侧聊天可折叠。
-- 所有图标按钮必须有 tooltip/aria-label，不能只靠颜色表达状态。
-
-## 前端状态模型
-
-建议 Zustand 至少拆成：
-
-```text
-templateStore
-  templates
-  uploadProgress
-
-taskStore
-  task
-  stages
-  lastEventSeq
-  connectionState
-
-slideStore
-  slidesById
-  orderedSlideIds
-  selectedSlideId
-  revisions
-
-chatStore
-  messagesBySlideId
-  pendingInstructions
+# Generate with attachments
+uvx pptagent generate "Q4 Report" \
+  -f data.xlsx \
+  -f charts.pdf \
+  -p "10-12" \
+  -o report.pptx
 ```
 
-页面列表必须以稳定 `slide_id` 为 key，不能使用数组下标；页码调整不应导致聊天和 revision 串页。
+| Command             | Description                                       |
+| ------------------- | ------------------------------------------------- |
+| `pptagent onboard`  | Interactive configuration wizard                  |
+| `pptagent generate` | Generate presentations                            |
+| `pptagent config`   | View current configuration                        |
+| `pptagent reset`    | Reset configuration                               |
+| `pptagent serve`    | Start the local inference service used by the CLI |
 
-## 事件处理约定
+### Docker Images
 
-前端至少处理：
+DeepPresenter publishes two runtime images:
 
-- `task.created`、`task.started`、`task.completed`、`task.failed`、`task.cancelled`
-- `template.parse_started`、`template.parse_progress`、`template.ready`、`template.failed`
-- `stage.started`、`stage.progress`、`stage.completed`
-- `slide.started`、`slide.preview_ready`、`slide.completed`、`slide.failed`
-- `edit.started`、`edit.preview_ready`、`edit.applied`、`edit.failed`、`edit.reverted`
-- `export.started`、`export.completed`、`export.failed`
+| Local image name | Purpose | Docker Hub | 1ms.run mirror |
+| --- | --- | --- | --- |
+| `deeppresenter-host` | Host service for the web UI and orchestration runtime | [`forceless/deeppresenter-host`](https://hub.docker.com/r/forceless/deeppresenter-host) | [`docker.1ms.run/forceless/deeppresenter-host`](https://1ms.run/r/forceless/deeppresenter-host) |
+| `deeppresenter-sandbox` | Sandbox image used by the runtime for isolated tool execution | [`forceless/deeppresenter-sandbox`](https://hub.docker.com/r/forceless/deeppresenter-sandbox) | [`docker.1ms.run/forceless/deeppresenter-sandbox`](https://1ms.run/r/forceless/deeppresenter-sandbox) |
 
-规则：
+### 2. Minimal Setup / Development: Build From Source
 
-- 按 `seq` 去重，旧事件不能覆盖新状态。
-- SSE 断开后显示“正在重连”，不要立即显示任务失败。
-- 重连先请求任务快照，再从最后 `seq` 继续接收事件。
-- 未知事件写入开发日志，但不能让页面崩溃。
+Use this mode if you want the smallest abstraction layer and full control over dependencies during development.
 
-## 两人分工
+```bash
+uv pip install -e .
+playwright install-deps
+playwright install chromium
+npm install --prefix deeppresenter/html2pptx
+modelscope download forceless/fasttext-language-id
 
-### B1：前端架构、工作台与视觉系统
+docker pull forceless/deeppresenter-sandbox
+docker pull forceless/deeppresenter-host
+docker tag forceless/deeppresenter-sandbox deeppresenter-sandbox
+docker tag forceless/deeppresenter-host deeppresenter-host
 
-- Vite/React/TypeScript 工程初始化。
-- 全局布局、设计 tokens 和基础组件。
-- 三栏编辑工作台、页面列表和中央预览。
-- 版本切换、撤销和预览状态。
-- 响应式与无障碍细节。
+# or pull through the 1ms.run mirror
+docker pull docker.1ms.run/forceless/deeppresenter-sandbox
+docker pull docker.1ms.run/forceless/deeppresenter-host
+docker tag docker.1ms.run/forceless/deeppresenter-sandbox deeppresenter-sandbox
+docker tag docker.1ms.run/forceless/deeppresenter-host deeppresenter-host
 
-### B2：任务入口、模板库、SSE 和聊天
+# or build from dockerfile
+docker build -t deeppresenter-sandbox -f deeppresenter/docker/SandBox.Dockerfile .
+docker build -t deeppresenter-host -f deeppresenter/docker/Host.Dockerfile .
+```
 
-- 新建任务表单和附件交互。
-- 模板库、上传和解析状态。
-- SSE 客户端、事件归并、断线重连和刷新恢复。
-- 当前页聊天、快捷指令和待执行指令。
-- 与 C、D 组接口联调。
+Start the app:
 
-B1 兼任前端接口负责人。所有事件字段变更都要更新共享接口文档和 TypeScript 类型。
+```bash
+python webui.py
+```
 
-## 两周安排
+### 3. Server Deployment: Docker Compose
 
-| 工作日 | B1 | B2 | 当天结果 |
-|---|---|---|---|
-| 第 1 天 | 三栏草图、视觉 tokens | 用户流程、状态清单 | 冻结页面结构和交互主路径 |
-| 第 2 天 | 初始化工程和基础布局 | SSE mock、状态 store | 前端可显示模拟任务进度 |
-| 第 3 天 | 通用组件和页面骨架 | 新建任务页、模板列表 | 可创建模拟任务并进入工作台 |
-| 第 4 天 | 缩略图列表和中央预览 | 模板上传和解析进度 | 工作台主体可用 |
-| 第 5 天 | 接真实页级事件 | SSE 接真实任务事件 | 真实生成页能逐页出现 |
-| 第 6 天 | revision UI | 当前页聊天和快捷指令 | 可发起真实单页修改 |
-| 第 7 天 | 撤销、预览缓存处理 | 断线重连、刷新恢复 | 任务状态可恢复 |
-| 第 8 天 | 错误、取消、导出状态 | 运行详情、失败重试 | P0 功能冻结 |
-| 第 9 天 | 视觉和响应式收口 | 异常事件和串页回归 | 完整演示链路稳定 |
-| 第 10 天 | 文档和演示修复 | 文档和演示修复 | 完成交付 |
+Use this mode for a stable server environment with explicit dependencies.
 
-## API 依赖
+```bash
+# Pull the public images to avoid build from source
+docker pull forceless/deeppresenter-sandbox
+docker pull forceless/deeppresenter-host
+docker tag forceless/deeppresenter-sandbox deeppresenter-sandbox
+docker tag forceless/deeppresenter-host deeppresenter-host
 
-| 方法 | 路径 | 用途 |
-|---|---|---|
-| `GET` | `/api/templates` | 模板库 |
-| `POST` | `/api/templates` | 上传模板 |
-| `POST` | `/api/tasks` | 创建任务 |
-| `GET` | `/api/tasks/{task_id}` | 任务快照/刷新恢复 |
-| `GET` | `/api/tasks/{task_id}/events` | SSE 事件 |
-| `POST` | `/api/tasks/{task_id}/cancel` | 取消 |
-| `GET` | `/api/tasks/{task_id}/slides` | 页面和版本快照 |
-| `POST` | `/api/tasks/{task_id}/slides/{slide_id}/chat` | 当前页对话修改 |
-| `POST` | `/api/tasks/{task_id}/slides/{slide_id}/undo` | 撤销 |
-| `POST` | `/api/tasks/{task_id}/export` | 导出最新版本 |
+# Or pull through the 1ms.run mirror
+docker pull docker.1ms.run/forceless/deeppresenter-sandbox
+docker pull docker.1ms.run/forceless/deeppresenter-host
+docker tag docker.1ms.run/forceless/deeppresenter-sandbox deeppresenter-sandbox
+docker tag docker.1ms.run/forceless/deeppresenter-host deeppresenter-host
 
-## 测试清单
+# Or build from source
+docker build -t deeppresenter-sandbox -f deeppresenter/docker/SandBox.Dockerfile .
+docker build -t deeppresenter-host -f deeppresenter/docker/Host.Dockerfile .
 
-- 模板上传成功、解析中、成功和失败状态。
-- 任务创建、参数校验和重复点击防抖。
-- 收到乱序或重复事件时状态正确。
-- SSE 断开、重连和页面刷新恢复。
-- 生成一页后只更新对应页面。
-- 当前页切换后聊天不会串页。
-- 尚未完成页面的指令进入等待状态。
-- 连续修改同一页三次，版本和缩略图正确。
-- 撤销后中央预览和最终选择同步。
-- 单页失败、任务失败、取消和导出失败均有提示。
-- 常见笔记本宽度和窄屏折叠行为。
-- 键盘焦点、按钮 label、颜色对比和 loading 可访问性。
+# Start the host service
+docker compose up -d
+```
 
-## 完成标准
+The service exposes the web UI on `http://localhost:7861`.
 
-- 用户不看运行日志也能判断当前阶段和页级进度。
-- 收到 `slide.preview_ready` 后能迅速更新对应预览。
-- 当前页聊天对象明确，连续切页不会串消息。
-- 刷新或 SSE 重连后能恢复任务、页面和最后事件序号。
-- 模板、任务、编辑、撤销和导出形成完整闭环。
-- 页面视觉统一，无明显布局跳动、白屏和不可恢复 loading。
+## Case Study 💡
 
-## 与其他组的交付边界
+- #### Prompt: Please present the given document to me.
 
-- 从 A 组接收：模板列表、缩略图和解析事件。
-- 从 C 组接收：任务快照、SSE、页面预览和导出事件。
-- 从 D 组接收：页级聊天、revision、撤销和修改事件。
-- B 组不解析 PPT 文件，不直接调用模型，也不读取服务器本地绝对路径。
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+  <img src="resource/v2/manuscript/0001.jpg" alt="图片1" width="200"/>
+
+  <img src="resource/v2/manuscript/0002.jpg" alt="图片2" width="200"/>
+
+  <img src="resource/v2/manuscript/0003.jpg" alt="图片3" width="200"/>
+
+  <img src="resource/v2/manuscript/0004.jpg" alt="图片4" width="200"/>
+
+  <img src="resource/v2/manuscript/0005.jpg" alt="图片5" width="200"/>
+
+  <img src="resource/v2/manuscript/0006.jpg" alt="图片6" width="200"/>
+
+  <img src="resource/v2/manuscript/0007.jpg" alt="图片7" width="200"/>
+
+  <img src="resource/v2/manuscript/0008.jpg" alt="图片8" width="200"/>
+
+  <img src="resource/v2/manuscript/0009.jpg" alt="图片9" width="200"/>
+
+  <img src="resource/v2/manuscript/0010.jpg" alt="图片10" width="200"/>
+
+</div>
+
+- #### Prompt: 请介绍小米 SU7 的外观和价格
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+  <img src="resource/v2/presentation1/0001.jpg" alt="图片1" width="200"/>
+
+  <img src="resource/v2/presentation1/0002.jpg" alt="图片2" width="200"/>
+
+  <img src="resource/v2/presentation1/0003.jpg" alt="图片3" width="200"/>
+
+  <img src="resource/v2/presentation1/0004.jpg" alt="图片4" width="200"/>
+
+  <img src="resource/v2/presentation1/0005.jpg" alt="图片5" width="200"/>
+
+  <img src="resource/v2/presentation1/0006.jpg" alt="图片6" width="200"/>
+
+</div>
+
+- #### Prompt: 请制作一份高中课堂展示课件，主题为“解码立法过程：理解其对国际关系的影响”
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+  <img src="resource/v2/presentation2/0001.jpg" alt="图片1" width="200"/>
+
+  <img src="resource/v2/presentation2/0002.jpg" alt="图片2" width="200"/>
+
+  <img src="resource/v2/presentation2/0003.jpg" alt="图片3" width="200"/>
+
+  <img src="resource/v2/presentation2/0004.jpg" alt="图片4" width="200"/>
+
+  <img src="resource/v2/presentation2/0005.jpg" alt="图片5" width="200"/>
+
+  <img src="resource/v2/presentation2/0006.jpg" alt="图片6" width="200"/>
+
+  <img src="resource/v2/presentation2/0007.jpg" alt="图片7" width="200"/>
+
+  <img src="resource/v2/presentation2/0008.jpg" alt="图片8" width="200"/>
+
+  <img src="resource/v2/presentation2/0009.jpg" alt="图片9" width="200"/>
+
+  <img src="resource/v2/presentation2/0010.jpg" alt="图片10" width="200"/>
+
+  <img src="resource/v2/presentation2/0011.jpg" alt="图片11" width="200"/>
+
+  <img src="resource/v2/presentation2/0012.jpg" alt="图片12" width="200"/>
+
+  <img src="resource/v2/presentation2/0013.jpg" alt="图片13" width="200"/>
+
+  <img src="resource/v2/presentation2/0014.jpg" alt="图片14" width="200"/>
+
+  <img src="resource/v2/presentation2/0015.jpg" alt="图片15" width="200"/>
+
+</div>
+
+---
+
+## Contributors 🌟
+
+<table>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Force1ess>
+            <img src=https://avatars.githubusercontent.com/u/72636351?v=4 width="80;"  alt=Force1ess/>
+            <br />
+            <sub style="font-size:14px"><b>Force1ess</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Puellaquae>
+            <img src=https://avatars.githubusercontent.com/u/22560343?v=4 width="80;"  alt=Puelloc/>
+            <br />
+            <sub style="font-size:14px"><b>Puelloc</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/hysyyds>
+            <img src=https://avatars.githubusercontent.com/u/80150669?v=4 width="80;"  alt=hongyan/>
+            <br />
+            <sub style="font-size:14px"><b>hongyan</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/imHuZijian>
+            <img src=https://avatars.githubusercontent.com/u/97173940?v=4 width="80;"  alt=BrandonHu/>
+            <br />
+            <sub style="font-size:14px"><b>BrandonHu</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Dnoob>
+            <img src=https://avatars.githubusercontent.com/u/92987618?v=4 width="80;"  alt=Dnoob/>
+            <br />
+            <sub style="font-size:14px"><b>Dnoob</b></sub>
+        </a>
+    </td>
+</tr>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Sadahlu>
+            <img src=https://avatars.githubusercontent.com/u/126563707?v=4 width="80;"  alt=Sadahlu/>
+            <br />
+            <sub style="font-size:14px"><b>Sadahlu</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/lnennnn>
+            <img src=https://avatars.githubusercontent.com/u/124434018?v=4 width="80;"  alt=lnennnn/>
+            <br />
+            <sub style="font-size:14px"><b>lnennnn</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/KurisuMakiseSame>
+            <img src=https://avatars.githubusercontent.com/u/168447425?v=4 width="80;"  alt=KurisuMakiseSame/>
+            <br />
+            <sub style="font-size:14px"><b>KurisuMakiseSame</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/RheagalFire>
+            <img src=https://avatars.githubusercontent.com/u/60213893?v=4 width="80;"  alt=Aarish Alam/>
+            <br />
+            <sub style="font-size:14px"><b>Aarish Alam</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Angelenx>
+            <img src=https://avatars.githubusercontent.com/u/39873863?v=4 width="80;"  alt=Angelen/>
+            <br />
+            <sub style="font-size:14px"><b>Angelen</b></sub>
+        </a>
+    </td>
+</tr>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/kylooh>
+            <img src=https://avatars.githubusercontent.com/u/26456650?v=4 width="80;"  alt=Eliot White/>
+            <br />
+            <sub style="font-size:14px"><b>Eliot White</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/EvolvedGhost>
+            <img src=https://avatars.githubusercontent.com/u/92856393?v=4 width="80;"  alt=EvolvedGhost/>
+            <br />
+            <sub style="font-size:14px"><b>EvolvedGhost</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/ISCAS-zwl>
+            <img src=https://avatars.githubusercontent.com/u/179820048?v=4 width="80;"  alt=ISCAS-zwl/>
+            <br />
+            <sub style="font-size:14px"><b>ISCAS-zwl</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/James4Ever0>
+            <img src=https://avatars.githubusercontent.com/u/103997068?v=4 width="80;"  alt=白雨 | James Brown/>
+            <br />
+            <sub style="font-size:14px"><b>白雨 | James Brown</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/LasRuinasCirculares>
+            <img src=https://avatars.githubusercontent.com/u/119716645?v=4 width="80;"  alt=JunZhang/>
+            <br />
+            <sub style="font-size:14px"><b>JunZhang</b></sub>
+        </a>
+    </td>
+</tr>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/openaitx-system>
+            <img src=https://avatars.githubusercontent.com/u/215529505?v=4 width="80;"  alt=Open AI Tx/>
+            <br />
+            <sub style="font-size:14px"><b>Open AI Tx</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/haosenwang1018>
+            <img src=https://avatars.githubusercontent.com/u/167664334?v=4 width="80;"  alt=Sense_wang/>
+            <br />
+            <sub style="font-size:14px"><b>Sense_wang</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/DeJeune>
+            <img src=https://avatars.githubusercontent.com/u/67425183?v=4 width="80;"  alt=SuYao/>
+            <br />
+            <sub style="font-size:14px"><b>SuYao</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/JiwaniZakir>
+            <img src=https://avatars.githubusercontent.com/u/108548454?v=4 width="80;"  alt=Zakir Jiwani/>
+            <br />
+            <sub style="font-size:14px"><b>Zakir Jiwani</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 120.0; height: 120.0">
+        <a href=https://github.com/Dormiveglia-elf>
+            <img src=https://avatars.githubusercontent.com/u/81767213?v=4 width="80;"  alt=Zhenyu/>
+            <br />
+            <sub style="font-size:14px"><b>Zhenyu</b></sub>
+        </a>
+    </td>
+</tr>
+</table>
+
+[![Star History Chart](https://api.star-history.com/svg?repos=icip-cas/PPTAgent&type=Date)](https://star-history.com/#icip-cas/PPTAgent&Date)
+
+## Citation 🙏
+
+If you find this project helpful, please use the following to cite it:
+```bibtex
+@inproceedings{zheng-etal-2025-pptagent,
+    title = "{PPTA}gent: Generating and Evaluating Presentations Beyond Text-to-Slides",
+    author = "Zheng, Hao  and
+      Guan, Xinyan  and
+      Kong, Hao  and
+      Zhang, Wenkai  and
+      Zheng, Jia  and
+      Zhou, Weixiang  and
+      Lin, Hongyu  and
+      Lu, Yaojie  and
+      Han, Xianpei  and
+      Sun, Le",
+    editor = "Christodoulopoulos, Christos  and
+      Chakraborty, Tanmoy  and
+      Rose, Carolyn  and
+      Peng, Violet",
+    booktitle = "Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing",
+    month = nov,
+    year = "2025",
+    address = "Suzhou, China",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2025.emnlp-main.728/",
+    doi = "10.18653/v1/2025.emnlp-main.728",
+    pages = "14413--14429",
+    ISBN = "979-8-89176-332-6",
+    abstract = "Automatically generating presentations from documents is a challenging task that requires accommodating content quality, visual appeal, and structural coherence. Existing methods primarily focus on improving and evaluating the content quality in isolation, overlooking visual appeal and structural coherence, which limits their practical applicability. To address these limitations, we propose PPTAgent, which comprehensively improves presentation generation through a two-stage, edit-based approach inspired by human workflows. PPTAgent first analyzes reference presentations to extract slide-level functional types and content schemas, then drafts an outline and iteratively generates editing actions based on selected reference slides to create new slides. To comprehensively evaluate the quality of generated presentations, we further introduce PPTEval, an evaluation framework that assesses presentations across three dimensions: Content, Design, and Coherence. Results demonstrate that PPTAgent significantly outperforms existing automatic presentation generation methods across all three dimensions."
+}
+
+@misc{zheng2026deeppresenterenvironmentgroundedreflectionagentic,
+      title={DeepPresenter: Environment-Grounded Reflection for Agentic Presentation Generation},
+      author={Hao Zheng and Guozhao Mo and Xinru Yan and Qianhao Yuan and Wenkai Zhang and Xuanang Chen and Yaojie Lu and Hongyu Lin and Xianpei Han and Le Sun},
+      year={2026},
+      eprint={2602.22839},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2602.22839},
+}
+```
