@@ -1,6 +1,6 @@
 # API Contract v1
 
-> 最后更新：2026-07-13 | C1 负责维护 | 字段变更必须同步本文档
+> 最后更新：2026-07-17 | C1 负责维护 | 字段变更必须同步本文档
 
 ---
 
@@ -158,6 +158,7 @@ Request:
   "num_pages": "8",
   "powerpoint_type": "16:9",
   "template": null,
+  "convert_type": null,
   "enable_planner": false,
   "language": "zh"
 }
@@ -177,6 +178,7 @@ Response 201:
 | num_pages | string | | 页数，如 "8" 或 "5-10" |
 | powerpoint_type | string | | 比例：16:9 / 4:3 / A1 / A2 / A3 / A4，默认 16:9 |
 | template | string | | 模板 ID，不填用系统默认 |
+| convert_type | string | | 转换模式：deeppresenter / pptagent。不填自动推断 |
 | enable_planner | bool | | 是否启用大纲规划阶段，默认 false |
 | language | string | | en / zh，默认 en |
 
@@ -195,6 +197,10 @@ Response 200:
   "total_slides": 8,
   "completed_slides": 3,
   "failed_slides": 0,
+  "completed_slide_ids": ["sld-001-uuid", "sld-002-uuid"],
+  "generation_params": {"instruction": "...", "language": "zh", "num_pages": "8"},
+  "result_artifact": "exports/latest.pptx",
+  "error_message": null,
   "slides": [
     {
       "slide_id": "sld-001-uuid",
@@ -264,7 +270,7 @@ Response 200:
 {
   "task_id": "abc12345",
   "status": "running",
-  "message": "正在重试 2 个失败页面"
+  "message": "任务已重新启动"
 }
 ```
 
@@ -557,13 +563,16 @@ workspace/<task_id>/
   manuscript.md              # 稿件
   input_request.json         # 原始请求
   slides/
+    index.json                # 所有 slide 的索引列表
     <slide_id>/
-      current.json            # → revisions/3/slide.json (符号链接或指针)
+      current.json            # → 指向当前 revision 的 slide.json
       revisions/
         1/
           slide.json          # SlideArtifact 完整数据
           preview.png         # 缩略图
           source.html         # 源文件（HTML 模式）
+          source.json         # 结构化数据源（模板模式）
+          template_preview.html  # 模板模式保底 HTML
         2/
           slide.json
           preview.png
@@ -572,6 +581,7 @@ workspace/<task_id>/
           preview.png
   exports/
     latest.pptx               # 最新导出
+  .retry_skip.json            # retry 时传入的已完成 slide_id 列表（临时）
 ```
 
 ---
@@ -640,3 +650,4 @@ workspace/<task_id>/
 | 日期 | 版本 | 变更 |
 |------|------|------|
 | 2026-07-10 | v1 | 初始版本，冻结第一版接口字段 |
+| 2026-07-17 | v1.1 | 同步代码：补 convert_type、快照响应字段、目录结构；修 retry/export 示例 |
