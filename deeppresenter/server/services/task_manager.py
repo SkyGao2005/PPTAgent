@@ -20,7 +20,7 @@ from deeppresenter.server.models.events import (
 )
 from deeppresenter.server.services.event_bus import EventBus
 from deeppresenter.server.services.event_reporter import EventReporter
-from deeppresenter.server.services.preview import PreviewService
+from deeppresenter.server.services.preview import PreviewService, artifact_url
 
 # 任务快照文件名
 SNAPSHOT_FILE = "task.json"
@@ -160,6 +160,7 @@ class TaskManager:
         num_pages: Optional[str] = None,
         powerpoint_type: str = "16:9",
         template: Optional[str] = None,
+        template_id: Optional[str] = None,
         convert_type: Optional[str] = None,
         enable_planner: bool = False,
         language: str = "zh",
@@ -192,6 +193,7 @@ class TaskManager:
             "num_pages": num_pages,
             "powerpoint_type": powerpoint_type,
             "template": template,
+            "template_id": template_id,
             "convert_type": convert_type,
             "enable_planner": enable_planner,
             "language": language,
@@ -301,11 +303,6 @@ class TaskManager:
         if runner and not runner.done():
             runner.cancel()
 
-        # 关闭事件总线
-        bus = self._buses.get(task_id)
-        if bus:
-            await bus.close()
-
         return True
 
     # ── 任务重试 ──────────────────────────────────────────────
@@ -384,12 +381,17 @@ class TaskManager:
             return None
         reporter = self._reporters.get(task_id)
         bus = self._buses.get(task_id)
-        if reporter is None or bus is None:
+        root = task_dir(self.workspace_base, task_id)
+        if bus is None or bus._closed:
+            bus = EventBus(root)
+            self._buses[task_id] = bus
+            reporter = EventReporter(task_id, bus.publish)
+            self._reporters[task_id] = reporter
+        if reporter is None:
             return None
 
         await reporter.export_started()
         try:
-            root = task_dir(self.workspace_base, task_id)
             suffix = f".{fmt}"
 
             def _relative_if_exists(path: Path) -> Optional[str]:
@@ -407,13 +409,17 @@ class TaskManager:
                 if artifact_path.suffix.lower() == suffix:
                     rel = _relative_if_exists(artifact_path)
                     if rel:
-                        await reporter.export_completed(rel)
+                        await reporter.export_completed(
+                            artifact_url(task_id, rel), Path(rel).name
+                        )
                         return rel
 
                 sibling = artifact_path.with_suffix(suffix)
                 rel = _relative_if_exists(sibling)
                 if rel:
-                    await reporter.export_completed(rel)
+                    await reporter.export_completed(
+                        artifact_url(task_id, rel), Path(rel).name
+                    )
                     return rel
 
             # 2. 扫描任务根目录和 exports 目录
@@ -429,7 +435,9 @@ class TaskManager:
                 for file in files:
                     rel = _relative_if_exists(file)
                     if rel:
-                        await reporter.export_completed(rel)
+                        await reporter.export_completed(
+                            artifact_url(task_id, rel), Path(rel).name
+                        )
                         return rel
 
             await reporter.export_failed("未找到可导出产物")
@@ -621,8 +629,9 @@ class TaskManager:
             )
             await reporter.task_failed(f"任务执行失败：{exc}")
         finally:
-            if bus and not bus._closed:
-                await bus.close()
+            # 前端在任务完成后仍复用同一个 SSE 连接接收导出、编辑等后续事件。
+            # 因此这里保留事件总线，避免导出成功但页面 loading 无法结束。
+            pass
 
     def _collect_completed_slide_ids(self, task_id: str) -> list[str]:
         """从 PreviewService 收集已完成的 slide_id 列表。"""
@@ -712,5 +721,5 @@ class TaskManager:
             )
             await reporter.task_failed(f"任务执行失败：{exc}")
         finally:
-            if bus and not bus._closed:
-                await bus.close()
+            # 任务终态后仍可能继续发生导出事件，保持 SSE 总线可发布。
+            pass

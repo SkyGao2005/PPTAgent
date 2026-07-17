@@ -151,7 +151,10 @@ class EventReporter:
         )
 
     async def stage_completed(
-        self, stage: StageName, message: str | None = None
+        self,
+        stage: StageName,
+        message: str | None = None,
+        payload: dict[str, Any] | None = None,
     ) -> None:
         await self.emit(
             EventType.STAGE_COMPLETED,
@@ -159,6 +162,7 @@ class EventReporter:
             progress=stage_end_progress(stage),
             stage_progress=100,
             message=message or f"{stage.value} 阶段完成",
+            payload=payload,
         )
 
     async def stage_failed(
@@ -246,7 +250,9 @@ class EventReporter:
             message="开始导出",
         )
 
-    async def export_completed(self, artifact_url: str) -> None:
+    async def export_completed(
+        self, artifact_url: str, filename: str | None = None
+    ) -> None:
         await self.emit(
             EventType.EXPORT_COMPLETED,
             stage=StageName.EXPORT,
@@ -254,6 +260,7 @@ class EventReporter:
             stage_progress=100,
             artifact_url=artifact_url,
             message="导出完成",
+            payload={"filename": filename} if filename else None,
         )
 
     async def export_failed(self, message: str) -> None:

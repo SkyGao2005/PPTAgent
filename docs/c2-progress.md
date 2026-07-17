@@ -1,6 +1,6 @@
 # C2 开发协作与进度记录
 
-最后更新：2026-07-15
+最后更新：2026-07-17
 
 ## 基本信息
 
@@ -61,6 +61,69 @@ DEEPPRESENTER_RUN_REAL_PREVIEW_TEST=1 \
 PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-playwright \
 .venv/bin/python -m pytest deeppresenter/server/tests/test_preview.py::test_render_html_preview_real_playwright_opt_in -q
 ```
+
+## 联调测试命令
+
+### 后端服务
+
+```bash
+cd /Users/wstdmac/image_classification/PPTAgent
+source .venv/bin/activate
+DEEPPRESENTER_CONFIG_FILE=/Users/wstdmac/image_classification/PPTAgent/deeppresenter/config.yaml \
+DEEPPRESENTER_WORKSPACE_BASE=/Users/wstdmac/image_classification/PPTAgent/.local-workspace \
+python -m uvicorn deeppresenter.server.app:app --host 127.0.0.1 --port 8001
+```
+
+### 前端 real API 模式
+
+```bash
+cd /Users/wstdmac/image_classification/PPTAgent-frontend-workbench/frontend
+VITE_USE_MOCK=0 \
+VITE_DEV_API_TARGET=http://127.0.0.1:8001 \
+npm run dev -- --host 127.0.0.1 --port 5174 --force
+```
+
+如果 5174 已被占用，Vite 会自动切到 5175/5176，以终端输出的 `Local` 地址为准。
+
+### 后端单测和格式检查
+
+```bash
+cd /Users/wstdmac/image_classification/PPTAgent
+.venv/bin/python -m pytest deeppresenter/server/tests
+git diff --check
+```
+
+### PDF 导出 SSE 验证
+
+先打开一个终端监听已完成任务的事件，其中 `last_seq` 使用 `GET /api/tasks/{task_id}` 返回的 `last_seq`：
+
+```bash
+curl --noproxy '*' -N -s 'http://127.0.0.1:8001/api/tasks/{task_id}/events?last_seq={last_seq}'
+```
+
+再开另一个终端触发 PDF 导出：
+
+```bash
+curl --noproxy '*' -s -X POST http://127.0.0.1:8001/api/tasks/{task_id}/export \
+  -H 'content-type: application/json' \
+  --data '{"format":"pdf"}'
+```
+
+预期监听终端能收到 `export.started` 和 `export.completed`，且 `export.completed.artifact_url` 指向 `/api/tasks/{task_id}/artifacts/manuscript.pdf` 或同等 PDF artifact。
+
+### D 组分支前端融合验证
+
+该步骤只在前端联调 worktree 中执行，不进入 C2 后端提交：
+
+```bash
+cd /Users/wstdmac/image_classification/PPTAgent-frontend-workbench
+git fetch origin feat/slide-chat-editing:refs/remotes/origin/feat/slide-chat-editing
+git merge --no-commit --no-ff origin/feat/slide-chat-editing
+cd frontend
+npm run build
+```
+
+当前验证结论：D 组分支可无冲突融合到前端联调 worktree，前端构建通过；但 D 组编辑接口还未接入 C2 后端，`POST /api/tasks/{task_id}/slides/{slide_id}/chat` 仍需后续通过适配路由和编辑服务注册打通。
 
 ## 已完成
 
@@ -238,6 +301,25 @@ PLAYWRIGHT_BROWSERS_PATH=/Users/wstdmac/image_classification/PPTAgent/.local-pla
   - 发现并临时修复一个前端体验问题：任务完成后 EventSource 断开会显示“连接中断”，应仅在任务 `running` 时展示重连提示。
 - 2026-07-16 联调收尾：
   - 多页任务 `6ee93905` 验证 `slide.started -> slide.preview_ready -> slide.completed` 顺序正常，前端不再停留在“排队中”。
+
+### 2026-07-17
+
+- 与 main 前端整合联调：
+  - main 已合入前端工作台，本次继续使用独立前端 worktree 做联调，C2 后端修改仍保留在 `feat/realtime-progress-preview`。
+  - 前端 real API 模式需显式使用 `VITE_USE_MOCK=0 VITE_DEV_API_TARGET=http://127.0.0.1:8001` 启动，避免 `.env.development` 的 mock 配置影响测试。
+  - 真实任务 `296da15e` 恢复后可查询 5 页 slide artifact，预览图和 PPTX 导出链路正常。
+- 修复 PDF 导出点击后一直 loading：
+  - 根因：任务完成后 `TaskManager` 关闭了该任务的 `EventBus`，前端导出按钮只等待现有 SSE 连接里的 `export.completed`，导致 REST 已返回但页面无法结束 loading。
+  - 修复：任务完成/失败/取消后保留事件总线，使后续导出、编辑等终态后事件仍能发到同一条 SSE 连接。
+  - 验证：从 `last_seq=130` 监听任务 `296da15e`，触发 PDF 导出后同一 SSE 连接收到 `export.started` seq 131 和 `export.completed` seq 132，`artifact_url=/api/tasks/296da15e/artifacts/manuscript.pdf`。
+  - 验证：PDF artifact 文件头为 `255044462d312e34`（`%PDF-1.4`）。
+- 拉取并融合 D 组 `feat/slide-chat-editing` 到前端联调 worktree：
+  - 使用 `git merge --no-commit --no-ff origin/feat/slide-chat-editing`，无冲突。
+  - D 组分支主要新增 `pptagent/editor/*`，没有修改当前 `frontend/*`。
+  - 融合后的前端 `npm run build` 通过。
+  - 当前 D 组后端接口尚未挂载到 `deeppresenter.server.app`，真实请求 `POST /api/tasks/{task_id}/slides/{slide_id}/chat` 仍返回 404。
+  - 发现需后续对接的契约差异：前端发送 `{text, element_id?}` 并期望 `{chat_id}`；D 组 `ChatRequest` 当前使用 `instruction` 字段且返回 `EditResult`；前端监听任务级 SSE `/api/tasks/{task_id}/events`，D 组另有单页 edit SSE，事件字段也需映射到前端期望的 `artifact_url`、`payload.action`、`payload.revision`、`payload.chat_id`。
+- 当前 server 测试结果：`119 passed, 1 skipped in 3.84s`。
   - 预览渲染倍率调整为 1.5，真实预览文件尺寸为 `1920x1080`。
   - 修复 PDF 导出格式：`POST /api/tasks/{task_id}/export` 读取 `format=pdf|pptx`，PDF 请求返回真实 `.pdf` 文件及 `filename`，避免前端把 PPTX 下载成 `.pdf` 后无法打开。
 

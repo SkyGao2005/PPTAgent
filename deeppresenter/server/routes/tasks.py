@@ -5,6 +5,8 @@ from __future__ import annotations
 """
 
 import json
+import asyncio
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -12,8 +14,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from deeppresenter.server.models.artifacts import SlideArtifact, is_path_safe, task_dir
+from deeppresenter.server.routes.attachments import resolve_attachment_paths
 from deeppresenter.server.services.preview import artifact_url
 from deeppresenter.server.services.task_manager import TaskManager
+
+TASK_HEARTBEAT_INTERVAL = 30
 
 router = APIRouter(prefix="/api/tasks")
 
@@ -23,11 +28,18 @@ router = APIRouter(prefix="/api/tasks")
 class CreateTaskRequest(BaseModel):
     """创建任务请求体。"""
 
-    instruction: str = Field(..., description="PPT 主题/要求")
+    instruction: Optional[str] = Field(default=None, description="PPT 主题/要求")
+    topic: Optional[str] = Field(default=None, description="前端工作台主题字段")
     attachments: list[str] = Field(default_factory=list, description="附件文件路径列表")
+    attachment_ids: list[str] = Field(
+        default_factory=list, description="前端工作台附件 ID 字段"
+    )
     num_pages: Optional[str] = Field(default=None, description="页数，如 '8' 或 '5-10'")
+    page_count: Optional[int] = Field(default=None, description="前端工作台页数字段")
     powerpoint_type: str = Field(default="16:9", description="画面比例")
+    ratio: Optional[str] = Field(default=None, description="前端工作台画面比例字段")
     template: Optional[str] = Field(default=None, description="模板 ID")
+    template_id: Optional[str] = Field(default=None, description="前端工作台模板 ID 字段")
     convert_type: Optional[str] = Field(
         default=None, description="转换模式 deeppresenter/pptagent"
     )
@@ -68,12 +80,20 @@ def _require_task(manager: TaskManager, task_id: str):
 
 
 def _slide_summary(task_id: str, slide: SlideArtifact) -> dict:
+    title = slide.structured_data.title or f"第 {slide.index} 页"
+    summary = slide.structured_data.subtitle or (
+        " / ".join(slide.structured_data.body[:2]) if slide.structured_data.body else ""
+    )
     return {
         "slide_id": slide.slide_id,
+        "task_id": task_id,
         "index": slide.index,
+        "title": title,
+        "summary": summary,
         "status": slide.status,
         "mode": slide.mode,
         "layout_name": slide.layout_name,
+        "revision": slide.revision,
         "current_revision": slide.revision,
         "preview_url": (
             artifact_url(task_id, slide.preview_path)
@@ -96,6 +116,63 @@ def _slide_detail(manager: TaskManager, task_id: str, slide: SlideArtifact) -> d
     }
 
 
+def _last_seq(manager: TaskManager, task_id: str) -> int:
+    bus = manager.get_event_bus(task_id)
+    return bus.seq if bus else 0
+
+
+def _task_response(manager: TaskManager, snapshot) -> dict:
+    d = snapshot.to_dict()
+    # 确保 status 是字符串
+    if hasattr(d["status"], "value"):
+        d["status"] = d["status"].value
+
+    params = d.get("generation_params") or {}
+    status = d.get("status")
+    stage = d.get("current_stage")
+    if stage is None:
+        stage = "export" if status == "completed" else "generate"
+
+    d.update(
+        {
+            "topic": d.get("instruction", ""),
+            "stage": stage,
+            "template_id": params.get("template_id") or params.get("template") or "",
+            "ratio": params.get("powerpoint_type", "16:9"),
+            "last_seq": _last_seq(manager, snapshot.task_id),
+        }
+    )
+
+    service = manager.get_preview_service(snapshot.task_id)
+    d["slides"] = (
+        [
+            _slide_summary(snapshot.task_id, slide)
+            for slide in service.list_slides(snapshot.task_id)
+        ]
+        if service
+        else []
+    )
+    return d
+
+
+def _task_heartbeat(task_id: str, seq: int) -> dict:
+    return {
+        "task_id": task_id,
+        "seq": seq,
+        "type": "heartbeat",
+        "stage": None,
+        "status": None,
+        "progress": None,
+        "message": "",
+        "slide_id": None,
+        "slide_index": None,
+        "total_slides": None,
+        "artifact_url": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "payload": {},
+    }
+
+
 # ── 路由 ──────────────────────────────────────────────────────
 
 
@@ -106,22 +183,34 @@ async def create_task(
 ):
     """创建新任务，返回 task_id。"""
     manager = _get_manager(request)
+    instruction = (body.instruction or body.topic or "").strip()
+    if not instruction:
+        raise HTTPException(status_code=422, detail="instruction 或 topic 不能为空")
+    num_pages = body.num_pages or (str(body.page_count) if body.page_count else None)
+    powerpoint_type = body.ratio or body.powerpoint_type
+    attachments = (
+        body.attachments
+        if body.attachments
+        else resolve_attachment_paths(manager.workspace_base, body.attachment_ids)
+    )
+    language = "zh" if body.language.lower().startswith("zh") else body.language
     task_id = await manager.create(
-        instruction=body.instruction,
-        attachments=body.attachments,
-        num_pages=body.num_pages,
-        powerpoint_type=body.powerpoint_type,
+        instruction=instruction,
+        attachments=attachments,
+        num_pages=num_pages,
+        powerpoint_type=powerpoint_type,
+        # 前端 main 的 template_id 是 UI 模板库 ID；C2 后端当前只在
+        # 显式 template 字段下启用 PPTAgent 模板模式，避免误入模板链路。
         template=body.template,
+        template_id=body.template_id,
         convert_type=body.convert_type,
         enable_planner=body.enable_planner,
-        language=body.language,
+        language=language,
     )
     snapshot = manager.get_snapshot(task_id)
-    return CreateTaskResponse(
-        task_id=task_id,
-        status=snapshot.status.value if snapshot else "queued",
-        created_at=snapshot.created_at if snapshot else "",
-    )
+    if snapshot is None:
+        return CreateTaskResponse(task_id=task_id, status="queued", created_at="")
+    return _task_response(manager, snapshot)
 
 
 @router.get("")
@@ -149,17 +238,7 @@ async def get_task(task_id: str, request: Request):
     snapshot = manager.get_snapshot(task_id)
     if snapshot is None:
         raise HTTPException(status_code=404, detail=f"任务 {task_id} 不存在")
-    d = snapshot.to_dict()
-    # 确保 status 是字符串
-    if hasattr(d["status"], "value"):
-        d["status"] = d["status"].value
-    service = manager.get_preview_service(task_id)
-    d["slides"] = (
-        [_slide_summary(task_id, slide) for slide in service.list_slides(task_id)]
-        if service
-        else []
-    )
-    return d
+    return _task_response(manager, snapshot)
 
 
 @router.get("/{task_id}/events")
@@ -179,6 +258,10 @@ async def subscribe_events(
 
     async def _event_stream():
         async for event_dict in bus.subscribe(last_seq=last_seq):
+            if event_dict.get("type") == "eof":
+                while True:
+                    await asyncio.sleep(TASK_HEARTBEAT_INTERVAL)
+                    yield f"data: {json.dumps(_task_heartbeat(task_id, bus.seq), ensure_ascii=False)}\n\n"
             yield f"data: {json.dumps(event_dict, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
@@ -202,10 +285,7 @@ async def list_slides(task_id: str, request: Request):
         raise HTTPException(status_code=404, detail=f"任务 {task_id} 预览服务不存在")
 
     slides = service.list_slides(task_id)
-    return {
-        "slides": [_slide_summary(task_id, slide) for slide in slides],
-        "total": len(slides),
-    }
+    return [_slide_summary(task_id, slide) for slide in slides]
 
 
 @router.get("/{task_id}/slides/{slide_id}")

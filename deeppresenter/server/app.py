@@ -20,6 +20,8 @@ from typing import Optional
 
 from fastapi import FastAPI
 
+from deeppresenter.server.routes.attachments import router as attachments_router
+from deeppresenter.server.routes.templates import router as templates_router
 from deeppresenter.server.routes.tasks import router as tasks_router
 from deeppresenter.server.services.task_manager import TaskManager
 
@@ -98,6 +100,8 @@ def create_app(
                 manager._cancel_events[tid] = evt
 
     app.include_router(tasks_router)
+    app.include_router(attachments_router)
+    app.include_router(templates_router)
 
     @app.get("/health")
     async def health():

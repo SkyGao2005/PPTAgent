@@ -35,6 +35,7 @@ class AgentLoop:
         self.preview_service = preview_service
         if session_id is None:
             session_id = str(uuid.uuid4())[:8]
+        self.session_id = session_id
         self.workspace = workspace or WORKSPACE_BASE / session_id
         self.intermediate_output: dict[str, str | Path] = {}
         self.agent = None
@@ -182,7 +183,10 @@ class AgentLoop:
                             self.intermediate_output["pptx"] = pptx_file
                             self.intermediate_output["final"] = pptx_file
                             msg = str(pptx_file)
-                            await self._report_stage_completed(StageName.GENERATE)
+                            await self._report_stage_completed(
+                                StageName.GENERATE,
+                                payload=self._slide_outline_payload(),
+                            )
                             break
                         yield msg
                 except Exception as e:
@@ -212,7 +216,10 @@ class AgentLoop:
                             if not slide_html_dir.is_absolute():
                                 slide_html_dir = self.workspace / slide_html_dir
                             self.intermediate_output["slide_html_dir"] = slide_html_dir
-                            await self._report_stage_completed(StageName.GENERATE)
+                            await self._report_stage_completed(
+                                StageName.GENERATE,
+                                payload=self._slide_outline_payload(),
+                            )
                             break
                         yield msg
                 except Exception as e:
@@ -280,11 +287,33 @@ class AgentLoop:
         except Exception as e:
             warning(f"Failed to report stage start event: {e}")
 
-    async def _report_stage_completed(self, stage: StageName) -> None:
+    def _slide_outline_payload(self) -> dict | None:
+        if self.preview_service is None:
+            return None
+        try:
+            outline = []
+            for slide in self.preview_service.list_slides(self.session_id):
+                outline.append(
+                    {
+                        "slide_id": slide.slide_id,
+                        "index": slide.index,
+                        "title": slide.structured_data.title or f"第 {slide.index} 页",
+                    }
+                )
+            return {"outline": outline} if outline else None
+        except Exception as e:
+            warning(f"Failed to build slide outline payload: {e}")
+            return None
+
+    async def _report_stage_completed(
+        self,
+        stage: StageName,
+        payload: dict | None = None,
+    ) -> None:
         if self.event_reporter is None:
             return
         try:
-            await self.event_reporter.stage_completed(stage)
+            await self.event_reporter.stage_completed(stage, payload=payload)
         except Exception as e:
             warning(f"Failed to report stage completion event: {e}")
 
@@ -308,7 +337,15 @@ class AgentLoop:
         if self.event_reporter is None:
             return
         try:
-            await self.event_reporter.export_completed(artifact_url)
+            artifact = Path(artifact_url)
+            filename = artifact.name or None
+            if artifact.is_absolute():
+                try:
+                    rel = artifact.resolve().relative_to(self.workspace.resolve())
+                    artifact_url = f"/api/tasks/{self.session_id}/artifacts/{rel.as_posix()}"
+                except ValueError:
+                    pass
+            await self.event_reporter.export_completed(artifact_url, filename)
         except Exception as e:
             warning(f"Failed to report export completion event: {e}")
 
