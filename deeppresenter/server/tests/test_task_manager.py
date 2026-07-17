@@ -46,6 +46,15 @@ class RecordingRetryManager(TaskManager):
 
     async def _run_agent_loop(self, **kwargs):
         self.retry_calls.append(kwargs)
+        # 模拟真实 _run_agent_loop 的 skip file 写入
+        if kwargs.get("skip_slide_ids"):
+            from deeppresenter.server.services.task_manager import task_dir as _td
+            skip_file = _td(self.workspace_base, kwargs["task_id"]) / ".retry_skip.json"
+            import json as _json
+            skip_file.write_text(
+                _json.dumps(kwargs["skip_slide_ids"], ensure_ascii=False),
+                encoding="utf-8",
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -622,3 +631,101 @@ class TestConcurrencyLimit:
 
         manager2 = TaskManager(tmp_workspace, max_concurrent=1)
         assert manager2._concurrency_sem._value == 1
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 重试——跳过已完成页
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestRetrySkip:
+    @pytest.mark.asyncio
+    async def test_retry_passes_skip_slide_ids(self, tmp_workspace):
+        """retry(retry_failed_slides_only=True) 应把 completed_slide_ids
+        作为 skip_slide_ids 传给 _run_agent_loop。"""
+        manager = RecordingRetryManager(tmp_workspace)
+        tid = await manager.create(instruction="test")
+        snap = manager._snapshots[tid]
+        snap.completed_slide_ids = ["sld-aaa", "sld-bbb"]
+        manager._transition_to(tid, TaskStatus.FAILED, error_message="failed")
+        # 重建 EventBus（占位执行器完成后会关闭）
+        workspace = task_dir(tmp_workspace, tid)
+        manager._buses[tid] = EventBus(workspace)
+        manager._reporters[tid] = EventReporter(tid, manager._buses[tid].publish)
+
+        await manager.retry(tid, retry_failed_slides_only=True)
+        # retry 异步创建 task，需等待完成
+        runner = manager._runners.get(tid)
+        if runner:
+            await runner
+        assert len(manager.retry_calls) == 1
+        assert manager.retry_calls[0].get("skip_slide_ids") == ["sld-aaa", "sld-bbb"]
+
+    @pytest.mark.asyncio
+    async def test_retry_no_skip_when_flag_false(self, tmp_workspace):
+        """retry_failed_slides_only=False 时不应传 skip_slide_ids。"""
+        manager = RecordingRetryManager(tmp_workspace)
+        tid = await manager.create(instruction="test")
+        snap = manager._snapshots[tid]
+        snap.completed_slide_ids = ["sld-aaa"]
+        manager._transition_to(tid, TaskStatus.FAILED, error_message="failed")
+        workspace = task_dir(tmp_workspace, tid)
+        manager._buses[tid] = EventBus(workspace)
+        manager._reporters[tid] = EventReporter(tid, manager._buses[tid].publish)
+
+        await manager.retry(tid, retry_failed_slides_only=False)
+        runner = manager._runners.get(tid)
+        if runner:
+            await runner
+        assert len(manager.retry_calls) == 1
+        assert manager.retry_calls[0].get("skip_slide_ids") == []
+
+    @pytest.mark.asyncio
+    async def test_retry_writes_skip_file(self, tmp_workspace):
+        """skip_slide_ids 应写入 .retry_skip.json 供 AgentEnv 读取。"""
+        manager = RecordingRetryManager(tmp_workspace)
+        tid = await manager.create(instruction="test")
+        snap = manager._snapshots[tid]
+        snap.completed_slide_ids = ["sld-xxx"]
+        manager._transition_to(tid, TaskStatus.FAILED, error_message="failed")
+        workspace = task_dir(tmp_workspace, tid)
+        manager._buses[tid] = EventBus(workspace)
+        manager._reporters[tid] = EventReporter(tid, manager._buses[tid].publish)
+
+        await manager.retry(tid, retry_failed_slides_only=True)
+        runner = manager._runners.get(tid)
+        if runner:
+            await runner
+        skip_file = workspace / ".retry_skip.json"
+        assert skip_file.exists(), ".retry_skip.json should have been written by _run_agent_loop"
+        assert json.loads(skip_file.read_text(encoding="utf-8")) == ["sld-xxx"]
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 失败路径——保留已完成页
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class TestFailurePreservesSlides:
+    @pytest.mark.asyncio
+    async def test_failure_stores_completed_slide_ids(self, tmp_workspace):
+        """_transition_to 应能正确存储 completed_slide_ids。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        tid = await manager.create(instruction="test")
+
+        manager._transition_to(tid, TaskStatus.FAILED,
+                               error_message="partial failure",
+                               completed_slide_ids=["sld-aaa", "sld-bbb"],
+                               completed_slides=2)
+        snap = manager.get_snapshot(tid)
+        assert snap.completed_slide_ids == ["sld-aaa", "sld-bbb"]
+        assert snap.completed_slides == 2
+        assert snap.status == TaskStatus.FAILED
+
+    @pytest.mark.asyncio
+    async def test_collect_empty_when_no_slides(self, tmp_workspace):
+        """无完成页面时 _collect_completed_slide_ids 应返回空列表。"""
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        tid = await manager.create(instruction="test")
+        ids = manager._collect_completed_slide_ids(tid)
+        assert ids == []

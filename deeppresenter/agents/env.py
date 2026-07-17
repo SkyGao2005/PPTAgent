@@ -321,6 +321,15 @@ class AgentEnv:
             slide_id = stable_slide_id(self.workspace.stem, slide_index)
             if self.event_reporter is not None:
                 await self.event_reporter.slide_started(slide_id, slide_index)
+            # retry 跳过已完成页：直接复用已有 artifact
+            if slide_id in self._skip_slide_ids:
+                existing = self.preview_service.get_slide(self.workspace.stem, slide_id)
+                if existing and existing.preview_path:
+                    url = artifact_url(self.workspace.stem, existing.preview_path)
+                    if self.event_reporter is not None:
+                        await self.event_reporter.slide_preview_ready(slide_id, slide_index, url)
+                        await self.event_reporter.slide_completed(slide_id, slide_index)
+                    return
             artifact = await self.preview_service.render_html_slide(
                 self.workspace.stem,
                 html_path,
@@ -408,6 +417,16 @@ class AgentEnv:
             if self.event_reporter is not None:
                 await self.event_reporter.slide_started(slide_id, slide_index)
 
+            # retry 跳过已完成页：直接复用已有 artifact
+            if slide_id in self._skip_slide_ids:
+                existing = self.preview_service.get_slide(self.workspace.stem, slide_id)
+                if existing and existing.preview_path:
+                    url = artifact_url(self.workspace.stem, existing.preview_path)
+                    if self.event_reporter is not None:
+                        await self.event_reporter.slide_preview_ready(slide_id, slide_index, url)
+                        await self.event_reporter.slide_completed(slide_id, slide_index)
+                    return
+
             artifact = await self.preview_service.render_template_slide(
                 self.workspace.stem,
                 slide_index,
@@ -455,6 +474,16 @@ class AgentEnv:
         return "\n".join(texts)[:500]
 
     async def __aenter__(self):
+        # retry 跳过已完成页：读取 TaskManager 写入的 skip 列表
+        skip_file = self.workspace / ".retry_skip.json"
+        self._skip_slide_ids: set[str] = set()
+        if skip_file.exists():
+            try:
+                self._skip_slide_ids = set(json.loads(skip_file.read_text(encoding="utf-8")))
+                debug(f"Retry mode: skipping {len(self._skip_slide_ids)} completed slides")
+            except (json.JSONDecodeError, OSError):
+                pass
+
         if self._requires_docker():
             try:
                 client = docker.from_env()

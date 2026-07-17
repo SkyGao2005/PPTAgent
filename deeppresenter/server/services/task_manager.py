@@ -351,6 +351,7 @@ class TaskManager:
 
         # 从快照恢复原始生成参数
         params = snapshot.generation_params
+        skip_ids = snapshot.completed_slide_ids if retry_failed_slides_only else []
         async def _retry_with_semaphore():
             async with self._concurrency_sem:
                 await self._run_agent_loop(
@@ -363,6 +364,7 @@ class TaskManager:
                     convert_type=params.get("convert_type"),
                     enable_planner=params.get("enable_planner", False),
                     language=params.get("language", "zh"),
+                    skip_slide_ids=skip_ids,
                 )
 
         runner = asyncio.create_task(_retry_with_semaphore())
@@ -520,6 +522,7 @@ class TaskManager:
         convert_type: Optional[str],
         enable_planner: bool,
         language: str,
+        skip_slide_ids: Optional[list[str]] = None,
     ) -> None:
         """运行真实 AgentLoop，并把最终结果写回任务快照。"""
         bus = self._buses.get(task_id)
@@ -528,6 +531,14 @@ class TaskManager:
         cancel_evt = self._cancel_events.get(task_id)
         if bus is None or reporter is None:
             return
+
+        # retry 跳过已完成页：写入 AgentEnv 可读取的 skip 文件
+        if skip_slide_ids:
+            skip_file = task_dir(self.workspace_base, task_id) / ".retry_skip.json"
+            skip_file.write_text(
+                json.dumps(skip_slide_ids, ensure_ascii=False),
+                encoding="utf-8",
+            )
 
         try:
             from deeppresenter.main import AgentLoop
@@ -584,26 +595,45 @@ class TaskManager:
             # 取消后不再写 completed
             if cancel_evt and cancel_evt.is_set():
                 return
+            # 扫描已完成页面
+            completed_ids = self._collect_completed_slide_ids(task_id)
             self._transition_to(
                 task_id,
                 TaskStatus.COMPLETED,
                 progress=100.0,
                 result_artifact=final_artifact,
+                completed_slide_ids=completed_ids,
+                completed_slides=len(completed_ids),
             )
             await reporter.task_completed(final_artifact, "任务完成")
 
         except asyncio.CancelledError:
             pass
         except Exception as exc:
+            # 扫描已完成的页面，保留不丢失
+            completed_ids = self._collect_completed_slide_ids(task_id)
             self._transition_to(
                 task_id,
                 TaskStatus.FAILED,
                 error_message=str(exc),
+                completed_slide_ids=completed_ids,
+                completed_slides=len(completed_ids),
             )
             await reporter.task_failed(f"任务执行失败：{exc}")
         finally:
             if bus and not bus._closed:
                 await bus.close()
+
+    def _collect_completed_slide_ids(self, task_id: str) -> list[str]:
+        """从 PreviewService 收集已完成的 slide_id 列表。"""
+        preview_service = self._preview_services.get(task_id)
+        if preview_service is None:
+            return []
+        try:
+            slides = preview_service.list_slides(task_id)
+            return [s.slide_id for s in slides]
+        except Exception:
+            return []
 
     def _artifact_path(self, task_id: str, path: Path) -> str:
         """把最终产物路径转换为任务工作区内相对路径。"""
