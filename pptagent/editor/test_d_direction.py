@@ -19,7 +19,7 @@ from pptagent.presentation import Presentation
 from pptagent.utils import Config
 
 from pptagent.editor.artifact import ArtifactStore, extract_structured_data
-from pptagent.editor.event_bus import EditEventBus
+from pptagent.editor.events import EditEventBus
 from pptagent.editor.service import EditResult, SlideEditService
 
 

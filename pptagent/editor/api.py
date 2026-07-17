@@ -24,7 +24,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from pptagent.editor.event_bus import get_default_bus
+from pptagent.editor.events import get_default_bus
 from pptagent.editor.service import DEFAULT_REGISTRY, EditServiceRegistry, SlideEditService
 
 edit_router = APIRouter()

@@ -19,7 +19,7 @@ from pptagent.utils import Config
 from pptagent.editor.artifact import ArtifactStore, extract_structured_data, format_structured_context
 from pptagent.editor.diff import DiffEngine
 from pptagent.editor.editor import SlideEditor
-from pptagent.editor.event_bus import EditEventBus
+from pptagent.editor.events import EditEventBus
 from pptagent.editor.exporter import optimized_save, export_with_profile
 from pptagent.editor.features import FeatureStore
 from pptagent.editor.preview import PreviewRenderer

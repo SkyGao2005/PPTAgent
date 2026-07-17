@@ -250,3 +250,112 @@ agent.enable_persistence()
 agent.save_versions()
 agent.load_versions()
 ```
+
+---
+
+## 11. 对话式局部编辑与版本管理（方向 D）
+
+> 实现 PDF 开发计划"方向 D"：选中一页后用自然语言连续修改，系统只重做这一页并保留最近版本。无需 LLM 即可运行（内置规则规划器）；接入模型即可做真实对话编辑。
+
+### 11.1 一键入口 `build_edit_service` / `SlideEditService`
+
+```python
+from pptagent.editor import build_edit_service, SlideEditService
+```
+
+从已有 `Presentation` 构建服务并注册全部页面（适用于测试、演示、已有生成结果的后编辑）：
+
+```python
+service = build_edit_service(prs, workspace_root="workspace", outline={"title": "...", "outline": [...]})
+# 或带模型的真实对话编辑：
+# from pptagent.editor import LLMEditPlanner, TemplateRegenBackend
+# service = build_edit_service(prs, planner=LLMEditPlanner(vision_model), regen_backend=TemplateRegenBackend(agent))
+sid = service.slide_ids()[1]
+await service.chat(sid, "把标题改短一点")
+await service.undo(sid)
+await service.export("out.pptx")
+```
+
+| 方法 | 参数 | 返回 | 说明 |
+|------|------|------|------|
+| `service.chat(slide_id, instruction, element_id=None)` | 自然语言指令，可选选中元素 | `ChatResponse` | 页级对话修改，只重做这一页 |
+| `service.list_revisions(slide_id)` | — | `list[dict]` | 版本列表（最新在前，标注当前版） |
+| `service.apply_revision(slide_id, revision)` | 版本号 | `ChatResponse` | 切换到指定版本（指针切换，不调模型） |
+| `service.undo(slide_id)` / `service.redo(slide_id)` | — | `ChatResponse` | 撤销/重做（不调模型，瞬时） |
+| `service.retry(slide_id)` | — | `ChatResponse` | 重试上一次失败的修改 |
+| `service.current_revision(slide_id)` | — | `int` | 当前版本号 |
+| `service.export(output_path)` | 路径 | `dict` | 按各页最新成功版本导出 PPTX + 写清单 |
+| `service.slide_ids()` | — | `list[str]` | 按页序的 slide_id |
+
+`ChatResponse`：`slide_id, success, changed, revision, summary, plan, op_results, preview_path, error`
+
+### 11.2 REST 映射（与 PDF 建议接口一一对应）
+
+| PDF 建议路径 | 本服务方法 |
+|---|---|
+| `POST /api/tasks/{tid}/slides/{sid}/chat` | `chat` |
+| `GET  /api/tasks/{tid}/slides/{sid}/revisions` | `list_revisions` |
+| `POST /api/tasks/{tid}/slides/{sid}/revisions/{r}/apply` | `apply_revision` |
+| `POST /api/tasks/{tid}/slides/{sid}/undo` | `undo` |
+| `POST /api/tasks/{tid}/slides/{sid}/retry` | `retry` |
+
+（本仓库无独立 FastAPI 层，服务以 Python API 提供；前端/Gradio/MCP 可直接调用上述方法，事件经 `EventBus` 订阅。）
+
+### 11.3 版本模型与磁盘布局
+
+- 每页有稳定 `slide_id`（UUID，页序变化也不变）。
+- 每次**成功**修改形成新 `revision`；**失败草稿**进 `drafts/`，不提升 current。
+- 每页默认保留最近 10 个 revision（`keep_revisions` 可配），超出删最旧，当前版永不被删。
+- **撤销 = 把 current 指针切回上一成功版本，不请求模型**。
+- 导出时记录每页使用的 revision（`exports/export_manifest.json`），便于复现。
+
+磁盘布局（`workspace/<task_id>/`）：
+
+```
+task.json   events.jsonl   outline.json   manuscript.md
+slides/<slide_id>/current.json
+slides/<slide_id>/revisions/<n>/slide.json
+slides/<slide_id>/revisions/<n>/preview.html
+slides/<slide_id>/revisions/<n>/source.html
+exports/latest.pptx   exports/export_manifest.json
+```
+
+### 11.4 事件总线 `EventBus`（PDF §4.2）
+
+`service.bus` 发布 `edit.started / edit.preview_ready / edit.applied / edit.failed / edit.reverted`，每事件带递增 `seq`，追加写入 `events.jsonl`，支持 `events(from_seq=)` 断线重连与回放。
+
+```python
+async for evt in service.bus.events(from_seq=last_seq):
+    ...  # evt.type, evt.seq, evt.slide_id, evt.revision ...
+```
+
+### 11.5 编辑规划与执行（可插拔）
+
+| 组件 | 作用 | 默认 |
+|---|---|---|
+| `DeterministicPlanner` | 规则解析中文指令→`EditPlan`（精简/换配色/换布局/重新生成/把X替换成Y…） | 默认，无需模型 |
+| `LLMEditPlanner` | 调用 `AsyncLLM`，带页面截图+元素schema+大纲+最近对话→`EditPlan` | 接入模型时用 |
+| `EditPlanExecutor` | 把 `EditOp` 落到 `SlideEditor`（文本/图片/风格）或重生成后端 | — |
+| `TemplateRegenBackend` | 模板模式整页重生成（`_generate_commands`+`_edit_slide`） | 需 PPTAgent 已 `set_reference` |
+| `HTMLEditBackend` | HTML 模式整页重写（Design Agent） | 需 vision_model |
+| `NoopRegenBackend` | 无后端时整页指令优雅失败→失败草稿，current 不变 | 默认 |
+
+### 11.6 与生成链路集成 `ConversationalPPTAgent`
+
+```python
+from pptagent.editor import ConversationalPPTAgent
+agent = ConversationalPPTAgent(language_model=lm, vision_model=vm, workspace="workspace")
+agent.set_reference(slide_induction, presentation)
+prs, history = await agent.generate_pres(document)
+service = agent.edit_service          # 生成后即可对话编辑
+await service.chat(service.slide_ids()[1], "更简洁一点")
+```
+
+### 11.7 演示与测试
+
+```bash
+# 无需模型，跑通"对话修改→多轮→撤销→切换版本→失败草稿→导出"全链路
+PYTHONPATH=. python pptagent/editor/test_conversational.py
+# 既有元素级编辑 + 全文档版本管理回归
+PYTHONPATH=. python pptagent/editor/test_integration.py
+```

@@ -10,12 +10,7 @@ from pathlib import Path
 from pptagent.document import Document
 from pptagent.pptgen import PPTAgent
 from pptagent.presentation import Presentation
-from pptagent.editor.artifact import ArtifactStore
 from pptagent.editor.editor import SlideEditor
-from pptagent.editor.service import (
-    DEFAULT_REGISTRY,
-    SlideEditService,
-)
 from pptagent.editor.version import VersionManager
 from pptagent.editor.version_store import VersionStore
 
@@ -84,53 +79,6 @@ class VersionedPPTAgent(PPTAgent):
         """Return all active editors keyed by slide index."""
         return dict(self._editors)
 
-    # ── direction D: conversational editing & versioning ────────
-
-    def get_edit_service(
-        self,
-        slide_idx: int,
-        task_id: str | None = None,
-        llm=None,
-        outline: str | None = None,
-        regenerate_fn=None,
-        workspace=None,
-        max_revisions: int = 10,
-    ) -> "SlideEditService":
-        """Return (creating & registering if needed) a conversational edit service.
-
-        The service targets one slide (1-based ``slide_idx``) and is registered
-        in the shared :data:`pptagent.editor.service.DEFAULT_REGISTRY` so the
-        FastAPI routes can resolve it by ``(task_id, slide_id)``.
-        """
-        if not hasattr(self, "empty_prs") or slide_idx > len(self.empty_prs.slides):
-            raise IndexError(f"Slide {slide_idx} out of range")
-        slide = self.empty_prs.slides[slide_idx - 1]
-        slide_id = f"s{slide_idx}"
-        existing = DEFAULT_REGISTRY.get(task_id, slide_id)
-        if existing is not None:
-            return existing
-
-        store = None
-        ws = workspace or self._workspace
-        if ws is not None:
-            store = ArtifactStore(ws, task_id)
-
-        svc = SlideEditService(
-            slide=slide,
-            presentation=self.empty_prs,
-            doc=getattr(self, "document", None),
-            llm=llm or getattr(self, "language_model", None),
-            task_id=task_id,
-            slide_id=slide_id,
-            mode="template",
-            outline=outline,
-            store=store,
-            regenerate_fn=regenerate_fn,
-            max_revisions=max_revisions,
-        )
-        DEFAULT_REGISTRY.register(task_id, slide_id, svc)
-        return svc
-
     # ── version commit ────────────────────────────────────────
 
     def commit(self, message: str, tags: list[str] | None = None):
@@ -159,3 +107,104 @@ class VersionedPPTAgent(PPTAgent):
             raise RuntimeError("Call enable_persistence() first")
         self.version_manager = self._store.load_manager()
         return self.version_manager
+
+
+# ── conversational editing + per-page version management ─────
+
+class ConversationalPPTAgent(VersionedPPTAgent):
+    """A ``VersionedPPTAgent`` that also runs a ``SlideEditService``.
+
+    After ``generate_pres`` returns, every generated slide is registered
+    with a per-task ``SlideEditService`` so the user can immediately
+    issue natural-language edits, undo, switch revisions, and export —
+    all on individual pages without re-running the generation pipeline.
+
+    Usage::
+
+        agent = ConversationalPPTAgent(
+            language_model=lm, vision_model=vm, workspace="/path")
+        agent.set_reference(slide_induction, presentation)
+        prs, history = await agent.generate_pres(document)
+        service = agent.edit_service           # ready to chat
+        await service.chat(slide_id, "把标题改短一点")
+    """
+
+    def __init__(self, *args, workspace: str | Path | None = None, **kwargs):
+        super().__init__(*args, workspace=workspace, **kwargs)
+        self._edit_service = None
+        self._outline: dict = {}
+
+    # ── generate + register slides with the edit service ─────
+
+    async def generate_pres(self, *args, **kwargs):
+        prs, history = await super().generate_pres(*args, **kwargs)
+        if prs is not None and len(prs.slides) > 0:
+            self._edit_service = self._build_edit_service(prs)
+            for i, slide in enumerate(prs.slides):
+                self._edit_service.register_slide(
+                    slide, index=i, ready=True,
+                    message=f"第{i+1}页生成")
+        return prs, history
+
+    def set_outline(self, outline: dict) -> None:
+        """Provide the PPT outline (global context for page edits)."""
+        self._outline = outline or {}
+
+    @property
+    def edit_service(self):
+        """The ``SlideEditService`` for the last generation (or None)."""
+        return self._edit_service
+
+    # ── build a service from an existing presentation ────────
+
+    def _build_edit_service(self, prs: Presentation):
+        from pptagent.editor.slide_edit_service import SlideEditService
+        from pptagent.editor.regen_backend import TemplateRegenBackend
+        regen = None
+        if getattr(self, "_initialized", False) and getattr(self, "layouts", None):
+            regen = TemplateRegenBackend(self)
+        return SlideEditService(
+            prs, workspace_root=self._workspace,
+            outline=self._outline,
+            regen_backend=regen,
+            element_schema=self._induction_schema(),
+        )
+
+    def _induction_schema(self) -> dict | None:
+        """Return the raw slide_induction schema for the model context, if known.
+
+        ``set_reference`` pops ``language``/``functional_keys`` off the
+        induction dict, so we keep our own pristine copy when possible.
+        """
+        return getattr(self, "_slide_induction_raw", None)
+
+
+def build_edit_service(
+    presentation: Presentation,
+    *,
+    workspace_root: str | Path | None = None,
+    outline: dict | None = None,
+    planner=None,
+    regen_backend=None,
+    task_id: str | None = None,
+    keep_revisions: int = 10,
+):
+    """Build a ``SlideEditService`` from a presentation without an agent.
+
+    The conversational pipeline runs without an LLM (the deterministic
+    planner handles common Chinese edit instructions), so this is the
+    entry point used by tests, demos, and any front-end that already
+    holds a ``Presentation`` (e.g. loaded from a template).
+
+    Slides are registered and made ready for editing immediately.
+    """
+    from pptagent.editor.slide_edit_service import SlideEditService
+    service = SlideEditService(
+        presentation, task_id=task_id, workspace_root=workspace_root,
+        outline=outline, planner=planner, regen_backend=regen_backend,
+        keep_revisions=keep_revisions)
+    for i, slide in enumerate(presentation.slides):
+        service.register_slide(slide, index=i, ready=True,
+                                message=f"初始第{i+1}页")
+    return service
+
