@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDropzone } from "react-dropzone"
-import { LoaderCircleIcon, SearchIcon, TriangleAlertIcon, UploadIcon } from "lucide-react"
+import { LoaderCircleIcon, PlusIcon, SearchIcon, TriangleAlertIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { AppShell } from "@/components/app-shell"
@@ -153,185 +153,198 @@ export function TemplatesPage() {
       <main id="main-content" tabIndex={-1} className="outline-none">
         <div
           {...getRootProps({
-          className:
-            "animate-fade-up relative mx-auto w-full max-w-[1240px] px-6 py-10 lg:px-10",
+            className:
+              "animate-fade-up relative mx-auto w-full max-w-[1080px] px-6 pt-2 pb-20 lg:px-8",
           })}
         >
-        <input {...getInputProps()} />
-        {isDragActive && (
-          <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary bg-accent/80 text-sm font-bold text-primary">
-            松开即可上传 .pptx 模板
-          </div>
-        )}
-        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div>
-            <h1 className="font-heading text-[26px] font-bold tracking-tight">模板库</h1>
-            <p className="mt-1.5 text-sm text-hint">
-              {counts.all} 个模板 · {counts.ready} 个已就绪
-            </p>
-          </div>
-          <Button
-            size="lg"
-            className="h-10 rounded-[10px] px-5"
-            disabled={uploading}
-            onClick={openFilePicker}
-          >
-            {uploading ? <LoaderCircleIcon className="animate-spin" /> : <UploadIcon />}
-            {uploading ? "上传中" : "上传模板"}
-          </Button>
-        </div>
-
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <div className="relative w-64">
-            <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-hint" />
-            <Input
-              value={query}
-              aria-label="搜索模板名称"
-              onChange={(event) => setQuery(event.target.value)}
-              className="h-9.5 rounded-[10px] bg-card pl-9"
-              placeholder="搜索模板名称…"
-            />
-          </div>
-          <div className="flex gap-1.5">
-            {statusFilters.map((filter) => {
-              const active = statusFilter === filter.value
-              return (
-                <button
-                  key={filter.value}
-                  type="button"
-                  aria-pressed={active}
-                  className={cn(
-                    "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors",
-                    active
-                      ? "border-primary bg-accent text-primary"
-                      : "border-border bg-card text-muted-foreground hover:border-input",
-                  )}
-                  onClick={() => setStatusFilter(filter.value)}
-                >
-                  {filter.label} {counts[filter.value]}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {loadError ? (
-          <div role="alert" className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-16 text-center">
-            <TriangleAlertIcon className="size-8 text-hint" />
-            <h2 className="mt-4 text-[15px] font-medium">模板列表加载失败</h2>
-            <p className="mt-1 text-[13px] text-hint">{loadError}</p>
+          <input {...getInputProps()} />
+          {isDragActive && (
+            <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center rounded-[28px] border-2 border-dashed border-primary bg-white/80 text-sm font-bold">
+              松开即可上传 .pptx 模板
+            </div>
+          )}
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <h1 className="font-serif text-[34px] font-black tracking-tight">模板库</h1>
+              <p className="mt-1.5 text-sm text-hint">
+                {counts.all} 个模板 · {counts.ready} 个已就绪 · 上传 PPTX 即可解析为新模板
+              </p>
+            </div>
             <Button
-              variant="outline"
-              size="sm"
-              className="mt-5"
-              onClick={() => void useTemplatesStore.getState().fetchTemplates()}
+              size="lg"
+              className="h-10.5 rounded-full px-5 text-sm font-semibold shadow-[0_10px_26px_rgba(27,28,32,0.28)]"
+              disabled={uploading}
+              onClick={openFilePicker}
             >
-              重新加载
+              {uploading ? <LoaderCircleIcon className="animate-spin" /> : <UploadIcon />}
+              {uploading ? "上传中" : "上传模板"}
             </Button>
           </div>
-        ) : !loaded ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }, (_, index) => (
-              <div key={index} className="skeleton-shimmer aspect-[4/3] rounded-[14px]" />
-            ))}
-          </div>
-        ) : visibleTemplates.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {visibleTemplates.map((template) => {
-              const isCurrent = template.id === selectedTemplateId
-              return (
-                // div[role=button] keeps the card's block-level content valid
-                // HTML; retry for failed templates lives in the preview
-                // dialog, so no interactive element is nested here.
-                <div
-                  key={template.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`查看模板「${template.name}」，${template.description || "无描述"}，${template.slides} 页，${template.ratio}，状态：${template.status === "ready" ? "已就绪" : template.status === "parsing" ? "解析中" : "解析失败"}${isCurrent ? "，当前使用" : ""}`}
-                  className={cn(
-                    "overflow-hidden rounded-[14px] border bg-card text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(30,25,15,0.10)]",
-                    isCurrent && "border-primary ring-3 ring-primary/10",
-                  )}
-                  onClick={() => setPreviewId(template.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault()
-                      setPreviewId(template.id)
-                    }
-                  }}
-                >
-                  <div className="relative">
-                    <TemplateCover template={template} showStatus />
-                    {isCurrent && (
-                      <span className="absolute top-2.5 left-2.5 rounded-full bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
-                        当前使用
-                      </span>
+
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="relative w-64">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-hint" />
+              <Input
+                value={query}
+                aria-label="搜索模板名称"
+                onChange={(event) => setQuery(event.target.value)}
+                className="glass-chip h-9.5 rounded-full border-white/60 pl-10"
+                placeholder="搜索模板名称…"
+              />
+            </div>
+            <div className="flex gap-1.5">
+              {statusFilters.map((filter) => {
+                const active = statusFilter === filter.value
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    aria-pressed={active}
+                    className={cn(
+                      "rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
+                      active
+                        ? "bg-primary font-semibold text-primary-foreground"
+                        : "glass-chip text-muted-foreground hover:bg-white/70 hover:text-foreground",
                     )}
-                  </div>
-                  <div className="px-4 pt-3.5 pb-4">
-                    <div className="mb-1.5 flex items-center justify-between gap-3">
-                      <span className="truncate text-[15px] font-bold">{template.name}</span>
-                      <span className="flex shrink-0 gap-1">
-                        {[
-                          template.palette.bg,
-                          template.palette.primary,
-                          template.palette.accent,
-                          template.palette.ink,
-                        ].map((color, index) => (
-                          <span
-                            key={index}
-                            className="inline-block size-3 rounded-full border border-black/10"
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </span>
-                    </div>
-                    <p className="mb-2.5 line-clamp-2 min-h-[38px] text-xs leading-relaxed text-hint">
-                      {template.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{template.slides} 页</span>
-                      <span className="text-border">·</span>
-                      <span>{template.ratio}</span>
-                      <span className="text-border">·</span>
-                      <span>{template.layouts.length} 种版式</span>
-                      <span className="ml-auto">
-                        <TemplateStatusBadge status={template.status} />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+                    onClick={() => setStatusFilter(filter.value)}
+                  >
+                    {filter.label} {counts[filter.value]}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        ) : (
-          <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed px-6 py-16 text-center">
-            <div className="h-10 w-14 rounded-lg border-2 border-dashed border-input" />
-            <h2 className="mt-4 text-[15px] font-medium">没有匹配的模板</h2>
-            <p className="mt-1 text-[13px] text-hint">
-              换个关键词试试，或上传你自己的 PPTX 模板
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-5"
-              onClick={() => {
-                setQuery("")
-                setStatusFilter("all")
-              }}
+
+          {loadError ? (
+            <div
+              role="alert"
+              className="glass-card mt-10 flex flex-col items-center justify-center rounded-[24px] px-6 py-16 text-center"
             >
-              清除筛选
-            </Button>
-          </div>
-        )}
+              <TriangleAlertIcon className="size-8 text-hint" />
+              <h2 className="mt-4 text-[15px] font-medium">模板列表加载失败</h2>
+              <p className="mt-1 text-[13px] text-hint">{loadError}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-5 rounded-full bg-white/60"
+                onClick={() => void useTemplatesStore.getState().fetchTemplates()}
+              >
+                重新加载
+              </Button>
+            </div>
+          ) : !loaded ? (
+            <div className="mt-6 grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className="skeleton-shimmer aspect-[4/3] rounded-[20px]" />
+              ))}
+            </div>
+          ) : visibleTemplates.length ? (
+            <div className="mt-6 grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+              {visibleTemplates.map((template) => {
+                const isCurrent = template.id === selectedTemplateId
+                return (
+                  // div[role=button] keeps the card's block-level content valid
+                  // HTML; retry for failed templates lives in the preview
+                  // dialog, so no interactive element is nested here.
+                  <div
+                    key={template.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`查看模板「${template.name}」，${template.description || "无描述"}，${template.slides} 页，${template.ratio}，状态：${template.status === "ready" ? "已就绪" : template.status === "parsing" ? "解析中" : "解析失败"}${isCurrent ? "，当前使用" : ""}`}
+                    className={cn(
+                      "glass-card overflow-hidden rounded-[20px] text-left transition-all hover:shadow-[0_16px_38px_rgba(30,32,44,0.17)]",
+                      isCurrent && "ring-2 ring-primary",
+                    )}
+                    onClick={() => setPreviewId(template.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault()
+                        setPreviewId(template.id)
+                      }
+                    }}
+                  >
+                    <div className="relative m-2 mb-0 overflow-hidden rounded-xl shadow-[inset_0_0_0_1px_rgba(27,28,32,0.06)]">
+                      <TemplateCover template={template} showStatus />
+                      {isCurrent && (
+                        <span className="absolute top-2 left-2 rounded-full bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
+                          当前使用
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-3 px-3.5 pt-3 pb-3.5">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-sm font-semibold tracking-tight">
+                            {template.name}
+                          </span>
+                          <span className="flex shrink-0 gap-1">
+                            {[
+                              template.palette.bg,
+                              template.palette.primary,
+                              template.palette.accent,
+                              template.palette.ink,
+                            ].map((color, index) => (
+                              <span
+                                key={index}
+                                className="inline-block size-2.5 rounded-full border border-black/10"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-hint">
+                          {template.slides} 页 · {template.ratio} ·{" "}
+                          {template.layouts.length} 种版式
+                        </div>
+                      </div>
+                      <TemplateStatusBadge status={template.status} />
+                    </div>
+                  </div>
+                )
+              })}
+              <button
+                type="button"
+                disabled={uploading}
+                className="flex min-h-[200px] flex-col items-center justify-center gap-2.5 rounded-[20px] border-[1.5px] border-dashed border-input bg-white/20 text-hint transition-colors hover:border-foreground/45 hover:bg-white/40 hover:text-foreground"
+                onClick={openFilePicker}
+              >
+                <span className="flex size-9 items-center justify-center rounded-full border-[1.5px] border-current">
+                  <PlusIcon className="size-4.5" />
+                </span>
+                <span className="text-[13px] font-medium">上传 PPTX 解析为模板</span>
+                <span className="text-xs opacity-70">.pptx · .ppt</span>
+              </button>
+            </div>
+          ) : (
+            <div className="glass-card mt-10 flex flex-col items-center justify-center rounded-[24px] px-6 py-16 text-center">
+              <div className="h-10 w-14 rounded-lg border-2 border-dashed border-input" />
+              <h2 className="mt-4 text-[15px] font-medium">没有匹配的模板</h2>
+              <p className="mt-1 text-[13px] text-hint">
+                换个关键词试试，或上传你自己的 PPTX 模板
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-5 rounded-full bg-white/60"
+                onClick={() => {
+                  setQuery("")
+                  setStatusFilter("all")
+                }}
+              >
+                清除筛选
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
       <Dialog open={previewTemplate !== null} onOpenChange={(open) => !open && setPreviewId(null)}>
         {previewTemplate && (
-          <DialogContent className="max-h-[90svh] overflow-y-auto rounded-2xl sm:max-w-[840px]">
+          <DialogContent className="max-h-[90svh] overflow-y-auto rounded-[24px] sm:max-w-[840px]">
             <DialogHeader>
-              <DialogTitle className="text-xl">{previewTemplate.name}</DialogTitle>
+              <DialogTitle className="font-serif text-[22px] font-black tracking-tight">
+                {previewTemplate.name}
+              </DialogTitle>
               <DialogDescription>{previewTemplate.description}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-7 md:grid-cols-[1.3fr_1fr]">
@@ -344,7 +357,7 @@ export function TemplatesPage() {
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {previewTemplate.layouts.map((layout) => (
-                    <Badge key={layout} variant="secondary" className="h-6 px-3">
+                    <Badge key={layout} variant="secondary" className="h-6 rounded-full px-3">
                       {layout}
                     </Badge>
                   ))}
@@ -352,13 +365,13 @@ export function TemplatesPage() {
               </div>
               <div className="flex flex-col">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-[10px] bg-muted px-3.5 py-3">
+                  <div className="rounded-xl bg-muted px-3.5 py-3">
                     <div className="mb-1 text-[11px] text-hint">母版页数</div>
                     <div className="font-heading text-[17px] font-bold">
                       {previewTemplate.slides}
                     </div>
                   </div>
-                  <div className="rounded-[10px] bg-muted px-3.5 py-3">
+                  <div className="rounded-xl bg-muted px-3.5 py-3">
                     <div className="mb-1 text-[11px] text-hint">画面比例</div>
                     <div className="font-heading text-[17px] font-bold">
                       {previewTemplate.ratio}
@@ -376,7 +389,7 @@ export function TemplatesPage() {
                     ].map((color, index) => (
                       <span
                         key={index}
-                        className="size-7 rounded-lg border border-black/10"
+                        className="size-7 rounded-full border border-black/10"
                         style={{ backgroundColor: color }}
                         title={color}
                       />
@@ -390,14 +403,14 @@ export function TemplatesPage() {
                 <div className="mt-auto flex flex-col gap-2.5 pt-6">
                   {previewTemplate.status === "ready" ? (
                     <Button
-                      className="h-11 rounded-xl text-[15px] font-bold"
+                      className="h-11 rounded-full text-[15px] font-bold"
                       onClick={() => applyTemplate(previewTemplate)}
                     >
                       使用此模板并返回创建
                     </Button>
                   ) : previewTemplate.status === "failed" ? (
                     <Button
-                      className="h-11 rounded-xl text-[15px] font-bold"
+                      className="h-11 rounded-full text-[15px] font-bold"
                       onClick={() =>
                         void useTemplatesStore.getState().retryParse(previewTemplate.id)
                       }
@@ -409,7 +422,7 @@ export function TemplatesPage() {
                   )}
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl text-[13px] text-hint hover:border-destructive/50 hover:text-destructive"
+                    className="h-10 rounded-full text-[13px] text-hint hover:border-destructive/50 hover:text-destructive"
                     onClick={() => {
                       setPreviewId(null)
                       setDeleteId(previewTemplate.id)

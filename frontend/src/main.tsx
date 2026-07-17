@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 import './index.css'
+import '@/lib/liquid-glass'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
