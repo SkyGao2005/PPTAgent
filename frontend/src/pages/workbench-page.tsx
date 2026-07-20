@@ -308,7 +308,7 @@ function SlideCanvas({
           src={src}
           alt={slide.title}
           draggable={false}
-          className="animate-fade-up pointer-events-none absolute inset-0 size-full select-none object-cover"
+          className="pointer-events-none absolute inset-0 size-full select-none object-cover"
         />
       )}
       {(slide.status === "editing" || slide.status === "generating") && (
@@ -1163,23 +1163,31 @@ export function WorkbenchPage() {
                   </span>
                   <ChevronDownIcon className="size-3 opacity-70" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-64">
                   {/* Base UI GroupLabel must live inside a Group, or it throws. */}
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>导出演示文稿</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => void exportTask("pptx")}>
-                      <DownloadIcon />
-                      <div>
-                        <div>PPTX</div>
-                        <div className="text-[10px] text-hint">可在 PowerPoint 中继续编辑</div>
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-foreground/[0.06]">
+                        <DownloadIcon className="size-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-heading text-[13px] font-semibold">PPTX</div>
+                        <div className="mt-0.5 text-[10px] text-hint">
+                          可在 PowerPoint 中继续编辑
+                        </div>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => void exportTask("pdf")}>
-                      <FileClockIcon />
-                      <div>
-                        <div>PDF</div>
-                        <div className="text-[10px] text-hint">适合直接分享与打印</div>
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-foreground/[0.06]">
+                        <FileClockIcon className="size-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-heading text-[13px] font-semibold">PDF</div>
+                        <div className="mt-0.5 text-[10px] text-hint">
+                          适合直接分享与打印
+                        </div>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -1296,6 +1304,10 @@ export function WorkbenchPage() {
                                 // server; the store guards it too, but the menu
                                 // should not offer it in the first place.
                                 disabled={revision.revision === selected.revision}
+                                className={cn(
+                                  revision.revision === selected.revision &&
+                                    "bg-foreground/[0.065] data-disabled:opacity-100",
+                                )}
                                 onClick={() =>
                                   void applyRevision(selected.id, revision.revision)
                                 }
@@ -1312,7 +1324,9 @@ export function WorkbenchPage() {
                                 </span>
                                 <span className="flex-1">{revision.label}</span>
                                 {revision.revision === selected.revision && (
-                                  <span className="text-[10px] font-bold">当前</span>
+                                  <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold text-background">
+                                    当前
+                                  </span>
                                 )}
                               </DropdownMenuItem>
                             ))}

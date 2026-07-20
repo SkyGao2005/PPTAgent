@@ -84,6 +84,7 @@
       transform: none;
     }
   }
+
   @keyframes light-up {
     0% {
       opacity: 0;

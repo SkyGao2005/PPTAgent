@@ -258,7 +258,7 @@ export function CreatePage() {
                   </strong>
                   <ChipChevron />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuContent align="end" className="w-72">
                   {templatesLoadError ? (
                     <>
                       <DropdownMenuItem disabled>
@@ -278,9 +278,13 @@ export function CreatePage() {
                     readyTemplates.map((template) => (
                       <DropdownMenuItem
                         key={template.id}
+                        className={cn(
+                          template.id === templateId &&
+                            "bg-foreground/[0.065]",
+                        )}
                         onClick={() => setTemplateId(template.id)}
                       >
-                        <span className="flex shrink-0 gap-[3px]">
+                        <span className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1">
                           {[
                             template.palette.bg,
                             template.palette.primary,
@@ -288,24 +292,30 @@ export function CreatePage() {
                           ].map((color, index) => (
                             <span
                               key={index}
-                              className="inline-block size-2.5 rounded-full border border-black/10"
+                              className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
                               style={{ backgroundColor: color }}
                             />
                           ))}
                         </span>
                         <span className="flex-1 truncate">{template.name}</span>
-                        <span className="font-heading text-[10px] text-hint">
+                        <span className="font-heading text-[11px] tabular-nums text-hint">
                           {template.ratio}
                         </span>
                         {template.id === templateId && (
-                          <CheckIcon className="size-3.5" />
+                          <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                            <CheckIcon className="size-3.5" />
+                          </span>
                         )}
                       </DropdownMenuItem>
                     ))
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/templates")}>
-                    浏览模板库 →
+                  <DropdownMenuItem
+                    className="mt-1 bg-foreground text-background focus:bg-foreground/85 focus:text-background focus:**:text-background"
+                    onClick={() => navigate("/templates")}
+                  >
+                    <span className="flex-1 font-medium">浏览模板库</span>
+                    <ArrowRightIcon className="size-4" />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -320,7 +330,7 @@ export function CreatePage() {
                   页
                   <ChipChevron />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-3">
+                <DropdownMenuContent align="end" className="w-64 p-4">
                   <div className="flex items-baseline justify-between">
                     <span className="text-[13px] font-medium">页数</span>
                     <span className="font-heading text-[13px] font-semibold tabular-nums">
@@ -354,11 +364,21 @@ export function CreatePage() {
                   </strong>
                   <ChipChevron />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuContent align="end" className="w-44">
                   {(["16:9", "4:3"] as const).map((item) => (
-                    <DropdownMenuItem key={item} onClick={() => setRatio(item)}>
+                    <DropdownMenuItem
+                      key={item}
+                      className={cn(
+                        ratio === item && "bg-foreground/[0.065]",
+                      )}
+                      onClick={() => setRatio(item)}
+                    >
                       <span className="font-heading flex-1">{item}</span>
-                      {ratio === item && <CheckIcon className="size-3.5" />}
+                      {ratio === item && (
+                        <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                          <CheckIcon className="size-3.5" />
+                        </span>
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
