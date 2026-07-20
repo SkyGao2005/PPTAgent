@@ -350,3 +350,87 @@ class SlideWorkspace:
                 "created_at": datetime.now().isoformat(),
             }, f, ensure_ascii=False, indent=2)
         return path
+
+
+# ── structured-data helpers used by SlideEditService ──────────
+
+
+def extract_structured_data(slide) -> dict[str, Any]:
+    """Extract title, subtitle, and body text from a SlidePage."""
+    try:
+        from pptagent.presentation import SlidePage
+        if isinstance(slide, SlidePage):
+            body_texts = []
+            for shape in getattr(slide, "shapes", []):
+                text = getattr(shape, "text", "") or ""
+                if text.strip():
+                    body_texts.append(text.strip())
+            return {
+                "title": getattr(slide, "title", "") or "",
+                "subtitle": getattr(slide, "subtitle", "") or "",
+                "body": body_texts,
+            }
+    except ImportError:
+        pass
+    return {"title": "", "subtitle": "", "body": []}
+
+
+def format_structured_context(data: dict[str, Any]) -> str:
+    """Render structured slide data as a human-readable context string."""
+    parts: list[str] = []
+    title = data.get("title", "")
+    subtitle = data.get("subtitle", "")
+    body = data.get("body", [])
+    if title:
+        parts.append(f"标题: {title}")
+    if subtitle:
+        parts.append(f"副标题: {subtitle}")
+    if body:
+        parts.append("正文:")
+        for i, line in enumerate(body, 1):
+            parts.append(f"  {i}. {line}")
+    return "\n".join(parts)
+
+
+# ── ArtifactStore: lightweight persistence used by SlideEditService ──
+
+class ArtifactStore:
+    """Minimal on-disk store for slide artifacts, revisions, and previews."""
+
+    def __init__(self, workspace: Path):
+        self.workspace = Path(workspace)
+        self.workspace.mkdir(parents=True, exist_ok=True)
+
+    def save_preview_file(self, slide_id: str, revision: int, html: str) -> str:
+        rev_dir = self.workspace / "slides" / slide_id / "revisions" / str(revision)
+        rev_dir.mkdir(parents=True, exist_ok=True)
+        path = rev_dir / "preview.html"
+        path.write_text(html, encoding="utf-8")
+        return str(path)
+
+    def save_artifact(self, artifact) -> None:
+        slide_dir = self.workspace / "slides" / artifact.slide_id
+        slide_dir.mkdir(parents=True, exist_ok=True)
+        current = slide_dir / "current.json"
+        current.write_text(json.dumps(asdict(artifact), ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def save_revision(self, slide_id: str, number: int, instruction: str,
+                      actions: list[str], status: str, checksum: str,
+                      created_at: str, dialogue: list[dict],
+                      message: str = "", shapes_data=None,
+                      preview_path: str | None = None) -> None:
+        rev_dir = self.workspace / "slides" / slide_id / "revisions" / str(number)
+        rev_dir.mkdir(parents=True, exist_ok=True)
+        rev_json = {
+            "number": number, "instruction": instruction,
+            "actions": actions, "status": status, "checksum": checksum,
+            "created_at": created_at, "message": message,
+            "preview_path": preview_path,
+        }
+        (rev_dir / "revision.json").write_text(
+            json.dumps(rev_json, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def delete_revision(self, slide_id: str, number: int) -> None:
+        rev_dir = self.workspace / "slides" / slide_id / "revisions" / str(number)
+        if rev_dir.exists():
+            shutil.rmtree(rev_dir, ignore_errors=True)
