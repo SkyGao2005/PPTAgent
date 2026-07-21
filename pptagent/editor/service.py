@@ -78,12 +78,20 @@ class EditResult:
 
 
 class SlideEditService:
-    """Conversational, versioned editor for one slide."""
+    """Conversational, versioned editor for one slide.
+
+    Supports two modes:
+
+    - ``mode="template"``: operates on a ``SlidePage`` / ``Presentation`` pair,
+      using content-action / style / regenerate pipelines.
+    - ``mode="html"``: operates directly on an HTML file, using an LLM to
+      rewrite the page and a preview renderer to regenerate thumbnails.
+    """
 
     def __init__(
         self,
-        slide: SlidePage,
-        presentation: Presentation,
+        slide: SlidePage | None = None,
+        presentation: Presentation | None = None,
         doc: Document | None = None,
         llm: Any | None = None,
         task_id: str | None = None,
@@ -96,39 +104,76 @@ class SlideEditService:
         store: ArtifactStore | None = None,
         regenerate_fn: Callable | None = None,
         max_revisions: int = 10,
+        # ── HTML-mode only ────────────────────────────────────
+        html_source_path: str | None = None,
+        workspace: Path | None = None,
+        preview_renderer: Callable | None = None,
     ):
-        self.slide = slide
-        self.prs = presentation
-        self.doc = doc
+        self.mode = mode
         self.llm = llm
         self.task_id = task_id
-        self.slide_id = slide_id or f"s{slide.slide_idx}_{uuid.uuid4().hex[:8]}"
-        self.mode = mode
-        self.layout_name = layout_name or slide.slide_layout_name
+        self.layout_name = layout_name
         self.source_path = source_path
         self.outline = outline
         self.event_bus = event_bus or get_default_bus()
         self.store = store
         self.regenerate_fn = regenerate_fn
         self.max_revisions = max_revisions
-
-        self._total = len(presentation.slides)
-        self.baseline = SlideSnapshot.capture(slide)
-        self.revisions = RevisionManager(self.baseline, max_revisions=max_revisions)
+        self._html_source_path = html_source_path
+        self._workspace = workspace
+        self._preview_renderer_fn = preview_renderer
         self.dialogue: list[dict[str, Any]] = []
         self.lock = asyncio.Lock()
-        self._preview_renderer = PreviewRenderer()
-        self.artifact = SlideArtifact(
-            slide_id=self.slide_id,
-            index=slide.slide_idx,
-            mode=mode,
-            task_id=task_id,
-            status="ready",
-            layout_name=self.layout_name,
-            structured_data=extract_structured_data(slide),
-            source_path=source_path,
-            revision=0,
-        )
+        self._last_instruction: str | None = None
+        self._last_element_id: int | None = None
+
+        if mode == "html":
+            self.slide = None
+            self.prs = None
+            self.doc = doc
+            self._total = 1
+            if slide_id is None:
+                slide_id = f"sld-{uuid.uuid4().hex[:12]}"
+            self.slide_id = slide_id
+            self.baseline = None
+            self.revisions = None  # type: ignore[assignment]
+            self._preview_renderer = None  # type: ignore[assignment]
+            self._revision = 1
+            self.artifact = SlideArtifact(
+                slide_id=self.slide_id,
+                index=0,
+                mode=mode,
+                task_id=task_id,
+                status="ready",
+                layout_name=layout_name,
+                structured_data={"title": "", "subtitle": "", "body": []},
+                source_path=source_path or html_source_path,
+                revision=1,
+            )
+        else:
+            if slide is None or presentation is None:
+                raise ValueError("template mode requires slide and presentation")
+            self.slide = slide
+            self.prs = presentation
+            self.doc = doc
+            self.slide_id = slide_id or f"s{slide.slide_idx}_{uuid.uuid4().hex[:8]}"
+            self.layout_name = layout_name or slide.slide_layout_name
+            self._total = len(presentation.slides)
+            self.baseline = SlideSnapshot.capture(slide)
+            self.revisions = RevisionManager(self.baseline, max_revisions=max_revisions)
+            self._preview_renderer = PreviewRenderer()
+            self._revision = 0
+            self.artifact = SlideArtifact(
+                slide_id=self.slide_id,
+                index=slide.slide_idx,
+                mode=mode,
+                task_id=task_id,
+                status="ready",
+                layout_name=self.layout_name,
+                structured_data=extract_structured_data(slide),
+                source_path=source_path,
+                revision=0,
+            )
         self._last_instruction: str | None = None
         self._last_element_id: int | None = None
 
@@ -137,12 +182,16 @@ class SlideEditService:
     async def chat(self, instruction: str, element_id: int | None = None) -> EditResult:
         """Send a natural-language edit instruction for this page."""
         self.dialogue.append({"role": "user", "content": instruction})
+        if self.mode == "html":
+            return await self._execute_html(instruction)
         result = await self._execute(instruction, element_id)
         self.dialogue.append({"role": "assistant", "content": result.message or ""})
         return result
 
     async def undo(self) -> EditResult:
         """Undo the last revision (pointer move + replay, no model call)."""
+        if self.mode == "html":
+            return await self._undo_html()
         async with self.lock:
             prev = self.revisions.previous_number()
             if prev is None:
@@ -165,6 +214,8 @@ class SlideEditService:
 
     async def apply_revision(self, number: int) -> EditResult:
         """Switch the page to a specific historical revision."""
+        if self.mode == "html":
+            return await self._apply_revision_html(number)
         async with self.lock:
             rev = self.revisions.get(number)
             if rev is None:
@@ -187,6 +238,10 @@ class SlideEditService:
 
     async def retry(self) -> EditResult:
         """Retry the last failed modification."""
+        if self.mode == "html":
+            if self._last_instruction is None:
+                return EditResult("failed", self.slide_id, None, "没有可重试的失败指令")
+            return await self._execute_html(self._last_instruction)
         async with self.lock:
             if self._last_instruction is None:
                 return EditResult("failed", self.slide_id, None, "没有可重试的失败指令")
@@ -194,6 +249,8 @@ class SlideEditService:
 
     def get_revisions(self) -> dict[str, Any]:
         """Return the revision list and the pruned (dropped) revision log."""
+        if self.mode == "html":
+            return self._get_revisions_html()
         return {
             "slide_id": self.slide_id,
             "current": self.revisions.current_number,
@@ -467,6 +524,255 @@ class SlideEditService:
             )
         for pruned in self.revisions.pruned_log():
             self.store.delete_revision(self.slide_id, pruned["number"])
+
+    # ── HTML-mode editing ──────────────────────────────────────
+
+    async def _execute_html(self, instruction: str) -> EditResult:
+        """HTML mode: read HTML, send to LLM, write back, re-render."""
+        if self._html_source_path is None or self._workspace is None:
+            return EditResult("failed", self.slide_id, None, "HTML 源文件路径未配置")
+        html_path = self._workspace / self._html_source_path
+        if not html_path.exists():
+            return EditResult("failed", self.slide_id, None, f"HTML 文件不存在: {html_path}")
+
+        html_content = html_path.read_text(encoding="utf-8")
+        self.event_bus.publish(
+            "edit.started", self.slide_id, self.task_id,
+            status="running", message=instruction,
+        )
+
+        new_html = await self._call_llm_html(html_content, instruction)
+        if new_html is None:
+            self._last_instruction = instruction
+            self.event_bus.publish(
+                "edit.failed", self.slide_id, self.task_id,
+                status="failed", message="模型调用失败",
+            )
+            return EditResult("failed", self.slide_id, None, "模型调用失败")
+
+        changed = new_html.strip() != html_content.strip()
+        if not changed:
+            self.event_bus.publish(
+                "edit.applied", self.slide_id, self.task_id,
+                status="succeeded", revision=self._revision,
+                message="内容未发生变化",
+            )
+            return EditResult("no_change", self.slide_id, self._revision, "内容未发生变化")
+
+        # Save revision on disk
+        rev_dir = self._workspace / "slides" / self.slide_id / "revisions"
+        existing = sorted([int(p.name) for p in rev_dir.iterdir() if p.is_dir() and p.name.isdigit()]) if rev_dir.exists() else []
+        new_rev = max(existing, default=self._revision) + 1
+        new_rev_dir = rev_dir / str(new_rev)
+        new_rev_dir.mkdir(parents=True, exist_ok=True)
+        (new_rev_dir / "previous.html").write_text(html_content, encoding="utf-8")
+        (new_rev_dir / "slide.html").write_text(new_html, encoding="utf-8")
+        (new_rev_dir / "instruction.txt").write_text(instruction, encoding="utf-8")
+        html_path.write_text(new_html, encoding="utf-8")
+
+        self._revision = new_rev
+        self.artifact.revision = new_rev
+        self._last_instruction = instruction
+
+        # Re-render preview
+        preview = None
+        if self._preview_renderer_fn is not None:
+            try:
+                preview = await self._preview_renderer_fn(html_path, new_rev)
+            except Exception:
+                pass
+
+        self.event_bus.publish(
+            "edit.preview_ready", self.slide_id, self.task_id,
+            status="succeeded", revision=new_rev, preview_url=preview,
+            message="预览已更新",
+        )
+        self.event_bus.publish(
+            "edit.applied", self.slide_id, self.task_id,
+            status="succeeded", revision=new_rev, preview_url=preview,
+            message=f"已应用修改: {instruction[:60]}",
+        )
+        return EditResult(
+            "success", self.slide_id, new_rev,
+            f"已应用修改: {instruction[:60]}", preview,
+        )
+
+    async def _call_llm_html(self, html_content: str, instruction: str) -> str | None:
+        """Call an OpenAI-compatible LLM to edit HTML."""
+        if self.llm is None:
+            return None
+        try:
+            from openai import AsyncOpenAI
+            client = AsyncOpenAI(api_key=self.llm.api_key, base_url=self.llm.base_url)
+            prompt = (
+                "你是一个 PPT 幻灯片编辑助手。请根据用户要求修改 HTML 代码。\n\n"
+                "## 当前 HTML\n```html\n" + html_content + "\n```\n\n"
+                "## 修改要求\n" + instruction + "\n\n"
+                "直接返回完整的修改后 HTML 代码。保持原有 CSS 样式结构不变。"
+            )
+            response = await client.chat.completions.create(
+                model=self.llm.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7, max_tokens=16384,
+                **self.llm.sampling_parameters,
+            )
+            reply = response.choices[0].message.content or ""
+        except Exception:
+            return None
+
+        import re
+        match = re.search(r'```(?:html)?\s*\n?(.*?)```', reply, re.DOTALL | re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+        if reply.strip().startswith('<!DOCTYPE') or reply.strip().startswith('<'):
+            return reply.strip()
+        html_match = re.search(r'(<!DOCTYPE[^<]*<html.*?</html>)', reply, re.DOTALL | re.IGNORECASE)
+        return html_match.group(1).strip() if html_match else html_content
+
+    async def _undo_html(self) -> EditResult:
+        """Undo for HTML mode: restore previous version."""
+        if self._workspace is None or self._html_source_path is None:
+            return EditResult("failed", self.slide_id, None, "工作区未配置")
+        rev_dir = self._workspace / "slides" / self.slide_id / "revisions"
+        existing = sorted([int(p.name) for p in rev_dir.iterdir() if p.is_dir() and p.name.isdigit()]) if rev_dir.exists() else []
+        html_path = self._workspace / self._html_source_path
+        current = html_path.read_text(encoding="utf-8")
+
+        if len(existing) < 1:
+            return EditResult("noop", self.slide_id, None, "没有可撤销的版本")
+
+        if self._revision <= 1:
+            return EditResult("noop", self.slide_id, None, "已是最早版本")
+
+        # Target: go to previous revision (current - 1)
+        target_rev = self._revision - 1
+        if target_rev < 1:
+            target_rev = 1
+
+        prev_html = self._find_revision_content(target_rev, rev_dir)
+        if prev_html is None:
+            return EditResult("failed", self.slide_id, None,
+                              f"版本 {target_rev} 内容缺失，无法撤销")
+
+        # Save current for redo
+        redo_dir = rev_dir / "_undo"
+        redo_dir.mkdir(parents=True, exist_ok=True)
+        (redo_dir / "previous.html").write_text(current, encoding="utf-8")
+        (redo_dir / "previous_rev.txt").write_text(str(self._revision), encoding="utf-8")
+
+        html_path.write_text(prev_html, encoding="utf-8")
+        prev_url = await self._call_renderer(new_rev=target_rev)
+
+        self._revision = target_rev
+        self.artifact.revision = target_rev
+
+        self.event_bus.publish(
+            "edit.reverted", self.slide_id, self.task_id,
+            status="succeeded", revision=target_rev,
+            message=f"已撤销到版本 {target_rev}",
+            preview_url=prev_url,
+        )
+        return EditResult("success", self.slide_id, target_rev,
+                          f"已撤销到版本 {target_rev}", prev_url)
+
+    async def _apply_revision_html(self, number: int) -> EditResult:
+        """Apply a specific revision in HTML mode — no new version created."""
+        if self._workspace is None or self._html_source_path is None:
+            return EditResult("failed", self.slide_id, None, "工作区未配置")
+
+        if number == self._revision:
+            return EditResult("no_change", self.slide_id, number, "已是当前版本")
+
+        html_path = self._workspace / self._html_source_path
+        rev_dir = self._workspace / "slides" / self.slide_id / "revisions"
+        restored = self._find_revision_content(number, rev_dir)
+
+        if restored is None:
+            # Fallback: read the original slide HTML
+            if html_path.exists():
+                restored = html_path.read_text(encoding="utf-8")
+            else:
+                return EditResult("failed", self.slide_id, None, f"版本 {number} 内容缺失")
+
+        # Save current for undo
+        current = html_path.read_text(encoding="utf-8")
+        redo_dir = rev_dir / "_undo"
+        redo_dir.mkdir(parents=True, exist_ok=True)
+        (redo_dir / "previous.html").write_text(current, encoding="utf-8")
+        (redo_dir / "previous_rev.txt").write_text(str(self._revision), encoding="utf-8")
+
+        # Restore target revision
+        html_path.write_text(restored, encoding="utf-8")
+
+        # Re-render preview
+        prev_url = await self._call_renderer(new_rev=number)
+
+        self._revision = number
+        self.artifact.revision = number
+
+        self.event_bus.publish(
+            "edit.reverted", self.slide_id, self.task_id,
+            status="succeeded", revision=number,
+            message=f"已切换到版本 {number}",
+            preview_url=prev_url,
+        )
+        return EditResult("success", self.slide_id, number,
+                          f"已切换到版本 {number}", prev_url)
+
+    def _find_revision_content(self, number: int, rev_dir: Path) -> str | None:
+        """Try multiple strategies to find the HTML content for a given revision.
+
+        1. revisions/{number}/slide.html        — new content after edit N
+        2. revisions/{number}/previous.html     — content BEFORE edit N (which IS v{N-1})
+        3. revisions/{number+1}/previous.html   — content BEFORE edit N+1 (which IS v{N})
+        4. revisions/{number}/preview.png exists but no HTML — generated initial revision
+        """
+        candidates = [
+            rev_dir / str(number) / "slide.html",
+            rev_dir / str(number) / "previous.html",
+            rev_dir / str(number + 1) / "previous.html",
+        ]
+        for p in candidates:
+            if p.exists():
+                return p.read_text(encoding="utf-8")
+        # For initial revision (v1), look for any earlier revision's previous.html
+        if number == 1:
+            # v1's content IS the original HTML at the time of first edit
+            # Check if there's any revision dir
+            all_dirs = sorted([int(d.name) for d in rev_dir.iterdir() if d.is_dir() and d.name.isdigit()])
+            if all_dirs and min(all_dirs) > 1:
+                # If v1 doesn't exist on disk but v2+ does, v1 is the original
+                # which is in v2's previous.html
+                for d in sorted(all_dirs):
+                    p = rev_dir / str(d) / "previous.html"
+                    if p.exists():
+                        return p.read_text(encoding="utf-8")
+        return None
+
+    async def _call_renderer(self, new_rev: int) -> str | None:
+        """Re-render the HTML preview, returning the artifact URL if successful."""
+        if self._preview_renderer_fn is None or self._html_source_path is None or self._workspace is None:
+            return None
+        try:
+            html_path = self._workspace / self._html_source_path
+            return await self._preview_renderer_fn(html_path, new_rev)
+        except Exception:
+            return None
+
+    def _get_revisions_html(self) -> dict[str, Any]:
+        """List revisions for HTML mode by scanning disk."""
+        if self._workspace is None:
+            return {"slide_id": self.slide_id, "current": self._revision, "revisions": [], "pruned": []}
+        rev_dir = self._workspace / "slides" / self.slide_id / "revisions"
+        revs = []
+        if rev_dir.exists():
+            for p in sorted(rev_dir.iterdir(), reverse=True):
+                if p.is_dir() and p.name.isdigit():
+                    inst = ""
+                    if (p / "instruction.txt").exists():
+                        inst = (p / "instruction.txt").read_text(encoding="utf-8")[:100]
+                    revs.append({"number": int(p.name), "instruction": inst, "status": "success"})
+        return {"slide_id": self.slide_id, "current": self._revision, "revisions": revs, "pruned": []}
 
 
 # ── registry ──────────────────────────────────────────────────

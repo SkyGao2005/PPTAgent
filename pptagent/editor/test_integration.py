@@ -7,6 +7,8 @@ Run from project root:
     PYTHONPATH=. python3 pptagent/editor/test_integration.py
 """
 
+__test__ = False
+
 import tempfile
 import os
 import sys
