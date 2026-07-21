@@ -328,12 +328,17 @@ class Agent:
         self.chat_history[system_end:system_end] = missing
 
     def _validate_template_context(self) -> None:
+        if not any(message.is_template_context for message in self.chat_history):
+            return
+
+        # Evict first so an over-fetching turn cannot trip the token budget with
+        # reference images that are about to be retired anyway. The token check
+        # then reports only genuine context-pack bloat.
+        self._evict_excess_template_images()
+
         template_messages = [
             message for message in self.chat_history if message.is_template_context
         ]
-        if not template_messages:
-            return
-
         template_tokens = self._estimate_context(messages=template_messages)
         if template_tokens > self.template_context_max_tokens:
             raise ContextWindowExceededError(
@@ -342,12 +347,9 @@ class Agent:
                 "Build a smaller template context pack instead of truncating it."
             )
 
+        # Eviction above enforces the cap; this remains a defensive invariant.
         image_count = sum(
-            sum(
-                block.get("type") in {"image", "image_url", "input_image"}
-                for block in message.content
-            )
-            for message in template_messages
+            self._count_images(message) for message in template_messages
         )
         if image_count > self.max_template_reference_images:
             raise ContextWindowExceededError(
@@ -433,11 +435,43 @@ class Agent:
         return response
 
     @staticmethod
-    def _message_has_image_payload(message: ChatMessage) -> bool:
-        return any(
+    def _count_images(message: ChatMessage) -> int:
+        return sum(
             block.get("type") in {"image", "image_url", "input_image"}
             for block in message.content
         )
+
+    @staticmethod
+    def _message_has_image_payload(message: ChatMessage) -> bool:
+        return Agent._count_images(message) > 0
+
+    def _evict_excess_template_images(self) -> None:
+        """Retire the oldest pinned reference images so the newest survive.
+
+        A single agent turn may fetch more reference pages than
+        ``max_template_reference_images`` (e.g. parallel ``get_template_reference``
+        calls). Rather than fail the task, downgrade the oldest ephemeral
+        reference images to their textual placeholder, matching the ephemeral
+        "view once" contract while keeping the most recently requested pages.
+        """
+
+        image_messages = [
+            message
+            for message in self.chat_history
+            if message.is_template_context and self._message_has_image_payload(message)
+        ]
+        total = sum(self._count_images(message) for message in image_messages)
+        if total <= self.max_template_reference_images:
+            return
+        # chat_history is oldest-first; drop from the front until within the cap.
+        to_retire: set[str] = set()
+        for message in image_messages:
+            if total <= self.max_template_reference_images:
+                break
+            total -= self._count_images(message)
+            to_retire.add(message.id)
+        if to_retire:
+            self._retire_ephemeral_images(to_retire)
 
     def _retire_ephemeral_images(self, message_ids: set[str]) -> None:
         """Remove inline image bytes after the model has consumed them once."""

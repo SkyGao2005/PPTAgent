@@ -50,6 +50,7 @@ def _make_agent(
     *,
     context_limit_tokens: int = 1_400,
     max_context_folds: int = 2,
+    template_context_max_tokens: int = 300,
 ) -> _BudgetAgent:
     role_file = tmp_path / "role.yaml"
     role_file.write_text(
@@ -74,7 +75,7 @@ toolset:
         "context_safety_margin_tokens": 100,
         "fold_trigger_ratio": 0.5,
         "compaction_input_max_tokens": 300,
-        "template_context_max_tokens": 300,
+        "template_context_max_tokens": template_context_max_tokens,
         "image_token_estimate": 100,
     }
     config = DeepPresenterConfig(
@@ -433,3 +434,73 @@ async def test_design_never_silently_slices_pinned_template_overview(
     await stream.aclose()
 
     assert marker in sent_text
+
+
+def _template_reference_image(index: int) -> ChatMessage:
+    message = ChatMessage(
+        role=Role.TOOL,
+        content=[
+            {"type": "text", "text": f"reference page {index}"},
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/webp;base64,IMG{index}"},
+            },
+        ],
+        tool_call_id=f"call-ref-{index}",
+    )
+    message.set_context_layer(ContextLayer.EPHEMERAL, template_context=True)
+    return message
+
+
+def test_excess_template_images_are_evicted_oldest_first(tmp_path: Path) -> None:
+    agent = _make_agent(tmp_path, template_context_max_tokens=2_000)
+    assert agent.max_template_reference_images == 2
+    references = [_template_reference_image(i) for i in range(3)]
+    agent.chat_history.extend(references)
+
+    # Preflight validation must degrade gracefully instead of raising.
+    agent._validate_template_context()
+
+    surviving = [msg for msg in references if msg.is_template_context]
+    assert len(surviving) == 2
+    # The two most recently fetched pages keep their image bytes.
+    assert surviving == references[1:]
+    assert all(msg.has_image for msg in surviving)
+    # The oldest reference is downgraded to a text placeholder.
+    oldest = references[0]
+    assert not oldest.has_image
+    assert not oldest.is_template_context
+    assert oldest.context_layer == ContextLayer.SUMMARIZABLE
+    assert "reference page 0" in oldest.text
+    assert (
+        sum(Agent._count_images(msg) for msg in references)
+        == agent.max_template_reference_images
+    )
+
+
+def test_eviction_runs_before_the_token_budget_check(tmp_path: Path) -> None:
+    """Over-fetching references must not fail as misleading token overflow."""
+
+    # Six images at image_token_estimate=100 exceed the 300-token template
+    # budget before eviction, but fit once the cap is enforced.
+    agent = _make_agent(tmp_path)
+    references = [_template_reference_image(i) for i in range(6)]
+    agent.chat_history.extend(references)
+
+    agent._validate_template_context()
+
+    assert sum(Agent._count_images(msg) for msg in references) == 2
+    assert [msg for msg in references if msg.is_template_context] == references[4:]
+
+
+def test_oversized_template_context_still_fails_hard(tmp_path: Path) -> None:
+    agent = _make_agent(tmp_path)
+    huge = ChatMessage(
+        role=Role.USER,
+        content=[{"type": "text", "text": "token " * 5_000}],
+    )
+    huge.set_context_layer(ContextLayer.PINNED, template_context=True)
+    agent.chat_history.append(huge)
+
+    with pytest.raises(ContextWindowExceededError, match="template_context_max_tokens"):
+        agent._validate_template_context()

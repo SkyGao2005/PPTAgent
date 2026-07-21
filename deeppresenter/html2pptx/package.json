@@ -13,7 +13,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "minimist": "^1.2.8",
-    "playwright": "^1.57.0",
+    "playwright": "^1.61.1",
     "pptxgenjs": "^4.0.1",
     "sharp": "^0.34.5"
   }
