@@ -29,6 +29,14 @@ class Element(BaseModel):
     def model_post_init(self, _):
         if self.type == "text":
             self.suggested_characters = max(len(i) for i in self.data)
+            # Template placeholder text is often very short (e.g. "标题" = 2
+            # CJK chars, "Click to add title" = 19 Latin chars), giving the
+            # LLM misleading guidance about actual capacity.  Apply a floor
+            # so the schema prompt conveys reasonable bounds.  The actual
+            # overflow risk is handled defensively by normAutofit at build
+            # time.
+            if self.suggested_characters < 20:
+                self.suggested_characters = 20
 
     def get_schema(self):
         schema = f"Element: {self.name}\n"

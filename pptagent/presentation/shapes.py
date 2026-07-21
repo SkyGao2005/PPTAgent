@@ -521,8 +521,17 @@ class ShapeElement:
             assert autoshape is not None
             style["semantic_name"] = str(autoshape).split()[0].lower().strip()
         except Exception:
-            # For other shapes (freeform, connector, table, chart...)
-            style["semantic_name"] = str(shape.shape_type).split("(")[0].lower().strip()
+            # For placeholder shapes, use the PPTX placeholder type
+            # (TITLE, SUBTITLE, BODY, DATE, FOOTER, etc.) for accurate semantics
+            try:
+                if shape.is_placeholder:
+                    ph_type = shape.placeholder_format.type
+                    style["semantic_name"] = ph_type.name.lower().strip()
+                else:
+                    raise AttributeError("Not a placeholder")
+            except Exception:
+                # For other shapes (freeform, connector, table, chart...)
+                style["semantic_name"] = str(shape.shape_type).split("(")[0].lower().strip()
 
         # Create text frame
         text_frame = TextFrame.from_shape(shape, level + 1)
@@ -1245,3 +1254,27 @@ SHAPECAST = {
     MSO_SHAPE_TYPE.IGX_GRAPHIC: SemanticPicture,
     MSO_SHAPE_TYPE.WEB_VIDEO: SemanticPicture,
 }
+
+
+def _set_norm_autofit(shape: BaseShape) -> None:
+    """
+    Add normAutofit (Shrink text on overflow) to a shape's text body element.
+
+    This instructs PowerPoint to automatically reduce font size when text
+    would otherwise overflow the text frame boundaries.  Operates directly
+    on the shape's underlying lxml element and is designed to be called as a
+    POST_PROCESS closure after all text content has been written.
+
+    Args:
+        shape (BaseShape): The built PPTX shape to modify.
+    """
+    A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
+    bodyPr = shape._element.find(".//{%s}bodyPr" % A_NS)
+    if bodyPr is None:
+        return
+    # Remove any existing autofit directives to prevent conflicts
+    for child in list(bodyPr):
+        tag_local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+        if tag_local in ("normAutofit", "spAutoFit", "noAutofit"):
+            bodyPr.remove(child)
+    etree.SubElement(bodyPr, "{%s}normAutofit" % A_NS)

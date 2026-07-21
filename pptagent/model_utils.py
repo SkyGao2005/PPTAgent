@@ -108,7 +108,7 @@ def language_id(text: str) -> Language:
     )
 
 
-def get_image_model(device: str = None):
+def get_image_model(device: str = None, model_base: str = None):
     import torch
     from transformers import AutoModel, AutoProcessor
 
@@ -117,11 +117,13 @@ def get_image_model(device: str = None):
 
     Args:
         device (str): The device to run the model on.
+        model_base (str): Local path or HF repo id for the model.
 
     Returns:
         tuple: A tuple containing the feature extractor and the image model.
     """
-    model_base = "google/vit-base-patch16-224-in21k"
+    if model_base is None:
+        model_base = "google/vit-base-patch16-224-in21k"
     return (
         AutoProcessor.from_pretrained(
             model_base,

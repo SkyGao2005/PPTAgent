@@ -1,6 +1,10 @@
 FROM node:lts-bookworm-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# Use Aliyun Debian mirror for faster downloads in China
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources
+
 # Install ca-certificates first to avoid GPG signature issues, then other packages
 RUN apt-get update && \
     apt-get install -y --fix-missing --no-install-recommends ca-certificates && \
@@ -9,6 +13,9 @@ RUN apt-get update && \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+
+# Use npm mirror for faster downloads in China
+RUN npm config set registry https://registry.npmmirror.com
 
 # Install Chromium and dependencies
 RUN apt-get update && apt-get install -y --fix-missing --no-install-recommends \
@@ -52,7 +59,11 @@ WORKDIR /usr/src/pptagent
 COPY . .
 
 RUN npm install --prefix deeppresenter/html2pptx --ignore-scripts && \
-    npm exec --prefix deeppresenter/html2pptx playwright install chromium && \
+    export PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=120000 && \
+    for i in 1 2 3 4 5; do \
+        npm exec --prefix deeppresenter/html2pptx playwright install chromium && break || \
+        echo "Playwright download attempt $i failed, retrying in 10s..." && sleep 10; \
+    done && \
     npm install --prefix /root/.cache/deeppresenter/html2pptx fast-glob minimist pptxgenjs playwright sharp
 
 WORKDIR /usr/src/app
@@ -75,10 +86,8 @@ ENV PATH="/opt/.venv/bin:${PATH}" \
 RUN printenv | grep -E '^(PATH|PYTHONUNBUFFERED|VIRTUAL_ENV|PUPPETEER_|LANG|LC_ALL|MPLCONFIGDIR|MCP_CLIENT_DOCKER)=' | sed 's/^/export /' > /etc/profile.d/docker-env.sh && \
     echo 'source /etc/profile.d/docker-env.sh' >> /etc/bash.bashrc
 
-# Clone the repository at specific commit
-RUN git clone https://github.com/wonderwhy-er/DesktopCommanderMCP.git . && \
-    git checkout 252a00d624c2adc5707fa743c57a1b68bc223689 && \
-    rm -rf .git
+# Copy DesktopCommanderMCP (pre-downloaded to avoid GitHub network issues)
+COPY deeppresenter/docker/sandbox-mcp/ .
 
 RUN npm install --ignore-scripts && npm install -g @mermaid-js/mermaid-cli pptxgenjs playwright sharp
 

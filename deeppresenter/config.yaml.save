@@ -1,0 +1,18 @@
+context_folding: true
+offline_mode: false
+async_tool_mode: false
+
+research_agent:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  model: "qwen3-plus"
+  api_key: "sk-ws-H.EMIPRHD.iJ9p.MEQCIBHQwX1KfGRhiR_lJz0ebs5Yc8TF2CMkGxD93mnK_ptHAiBrlFqxKwzyTUOqSpD28GY9YJUee21SSFY4O1xVxwI_Rg"
+
+design_agent:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  model: "qwen3-vl-plus"
+  api_key: "sk-ws-H.EMIPRHD.iJ9p.MEQCIBHQwX1KfGRhiR_lJz0ebs5Yc8TF2CMkGxD93mnK_ptHAiBrlFqxKwzyTUOqSpD28GY9YJUee21SSFY4O1xVxwI_Rg"
+
+long_context_model:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  model: "qwen3-plus"
+  api_key: "sk-ws-H.EMIPRHD.iJ9p.MEQCIBHQwX1KfGRhiR_lJz0ebs5Yc8TF2CMkGxD93mnK_ptHAiBrlFqxKwzyTUOqSpD28GY9YJUee21SSFY4O1xVxwI_Rg"

@@ -1,9 +1,11 @@
 import json
 import os
+from copy import deepcopy
 from math import ceil
 from os.path import exists
 from pathlib import Path
 from random import shuffle
+from typing import Optional
 
 from fastmcp import FastMCP
 from mistune import html as markdown_to_html
@@ -92,50 +94,206 @@ class PPTAgentServer(PPTAgent):
             raise Exception(msg)
         super().__init__(language_model=model, vision_model=model)
 
-        # load templates, a directory containing pptx, json, and description for each template
-        templates_dir = Path(package_join("templates"))
-        templates = [p for p in templates_dir.iterdir() if p.is_dir()]
+        # load templates — supports both bundled templates and dynamic registry (P0-7)
+        self._registry: Optional[object] = None  # TemplateRegistry, set externally
         self.template_description = {}
         self.templates = {}
-
-        for template in templates:
-            try:
-                desc_path = template / "description.txt"
-                self.template_description[template.name] = desc_path.read_text()
-
-                # Load template configuration
-                template_folder = template
-                prs_config = Config(str(template_folder))
-                prs = Presentation.from_file(
-                    str(template_folder / "source.pptx"), prs_config
-                )
-                image_labler = ImageLabler(prs, prs_config)
-                image_stats_path = template_folder / "image_stats.json"
-                image_labler.apply_stats(json.loads(image_stats_path.read_text()))
-
-                slide_induction = json.loads(
-                    (template_folder / "slide_induction.json").read_text()
-                )
-
-                self.templates[template.name] = {
-                    "presentation": prs,
-                    "slide_induction": slide_induction,
-                    "config": prs_config,
-                }
-
-            except Exception as e:
-                logger.warning(f"Failed to load template {template.name}: {e}")
-                continue
-
-        logger.info(
-            f"{len(self.templates)} templates loaded successfully: "
-            + ", ".join(self.templates.keys())
-        )
+        self._load_templates_from_disk()
 
     @classmethod
     def list_templates(cls) -> list:
+        """List all available templates (bundled + workspace)."""
+        templates = set()
+
+        # 1. Bundled templates (shipped with pptagent)
         templates_dir = Path(package_join("templates"))
-        return [p.name for p in templates_dir.iterdir() if p.is_dir()]
+        if templates_dir.exists():
+            for p in templates_dir.iterdir():
+                if p.is_dir():
+                    templates.add(p.name)
+
+        # 2. WORKSPACE env var templates (user templates)
+        workspace = os.getenv("WORKSPACE", None)
+        if workspace:
+            ws_templates = Path(workspace) / "templates"
+            if ws_templates.exists():
+                for p in ws_templates.iterdir():
+                    if p.is_dir() and (p / "manifest.json").exists():
+                        templates.add(p.name)
+
+        # 3. DeepPresenter cache templates (uploaded via API)
+        cache_base = os.getenv(
+            "DEEPPRESENTER_WORKSPACE_BASE",
+            str(Path.home() / ".cache" / "deeppresenter"),
+        )
+        for suffix in ("templates_api/templates", "workspace/templates_api/templates"):
+            dp_templates = Path(cache_base) / suffix
+            if dp_templates.exists():
+                for p in dp_templates.iterdir():
+                    if p.is_dir() and (p / "manifest.json").exists():
+                        templates.add(p.name)
+
+        return sorted(templates)
+
+    # ── Dynamic template loading (P0-7) ──────────────────────
+
+    def _load_templates_from_disk(self) -> None:
+        """Load templates from bundled templates directory and/or workspace.
+
+        Called at startup and on reload_templates().  If a TemplateRegistry
+        is attached, fresh manifests are fetched from it; otherwise the
+        bundled templates dir is used as fallback alongside any templates
+        found in the DeepPresenter cache or WORKSPACE directory.
+        """
+        # 1. Try registry first (runtime templates)
+        if self._registry is not None:
+            manifests = self._registry.list_all()
+            for manifest in manifests:
+                if manifest.status.value != "ready":
+                    continue
+                self._load_single_template(manifest.template_id)
+
+        # 2. Also discover templates from workspace/cache directories
+        #    (covers templates uploaded via API when registry is not attached)
+        discovered = set(self.templates.keys())  # already loaded via registry
+
+        search_dirs: list[Path] = []
+        # WORKSPACE env var
+        workspace = os.getenv("WORKSPACE", None)
+        if workspace:
+            search_dirs.append(Path(workspace) / "templates")
+        # DeepPresenter cache
+        cache_base = os.getenv(
+            "DEEPPRESENTER_WORKSPACE_BASE",
+            str(Path.home() / ".cache" / "deeppresenter"),
+        )
+        for suffix in ("templates_api/templates", "workspace/templates_api/templates"):
+            search_dirs.append(Path(cache_base) / suffix)
+
+        for search_dir in search_dirs:
+            if not search_dir.exists():
+                continue
+            for template_dir in search_dir.iterdir():
+                if not template_dir.is_dir():
+                    continue
+                tid = template_dir.name
+                if tid in discovered:
+                    continue
+                if not (template_dir / "manifest.json").exists():
+                    continue
+                discovered.add(tid)
+                try:
+                    self._load_single_template(tid)
+                except Exception as e:
+                    logger.warning(f"Failed to load workspace template {tid}: {e}")
+
+        # 3. Also load bundled templates (shipped with pptagent)
+        templates_dir = Path(package_join("templates"))
+        if templates_dir.exists():
+            for template_dir in templates_dir.iterdir():
+                if not template_dir.is_dir():
+                    continue
+                if template_dir.name in self.templates:
+                    continue  # already loaded via registry or workspace
+                try:
+                    self._load_template_from_dir(template_dir.name, template_dir)
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to load bundled template {template_dir.name}: {e}"
+                    )
+
+        logger.info(
+            f"{len(self.templates)} templates loaded: "
+            + ", ".join(self.templates.keys())
+        )
+
+    def _load_single_template(self, template_id: str) -> bool:
+        """Load a single template by ID — supports hot-loading (P0-7).
+
+        Returns True on success, False on failure.
+        """
+        # Determine the template directory
+        if self._registry is not None:
+            template_dir = self._registry.templates_dir / template_id
+        else:
+            # Fallback: search workspace + DP cache directories
+            template_dir = None
+            candidates: list[Path] = []
+
+            workspace = os.getenv("WORKSPACE", None)
+            if workspace:
+                candidates.append(Path(workspace) / "templates" / template_id)
+
+            cache_base = os.getenv(
+                "DEEPPRESENTER_WORKSPACE_BASE",
+                str(Path.home() / ".cache" / "deeppresenter"),
+            )
+            for suffix in (
+                "templates_api/templates",
+                "workspace/templates_api/templates",
+            ):
+                candidates.append(Path(cache_base) / suffix / template_id)
+
+            for c in candidates:
+                if c.is_dir():
+                    template_dir = c
+                    break
+
+        if template_dir is None or not template_dir.is_dir():
+            logger.warning(f"Template directory not found: {template_id}")
+            return False
+
+        try:
+            return self._load_template_from_dir(template_id, template_dir)
+        except Exception as e:
+            logger.warning(f"Failed to load template {template_id}: {e}")
+            return False
+
+    def _load_template_from_dir(self, template_id: str, template_dir: Path) -> bool:
+        """Load template data from a directory into self.templates."""
+        # Check for description
+        desc_path = template_dir / "description.txt"
+        if desc_path.exists():
+            self.template_description[template_id] = desc_path.read_text(
+                encoding="utf-8"
+            ).strip()
+        else:
+            self.template_description[template_id] = template_id
+
+        # Load Presentation
+        source_pptx = template_dir / "source.pptx"
+        if not source_pptx.exists():
+            source_pptx = template_dir / "original.pptx"
+        if not source_pptx.exists():
+            logger.warning(f"No .pptx found in {template_dir}")
+            return False
+
+        prs_config = Config(str(template_dir))
+        prs = Presentation.from_file(str(source_pptx), prs_config)
+
+        # Load image stats
+        image_stats_path = template_dir / "image_stats.json"
+        if image_stats_path.exists():
+            image_labler = ImageLabler(prs, prs_config)
+            image_labler.apply_stats(
+                json.loads(image_stats_path.read_text(encoding="utf-8"))
+            )
+
+        # Load slide induction
+        induction_path = template_dir / "slide_induction.json"
+        if induction_path.exists():
+            slide_induction = json.loads(induction_path.read_text(encoding="utf-8"))
+        else:
+            slide_induction = {}
+
+        self.templates[template_id] = {
+            "presentation": prs,
+            "slide_induction": slide_induction,
+            "config": prs_config,
+        }
+
+        logger.debug(f"Loaded template {template_id} from {template_dir}")
+        return True
 
     def register_tools(self):
         @self.mcp.tool()
@@ -160,15 +318,33 @@ class PPTAgentServer(PPTAgent):
         @self.mcp.tool()
         def list_templates():
             """List all available templates."""
+            # Hot-load: ensure we pick up templates uploaded since startup
+            self._load_templates_from_disk()
             return {
                 "message": "Please choose one the following templates by calling `set_template`",
                 "templates": [
                     {
                         "name": template_name,
-                        "description": self.template_description[template_name],
+                        "description": self.template_description.get(
+                            template_name, template_name
+                        ),
                     }
                     for template_name in self.templates.keys()
                 ],
+            }
+
+        @self.mcp.tool()
+        def reload_templates():
+            """Reload all templates from disk and registry (hot-load).
+
+            Call this after a new template has been parsed to make it
+            immediately available for generation without restarting the
+            MCP server.  (P0-7)
+            """
+            self._load_templates_from_disk()
+            return {
+                "message": f"Reloaded {len(self.templates)} templates",
+                "templates": list(self.templates.keys()),
             }
 
         @self.mcp.tool()
@@ -190,8 +366,10 @@ class PPTAgentServer(PPTAgent):
             )
 
             template_data = self.templates[template_name]
+            # P0-9: Pass deepcopy so set_reference() cannot mutate the cached dict.
+            # This is a double safeguard alongside the .get() fix in pptgen.py.
             self.set_reference(
-                slide_induction=template_data["slide_induction"],
+                slide_induction=deepcopy(template_data["slide_induction"]),
                 presentation=template_data["presentation"],
             )
             self.slides.clear()
@@ -319,7 +497,6 @@ class PPTAgentServer(PPTAgent):
             self.empty_prs.slides = self.slides
             self.empty_prs.save(str(pptx))
             self.slides = []
-            self._initialized = False
             return f"total {len(self.empty_prs.slides)} slides saved to {pptx}"
 
 

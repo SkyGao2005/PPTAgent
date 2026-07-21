@@ -5,5 +5,15 @@ __author__ = "Hao Zheng"
 __email__ = "wszh712811@gmail.com"
 
 import os
+import warnings
 
-assert os.name == "posix", "DeepPresenter only supports Linux and macOS"
+# DeepPresenter is designed for Linux/macOS. Individual sub-packages (e.g.
+# deeppresenter.server.models) may work on other platforms for development
+# and testing. The platform gate is enforced at the CLI / web entry points.
+if os.name != "posix":
+    warnings.warn(
+        "DeepPresenter is designed for Linux and macOS. "
+        "Some features may not work on this platform.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
