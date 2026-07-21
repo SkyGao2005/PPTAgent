@@ -1,21 +1,26 @@
+import base64
 import json
+import mimetypes
 import traceback
 import uuid
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Literal
 
+from mcp.types import CallToolResult, ImageContent, TextContent
+
 from deeppresenter.agents.design import Design
 from deeppresenter.agents.env import AgentEnv
 from deeppresenter.agents.planner import Planner
-from deeppresenter.agents.pptagent import PPTAgent
 from deeppresenter.agents.research import Research
 from deeppresenter.agents.subagent import SubAgent
 from deeppresenter.server.models.events import StageName
+from deeppresenter.templates.context import SlideNeed
+from deeppresenter.templates.runtime import TaskTemplateContext
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.constants import WORKSPACE_BASE
 from deeppresenter.utils.log import debug, error, set_logger, timer, warning
-from deeppresenter.utils.typings import ChatMessage, ConvertType, InputRequest, Role
+from deeppresenter.utils.typings import ChatMessage, InputRequest, Role
 from deeppresenter.utils.webview import PlaywrightConverter, convert_html_to_pptx
 
 
@@ -67,6 +72,7 @@ class AgentLoop:
             )
         if check_llms:
             await self.config.validate_llms()
+        template_context = self._load_task_template_context(request)
         try:
             await self._report_stage_started(StageName.PREPARE)
             request.copy_to_workspace(self.workspace)
@@ -164,111 +170,182 @@ class AgentLoop:
                 self.research_agent.save_history()
                 self.save_results()
 
-            if request.convert_type == ConvertType.PPTAGENT:
-                agent_env.current_stage = StageName.GENERATE
-                await self._report_stage_started(StageName.GENERATE)
-                self.pptagent = PPTAgent(
-                    self.config,
-                    agent_env,
-                    self.workspace,
-                    self.language,
+            agent_env.current_stage = StageName.GENERATE
+            await self._report_stage_started(StageName.GENERATE)
+            if template_context is not None:
+                self._register_template_tools(agent_env, template_context)
+            self.designagent = Design(
+                self.config,
+                agent_env,
+                self.workspace,
+                self.language,
+            )
+            self.agent = self.designagent
+            try:
+                async for msg in self.designagent.loop(request, str(md_file)):
+                    if isinstance(msg, str):
+                        slide_html_dir = Path(msg)
+                        if not slide_html_dir.is_absolute():
+                            slide_html_dir = self.workspace / slide_html_dir
+                        self.intermediate_output["slide_html_dir"] = slide_html_dir
+                        await self._report_stage_completed(
+                            StageName.GENERATE,
+                            payload=self._slide_outline_payload(),
+                        )
+                        break
+                    yield msg
+            except Exception as e:
+                error_message = (
+                    f"Design agent failed with error: {e}\n{traceback.format_exc()}"
                 )
-                self.agent = self.pptagent
+                error(error_message)
+                await self._report_stage_failed(StageName.GENERATE, str(e))
+                raise e
+            finally:
+                self.designagent.save_history()
+                self.save_results()
+            pptx_path = self.workspace / f"{md_file.stem}.pptx"
+            agent_env.current_stage = StageName.EXPORT
+            await self._report_export_started()
+            try:
                 try:
-                    async for msg in self.pptagent.loop(request, str(md_file)):
-                        if isinstance(msg, str):
-                            pptx_file = Path(msg)
-                            if not pptx_file.is_absolute():
-                                pptx_file = self.workspace / pptx_file
-                            self.intermediate_output["pptx"] = pptx_file
-                            self.intermediate_output["final"] = pptx_file
-                            msg = str(pptx_file)
-                            await self._report_stage_completed(
-                                StageName.GENERATE,
-                                payload=self._slide_outline_payload(),
-                            )
-                            break
-                        yield msg
-                except Exception as e:
-                    error_message = (
-                        f"PPTAgent failed with error: {e}\n{traceback.format_exc()}"
+                    # ? this feature is in experimental stage
+                    await convert_html_to_pptx(
+                        slide_html_dir,
+                        pptx_path,
+                        aspect_ratio=request.powerpoint_type.value,
+                        soft_parsing=soft_parsing,
                     )
-                    error(error_message)
-                    await self._report_stage_failed(StageName.GENERATE, str(e))
-                    raise e
-                finally:
-                    self.pptagent.save_history()
-                    self.save_results()
-            else:
-                agent_env.current_stage = StageName.GENERATE
-                await self._report_stage_started(StageName.GENERATE)
-                self.designagent = Design(
-                    self.config,
-                    agent_env,
-                    self.workspace,
-                    self.language,
-                )
-                self.agent = self.designagent
-                try:
-                    async for msg in self.designagent.loop(request, str(md_file)):
-                        if isinstance(msg, str):
-                            slide_html_dir = Path(msg)
-                            if not slide_html_dir.is_absolute():
-                                slide_html_dir = self.workspace / slide_html_dir
-                            self.intermediate_output["slide_html_dir"] = slide_html_dir
-                            await self._report_stage_completed(
-                                StageName.GENERATE,
-                                payload=self._slide_outline_payload(),
-                            )
-                            break
-                        yield msg
                 except Exception as e:
-                    error_message = (
-                        f"Design agent failed with error: {e}\n{traceback.format_exc()}"
+                    warning(
+                        f"html2pptx conversion failed, falling back to pdf conversion\n{e}"
                     )
-                    error(error_message)
-                    await self._report_stage_failed(StageName.GENERATE, str(e))
-                    raise e
+                    pptx_path = pptx_path.with_suffix(".pdf")
+                    (self.workspace / ".html2pptx-error.txt").write_text(
+                        str(e) + "\n" + traceback.format_exc()
+                    )
                 finally:
-                    self.designagent.save_history()
-                    self.save_results()
-                pptx_path = self.workspace / f"{md_file.stem}.pptx"
-                agent_env.current_stage = StageName.EXPORT
-                await self._report_export_started()
-                try:
-                    try:
-                        # ? this feature is in experimental stage
-                        await convert_html_to_pptx(
-                            slide_html_dir,
-                            pptx_path,
+                    async with PlaywrightConverter() as pc:
+                        await pc.convert_to_pdf(
+                            list(slide_html_dir.glob("*.html")),
+                            pptx_path.with_suffix(".pdf"),
                             aspect_ratio=request.powerpoint_type.value,
-                            soft_parsing=soft_parsing,
                         )
-                    except Exception as e:
-                        warning(
-                            f"html2pptx conversion failed, falling back to pdf conversion\n{e}"
-                        )
-                        pptx_path = pptx_path.with_suffix(".pdf")
-                        (self.workspace / ".html2pptx-error.txt").write_text(
-                            str(e) + "\n" + traceback.format_exc()
-                        )
-                    finally:
-                        async with PlaywrightConverter() as pc:
-                            await pc.convert_to_pdf(
-                                list(slide_html_dir.glob("*.html")),
-                                pptx_path.with_suffix(".pdf"),
-                                aspect_ratio=request.powerpoint_type.value,
-                            )
-                except Exception as e:
-                    await self._report_export_failed(str(e))
-                    raise
+            except Exception as e:
+                await self._report_export_failed(str(e))
+                raise
 
-                self.intermediate_output["final"] = str(pptx_path)
-                await self._report_export_completed(str(pptx_path))
-                msg = pptx_path
+            self.intermediate_output["final"] = str(pptx_path)
+            await self._report_export_completed(str(pptx_path))
+            msg = pptx_path
             self.save_results()
             debug(f"DeepPresenter finished, final output at: {msg}")
             yield msg
+
+    def _register_template_tools(
+        self,
+        agent_env: AgentEnv,
+        template_context: TaskTemplateContext,
+    ) -> None:
+        """Expose bounded retrieval over one verified task-local snapshot."""
+
+        def get_template_overview() -> str:
+            """Return the compact overview for the task's pinned template revision."""
+
+            payload = template_context.get_overview()
+            return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+        def search_template_references(
+            stage: str | None = None,
+            layout_pattern: str | None = None,
+            message_pattern: str | None = None,
+            modalities: list[str] | None = None,
+            density: str | None = None,
+            region_roles: list[str] | None = None,
+            keywords: list[str] | None = None,
+        ) -> str:
+            """Find at most two suitable reference pages in the pinned Template IR."""
+
+            need = SlideNeed(
+                stage=stage,
+                layout_pattern=layout_pattern,
+                message_pattern=message_pattern,
+                modalities=tuple(modalities or ()),
+                density=density,
+                region_roles=tuple(region_roles or ()),
+                keywords=tuple(keywords or ()),
+            )
+            payload = template_context.search_references(need, limit=2)
+            return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+        def get_template_reference(slide_id: str) -> CallToolResult:
+            """Return one compact reference description and one ephemeral page image."""
+
+            payload = template_context.get_reference(slide_id)
+            content: list[TextContent | ImageContent] = [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        payload,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                )
+            ]
+            image_path = template_context.reference_image_path(slide_id)
+            if image_path is not None:
+                media_type = mimetypes.guess_type(image_path.name)[0] or "image/webp"
+                encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+                content.append(
+                    ImageContent(
+                        type="image",
+                        mimeType=media_type,
+                        data=f"data:{media_type};base64,{encoded}",
+                    )
+                )
+            return CallToolResult(content=content, isError=False)
+
+        agent_env.register_tool(get_template_overview)
+        agent_env.register_tool(search_template_references)
+        agent_env.register_tool(get_template_reference)
+
+    def _load_task_template_context(
+        self,
+        request: InputRequest,
+    ) -> TaskTemplateContext | None:
+        """Require a revision-pinned, workspace-local snapshot for templates."""
+
+        template_id = request.template_id or request.template
+        if template_id is None:
+            if request.template_revision_id or request.template_context_path:
+                raise ValueError(
+                    "Template revision/context was provided without a template ID"
+                )
+            return None
+        if not request.template_revision_id:
+            raise ValueError(
+                "Template generation requires a pinned template_revision_id"
+            )
+        if not request.template_context_path:
+            raise ValueError(
+                "Template generation requires a task-local template_context_path"
+            )
+
+        context_path = Path(request.template_context_path).expanduser()
+        if not context_path.is_absolute():
+            context_path = self.workspace / context_path
+        context_path = context_path.resolve(strict=True)
+        workspace = self.workspace.expanduser().resolve(strict=False)
+        if not context_path.is_relative_to(workspace):
+            raise ValueError(
+                "Template context must be materialized inside the task workspace"
+            )
+        request.template_context_path = str(context_path)
+        return TaskTemplateContext.load(
+            context_path,
+            expected_template_id=template_id,
+            expected_revision_id=request.template_revision_id,
+        )
 
     def save_results(self):
         with open(self.workspace / "intermediate_output.json", "w") as f:
@@ -342,7 +419,9 @@ class AgentLoop:
             if artifact.is_absolute():
                 try:
                     rel = artifact.resolve().relative_to(self.workspace.resolve())
-                    artifact_url = f"/api/tasks/{self.session_id}/artifacts/{rel.as_posix()}"
+                    artifact_url = (
+                        f"/api/tasks/{self.session_id}/artifacts/{rel.as_posix()}"
+                    )
                 except ValueError:
                     pass
             await self.event_reporter.export_completed(artifact_url, filename)

@@ -1,0 +1,74 @@
+{
+  "family_ids": [
+    "family_13e8033f485658336f1c"
+  ],
+  "overlay_image_path": "slides/s002/overlay.webp",
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "layout_pattern": "title_body",
+    "message_pattern": "summary",
+    "modalities": [
+      "text"
+    ],
+    "stage": "agenda",
+    "summary": "A clean agenda slide with a prominent blue title banner and a spacious numbered list of presentation sections.",
+    "title": "Table of Contents"
+  },
+  "reference_image_path": "slides/s002/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.123232,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.007071
+      },
+      "capacity": {
+        "max_chars": 24,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.724937,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.175758
+      },
+      "capacity": {
+        "max_chars": 32,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 14,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s002",
+  "theme_tokens": {
+    "--template-color-1": "#F6ECE2",
+    "--template-font-1": "Microsoft YaHei",
+    "--template-font-2": "Hiragino Sans GB W3",
+    "--template-font-3": "Adobe Heiti Std R"
+  }
+}

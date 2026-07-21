@@ -60,7 +60,8 @@ RUN npm install --prefix deeppresenter/html2pptx --ignore-scripts && \
 ENV PATH="/opt/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV="/opt/.venv" \
-    DEEPPRESENTER_WORKSPACE_BASE="/opt/workspace"
+    DEEPPRESENTER_WORKSPACE_BASE="/opt/workspace" \
+    DEEPPRESENTER_SOFFICE="/usr/bin/libreoffice"
 
 # Create Python virtual environment and install packages
 RUN uv venv --python 3.13 $VIRTUAL_ENV && \
@@ -70,9 +71,15 @@ RUN uv venv --python 3.13 $VIRTUAL_ENV && \
 RUN /opt/.venv/bin/playwright install chromium
 RUN modelscope download --model forceless/fasttext-language-id
 
-RUN apt install -y poppler-utils
-RUN apt install -y docker.io
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        docker.io \
+        libreoffice \
+        poppler-utils && \
+    libreoffice --headless --version && \
+    command -v pdftoppm && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN fc-cache -f
 
-CMD ["bash", "-c", "umask 000 && python webui.py 0.0.0.0"]
+CMD ["/opt/.venv/bin/uvicorn", "deeppresenter.server.app:app", "--host", "0.0.0.0", "--port", "7861"]

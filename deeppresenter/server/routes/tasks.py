@@ -20,6 +20,13 @@ from deeppresenter.server.routes.attachments import resolve_attachment_paths
 from deeppresenter.server.services.preview import artifact_url
 from deeppresenter.server.services.task_manager import TaskManager
 from deeppresenter.server.services.template_catalog import is_bundled_template
+from deeppresenter.server.services.template_catalog import bundled_template_summary
+from deeppresenter.templates.store import (
+    LegacyTemplateError,
+    TemplateAspectRatioMismatchError,
+    TemplateNotFoundError,
+    TemplateRevisionNotReadyError,
+)
 
 TASK_HEARTBEAT_INTERVAL = 30
 
@@ -39,14 +46,18 @@ class CreateTaskRequest(BaseModel):
     )
     num_pages: Optional[str] = Field(default=None, description="页数，如 '8' 或 '5-10'")
     page_count: Optional[int] = Field(default=None, description="前端工作台页数字段")
-    powerpoint_type: str = Field(default="16:9", description="画面比例")
+    powerpoint_type: Optional[str] = Field(default=None, description="画面比例")
     ratio: Optional[str] = Field(default=None, description="前端工作台画面比例字段")
     template: Optional[str] = Field(default=None, description="模板 ID")
     template_id: Optional[str] = Field(
         default=None, description="前端工作台模板 ID 字段"
     )
+    template_revision_id: Optional[str] = Field(
+        default=None,
+        description="可选的 Template IR revision；未提供时固定当前 active revision",
+    )
     convert_type: Optional[str] = Field(
-        default=None, description="转换模式 deeppresenter/pptagent"
+        default=None, description="转换模式；仅支持 deeppresenter"
     )
     enable_planner: bool = Field(default=False, description="是否启用大纲规划")
     language: str = Field(default="en", description="语言 en/zh")
@@ -79,14 +90,21 @@ def _get_manager(request: Request) -> TaskManager:
 
 def _resolve_template(
     body: CreateTaskRequest, request: Request
-) -> tuple[str | None, str | None]:
+) -> tuple[str | None, str | None, str | None]:
     """Resolve a frontend template id against templates owned by the backend."""
     if body.template:
-        return body.template, body.template_id or body.template
+        summary = bundled_template_summary(body.template)
+        return (
+            body.template,
+            body.template_id or body.template,
+            str(summary["ratio"]) if summary is not None else None,
+        )
     if not body.template_id:
-        return None, None
+        return None, None, None
     if is_bundled_template(body.template_id):
-        return body.template_id, body.template_id
+        summary = bundled_template_summary(body.template_id)
+        assert summary is not None
+        return body.template_id, body.template_id, str(summary["ratio"])
 
     registry = request.app.state.template_registry
     manifest = registry.get(body.template_id)
@@ -97,7 +115,7 @@ def _resolve_template(
             status_code=409,
             detail=f"模板 {body.template_id} 尚未解析完成",
         )
-    return body.template_id, body.template_id
+    return body.template_id, body.template_id, manifest.aspect_ratio
 
 
 def _require_task(manager: TaskManager, task_id: str):
@@ -212,26 +230,56 @@ async def create_task(
     instruction = (body.instruction or body.topic or "").strip()
     if not instruction:
         raise HTTPException(status_code=422, detail="instruction 或 topic 不能为空")
+    if body.convert_type not in (None, "deeppresenter"):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "PPTAgent 排版引擎已从 DeepPresenter 生成链移除；"
+                "请先编译 Template IR，再使用 deeppresenter 模式生成"
+            ),
+        )
     num_pages = body.num_pages or (str(body.page_count) if body.page_count else None)
-    powerpoint_type = body.ratio or body.powerpoint_type
     attachments = (
         body.attachments
         if body.attachments
         else resolve_attachment_paths(manager.workspace_base, body.attachment_ids)
     )
     language = "zh" if body.language.lower().startswith("zh") else body.language
-    template, template_id = _resolve_template(body, request)
-    task_id = await manager.create(
-        instruction=instruction,
-        attachments=attachments,
-        num_pages=num_pages,
-        powerpoint_type=powerpoint_type,
-        template=template,
-        template_id=template_id,
-        convert_type=body.convert_type,
-        enable_planner=body.enable_planner,
-        language=language,
-    )
+    template, template_id, template_ratio = _resolve_template(body, request)
+    requested_ratio = body.ratio or body.powerpoint_type
+    if template_ratio in {"16:9", "4:3"}:
+        if requested_ratio is not None and requested_ratio != template_ratio:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"模板 {template_id} 的画面比例为 {template_ratio}，"
+                    f"不能按 {requested_ratio} 生成"
+                ),
+            )
+        powerpoint_type = template_ratio
+    else:
+        powerpoint_type = requested_ratio or "16:9"
+    try:
+        task_id = await manager.create(
+            instruction=instruction,
+            attachments=attachments,
+            num_pages=num_pages,
+            powerpoint_type=powerpoint_type,
+            template=template,
+            template_id=template_id,
+            template_revision_id=body.template_revision_id,
+            convert_type=body.convert_type,
+            enable_planner=body.enable_planner,
+            language=language,
+        )
+    except TemplateRevisionNotReadyError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except (
+        LegacyTemplateError,
+        TemplateAspectRatioMismatchError,
+        TemplateNotFoundError,
+    ) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     snapshot = manager.get_snapshot(task_id)
     if snapshot is None:
         return CreateTaskResponse(task_id=task_id, status="queued", created_at="")

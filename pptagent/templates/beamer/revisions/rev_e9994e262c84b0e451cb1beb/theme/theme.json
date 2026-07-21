@@ -1,0 +1,65 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "colors": [
+    {
+      "roles": [],
+      "token": "color_1",
+      "usage_count": 1,
+      "value": "#F6ECE2"
+    }
+  ],
+  "css_variables": {
+    "--template-color-1": "#F6ECE2",
+    "--template-font-1": "Microsoft YaHei",
+    "--template-font-2": "Hiragino Sans GB W3",
+    "--template-font-3": "Adobe Heiti Std R"
+  },
+  "decoration_asset_ids": [],
+  "fonts": [
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Microsoft YaHei",
+      "roles": [],
+      "token": "font_1",
+      "usage_count": 23
+    },
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Hiragino Sans GB W3",
+      "roles": [],
+      "token": "font_2",
+      "usage_count": 12
+    },
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Adobe Heiti Std R",
+      "roles": [],
+      "token": "font_3",
+      "usage_count": 1
+    }
+  ],
+  "logo_asset_ids": [],
+  "safe_area": {
+    "height": 0.92,
+    "width": 0.92,
+    "x": 0.04,
+    "y": 0.04
+  },
+  "schema_version": "2.0"
+}

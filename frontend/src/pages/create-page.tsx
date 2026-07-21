@@ -27,6 +27,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { useFlipLayout } from "@/lib/use-flip-layout"
 import { usePageMetadata } from "@/lib/use-page-metadata"
 import { usePresenceList } from "@/lib/use-presence-list"
+import {
+  formatTemplateLayoutSummary,
+  getTemplatePaletteSwatches,
+} from "@/lib/template-metadata"
 import { cn } from "@/lib/utils"
 import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
@@ -75,8 +79,8 @@ export function CreatePage() {
     creating,
     setTopic,
     setPageCount,
-    setRatio,
-    setTemplateId,
+    selectTemplate,
+    clearTemplate,
     addAttachments,
     removeAttachment,
     createTask,
@@ -109,14 +113,19 @@ export function CreatePage() {
     }
     if (readyTemplates.length === 0) {
       if (templateId) {
-        setTemplateId("")
+        clearTemplate()
       }
       return
     }
-    if (!readyTemplates.some((template) => template.id === templateId)) {
-      setTemplateId(readyTemplates[0].id)
+    const currentTemplate = readyTemplates.find(
+      (template) => template.id === templateId,
+    )
+    if (!currentTemplate) {
+      selectTemplate(readyTemplates[0].id, readyTemplates[0].ratio)
+    } else if (ratio !== currentTemplate.ratio) {
+      selectTemplate(currentTemplate.id, currentTemplate.ratio)
     }
-  }, [templatesLoaded, readyTemplates, templateId, setTemplateId])
+  }, [templatesLoaded, readyTemplates, templateId, ratio, selectTemplate, clearTemplate])
 
   const onDrop = useCallback(
     (accepted: File[], rejected: unknown[]) => {
@@ -279,7 +288,7 @@ export function CreatePage() {
                   </strong>
                   <ChipChevron />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
+                <DropdownMenuContent align="end" className="w-80">
                   {templatesLoadError ? (
                     <>
                       <DropdownMenuItem disabled>
@@ -296,39 +305,50 @@ export function CreatePage() {
                   ) : readyTemplates.length === 0 ? (
                     <DropdownMenuItem disabled>暂无可用模板</DropdownMenuItem>
                   ) : (
-                    readyTemplates.map((template) => (
-                      <DropdownMenuItem
-                        key={template.id}
-                        className={cn(
-                          template.id === templateId &&
-                            "bg-foreground/[0.065]",
-                        )}
-                        onClick={() => setTemplateId(template.id)}
-                      >
-                        <span className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1">
-                          {[
-                            template.palette.bg,
-                            template.palette.primary,
-                            template.palette.accent,
-                          ].map((color, index) => (
-                            <span
-                              key={index}
-                              className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
-                        </span>
-                        <span className="flex-1 truncate">{template.name}</span>
-                        <span className="font-heading text-[11px] tabular-nums text-hint">
-                          {template.ratio}
-                        </span>
-                        {template.id === templateId && (
-                          <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
-                            <CheckIcon className="size-3.5" />
+                    readyTemplates.map((template) => {
+                      const paletteSwatches = getTemplatePaletteSwatches(
+                        template.palette,
+                      ).slice(0, 3)
+                      return (
+                        <DropdownMenuItem
+                          key={template.id}
+                          className={cn(
+                            template.id === templateId &&
+                              "bg-foreground/[0.065]",
+                          )}
+                          onClick={() => selectTemplate(template.id, template.ratio)}
+                        >
+                          <span
+                            className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1"
+                            aria-label={`主要配色：${paletteSwatches
+                              .map((swatch) => swatch.color)
+                              .join("，")}`}
+                          >
+                            {paletteSwatches.map((swatch) => (
+                              <span
+                                key={swatch.key}
+                                className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
+                                style={{ backgroundColor: swatch.color }}
+                              />
+                            ))}
                           </span>
-                        )}
-                      </DropdownMenuItem>
-                    ))
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate">{template.name}</span>
+                            <span className="block truncate text-[10px] leading-4 text-hint">
+                              {formatTemplateLayoutSummary(template.layouts)}
+                            </span>
+                          </span>
+                          <span className="font-heading text-[11px] tabular-nums text-hint">
+                            {template.ratio}
+                          </span>
+                          {template.id === templateId && (
+                            <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                              <CheckIcon className="size-3.5" />
+                            </span>
+                          )}
+                        </DropdownMenuItem>
+                      )
+                    })
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -376,34 +396,16 @@ export function CreatePage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<button type="button" className={chipClass} aria-label="画面比例" />}
-                >
-                  <strong className="font-heading font-semibold text-foreground">
-                    {ratio}
-                  </strong>
-                  <ChipChevron />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  {(["16:9", "4:3"] as const).map((item) => (
-                    <DropdownMenuItem
-                      key={item}
-                      className={cn(
-                        ratio === item && "bg-foreground/[0.065]",
-                      )}
-                      onClick={() => setRatio(item)}
-                    >
-                      <span className="font-heading flex-1">{item}</span>
-                      {ratio === item && (
-                        <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
-                          <CheckIcon className="size-3.5" />
-                        </span>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <span
+                className={cn(chipClass, "cursor-default hover:bg-transparent")}
+                aria-label={`画面比例 ${ratio}，由模板决定`}
+                title="画面比例由所选模板决定"
+              >
+                <strong className="font-heading font-semibold text-foreground">
+                  {ratio}
+                </strong>
+                <span className="text-[11px] text-hint">模板比例</span>
+              </span>
 
             </div>
 

@@ -1,0 +1,233 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [],
+  "notes": null,
+  "page_number": 3,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1320800,
+        "width": 8596668,
+        "x": 677334,
+        "y": 156237
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "Title 1",
+      "normalized_bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.022782
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "What is Tourism?"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "What is Tourism?"
+          }
+        ],
+        "text": "What is Tourism?"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 4795492,
+        "width": 8596668,
+        "x": 677334,
+        "y": 1245871
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "Content Placeholder 2",
+      "normalized_bbox": {
+        "height": 0.699255,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.181667
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": "Arial Rounded MT Bold",
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "The World Tourism Organisation defines tourism in terms which go"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "The World Tourism Organisation defines tourism in terms which go"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": "Arial Rounded MT Bold",
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "“ beyond the common perception of tourism as being limited to holiday activity only”, as people “ travelling to and staying in places outside their usual environment for not more than one consecutive year for leisure, business and other purposes”"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "“ beyond the common perception of tourism as being limited to holiday activity only”, as people “ travelling to and staying in places outside their usual environment for not more than one consecutive year for leisure, business and other purposes”"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": "Arial Rounded MT Bold",
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Its importance was recognised in the Manila Declaration on World Tourism of 1980 as an activity essential to the life of nations because of its direct effects on the social, cultural, educational, and economic sectors of national societies and on their international relations"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Its importance was recognised in the Manila Declaration on World Tourism of 1980 as an activity essential to the life of nations because of its direct effects on the social, cultural, educational, and economic sectors of national societies and on their international relations"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": "Arial Rounded MT Bold",
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Today, tourism is a major source of income for many countries, and affects the economy of both the source and the host countries, in some cases being of vital importance"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Today, tourism is a major source of income for many countries, and affects the economy of both the source and the host countries, in some cases being of vital importance"
+          }
+        ],
+        "text": "The World Tourism Organisation defines tourism in terms which go\n“ beyond the common perception of tourism as being limited to holiday activity only”, as people “ travelling to and staying in places outside their usual environment for not more than one consecutive year for leisure, business and other purposes”\nIts importance was recognised in the Manila Declaration on World Tourism of 1980 as an activity essential to the life of nations because of its direct effects on the social, cultural, educational, and economic sectors of national societies and on their international relations\nToday, tourism is a major source of income for many countries, and affects the economy of both the source and the host countries, in some cases being of vital importance"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s003"
+}

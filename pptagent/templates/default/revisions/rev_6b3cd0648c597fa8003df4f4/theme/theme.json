@@ -1,0 +1,35 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "colors": [],
+  "css_variables": {
+    "--template-font-1": "Arial Rounded MT Bold"
+  },
+  "decoration_asset_ids": [],
+  "fonts": [
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Arial Rounded MT Bold",
+      "roles": [],
+      "token": "font_1",
+      "usage_count": 4
+    }
+  ],
+  "logo_asset_ids": [],
+  "safe_area": {
+    "height": 0.92,
+    "width": 0.92,
+    "x": 0.04,
+    "y": 0.04
+  },
+  "schema_version": "2.0"
+}

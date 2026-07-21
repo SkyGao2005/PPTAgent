@@ -1,0 +1,137 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.ba360404",
+  "avoid_when": [
+    "Avoid when the message requires several independent data views or a dashboard.",
+    "Avoid when comparing three or more parallel categories.",
+    "Avoid when the visual cannot be paired with a concise explanatory text block."
+  ],
+  "page_number": 6,
+  "page_semantics": {
+    "density": "medium",
+    "layout_pattern": "split",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A titled content slide pairs a substantial explanatory text block on the left with one dominant supporting visual on the right.",
+    "title": "图文并貌，难道这还不够好吗啊啊啊啊啊啊啊"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.148031,
+        "width": 0.885466,
+        "x": 0.022177,
+        "y": 0.012795
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 28,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 12,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Wide top heading that introduces the topic of the illustrated explanation.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s006-sh0002"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.595042,
+        "width": 0.409435,
+        "x": 0.04767,
+        "y": 0.259259
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 210,
+        "max_items": 3,
+        "max_lines": 2,
+        "min_chars": 90,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Left-side explanatory paragraph intended to describe or interpret the adjacent visual.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "body",
+      "source_shape_ids": [
+        "s006-sh0001"
+      ],
+      "style_ref": "text.body"
+    },
+    {
+      "asset_ids": [
+        "asset_2c34104c23f8a6777430b2f0"
+      ],
+      "bbox": {
+        "height": 0.67884,
+        "width": 0.497727,
+        "x": 0.480195,
+        "y": 0.20295
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.7332022273289729
+      },
+      "confidence": 0.99,
+      "description": "Large right-side content image or technical illustration supporting the explanation.",
+      "kind": "image",
+      "region_id": "r003",
+      "role": "photo",
+      "source_shape_ids": [
+        "s006-sh0003"
+      ],
+      "style_ref": "image.photo"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a topic explained through a balanced text-and-image composition.",
+    "Choose when a large diagram, photograph, or illustration needs an adjacent descriptive paragraph.",
+    "Suitable for educational, technical, or conceptual explanations with one primary visual."
+  ],
+  "slide_id": "s006",
+  "warnings": []
+}

@@ -1,0 +1,271 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "notes": null,
+  "page_number": 7,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 4816699,
+        "width": 4693984,
+        "x": 361492,
+        "y": 1249250
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 1",
+      "normalized_bbox": {
+        "height": 0.702347,
+        "width": 0.385005,
+        "x": 0.02965,
+        "y": 0.18216
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Comparison of Models"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Comparison of Models"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "gpt-4o, Qwen2.5, and Qwen2-VL evaluated"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "gpt-4o, Qwen2.5, and Qwen2-VL evaluated"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Performance across iterations and failures"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Performance across iterations and failures"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Results highlight model effectiveness"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Results highlight model effectiveness"
+          }
+        ],
+        "text": "Comparison of Models\ngpt-4o, Qwen2.5, and Qwen2-VL evaluated\nPerformance across iterations and failures\nResults highlight model effectiveness"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 774447,
+        "width": 10972800,
+        "x": 361492,
+        "y": 146627
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Success Rates"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Success Rates"
+          }
+        ],
+        "text": "Success Rates"
+      },
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [
+        "asset_7803e0ff3389640cf867b5e3"
+      ],
+      "bbox": {
+        "height": 5427515,
+        "width": 6769198,
+        "x": 5055476,
+        "y": 1076315
+      },
+      "child_shape_ids": [],
+      "crop": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 4",
+      "normalized_bbox": {
+        "height": 0.791414,
+        "width": 0.555216,
+        "x": 0.414655,
+        "y": 0.156943
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0003",
+      "source_id": 4,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    }
+  ],
+  "slide_id": "s007"
+}

@@ -1,0 +1,83 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_f3abdfc778a95f868ca73d3a",
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "notes": null,
+  "page_number": 10,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1961322,
+        "width": 10993549,
+        "x": 599226,
+        "y": 1921565
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.28599,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.280193
+      },
+      "placeholder_type": "center_title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s010-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "感谢使用和支持！"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "感谢使用和支持！"
+          }
+        ],
+        "text": "感谢使用和支持！"
+      },
+      "visible": true,
+      "z_index": 0
+    }
+  ],
+  "slide_id": "s010"
+}

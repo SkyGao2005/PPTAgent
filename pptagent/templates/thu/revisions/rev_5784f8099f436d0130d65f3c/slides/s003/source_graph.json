@@ -1,0 +1,171 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "notes": null,
+  "page_number": 3,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1497507,
+        "width": 11029615,
+        "x": 581193,
+        "y": 3043910
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "章节一。我到底是谁啊啊啊"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "章节一。我到底是谁啊啊啊"
+          }
+        ],
+        "text": "章节一。我到底是谁啊啊啊"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 600556,
+        "width": 11029615,
+        "x": 581192,
+        "y": 4553292
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "文本占位符 2",
+      "normalized_bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.663939
+      },
+      "placeholder_type": "body",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "我们需要进入一些"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "details"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+          }
+        ],
+        "text": "我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s003"
+}

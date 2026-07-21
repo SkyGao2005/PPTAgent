@@ -1,0 +1,207 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid when the slide needs multiple independent visuals or a gallery grid.",
+        "Avoid for data-heavy analysis, comparisons, tables, or complex diagrams.",
+        "Avoid when the image must be accompanied by extensive text."
+      ],
+      "description": "An image-first content slide with a large visual across the top and a title plus concise explanatory text beneath it.",
+      "family_id": "family_c531c295671a806e579b",
+      "layout_pattern": "freeform",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "name": "content-freeform",
+      "representative_slide_id": "s007",
+      "selection_hints": [
+        "Use for an image-led content page with a prominent visual and supporting explanation.",
+        "Choose when a single screenshot, photograph, mockup, or composite graphic is the main evidence.",
+        "Best when the supporting text can be kept to a few short paragraphs."
+      ],
+      "signature": "{\"layout\":\"freeform\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.625,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.75},{\"h\":0.125,\"kind\":\"text\",\"role\":\"body\",\"w\":0.875,\"x\":0.0,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s007"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid for content-heavy slides, detailed explanations, or data visualization.",
+        "Avoid when the presentation does not need an institutional or formal academic cover."
+      ],
+      "description": "A formal university-style cover slide with a dominant purple title banner and centered presenter information beneath it.",
+      "family_id": "family_43c2c442d8f2cfd79f4d",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use as the opening cover for a formal academic or institutional presentation.",
+        "Choose when a prominent centered title and compact presenter details are sufficient."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the closing slide needs contact details, calls to action, or multiple information blocks.",
+        "Avoid for content-heavy conclusions or detailed recaps."
+      ],
+      "description": "A sparse branded closing page centered on a single thank-you statement within a wide purple banner.",
+      "family_id": "family_95064992efdcead92207",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s010",
+      "selection_hints": [
+        "Use as a formal closing slide with a short thank-you or farewell message.",
+        "Choose when a branded presentation should end with one prominent centered statement."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s010"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid for detailed content, data visualizations, or multi-part explanations.",
+        "Avoid when the section heading and supporting line cannot be kept concise.",
+        "Avoid for regular content slides that require charts, tables, imagery, or multiple detail blocks.",
+        "Avoid when the section heading and supporting description cannot be kept concise.",
+        "Avoid for detailed explanations, data-heavy content, or multi-part comparisons.",
+        "Avoid when the slide needs charts, images, tables, or several independent content blocks."
+      ],
+      "description": "A minimalist section divider featuring a large chapter heading and a concise supporting line above a strong branded footer band.",
+      "family_id": "family_46a1d96fd896d8a30aa1",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "section-hero",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use as a chapter divider between major presentation sections.",
+        "Choose when a prominent section title needs one short contextual sentence.",
+        "Best suited to a formal, minimalist transition page.",
+        "Choose when a prominent section title needs one short explanatory line.",
+        "Choose when introducing a new topic with a prominent heading and one concise supporting sentence."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.5},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625}],\"stage\":\"section\"}",
+      "slide_ids": [
+        "s003",
+        "s005",
+        "s008"
+      ],
+      "stage": "section"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content requires more than two parallel sections.",
+        "Avoid when the page needs charts, tables, metrics, or prominent imagery.",
+        "Avoid when the two content areas must be presented as a strong versus-style comparison."
+      ],
+      "description": "A branded content slide organizes supporting information into two balanced, independently titled bullet-list columns beneath a prominent banner heading.",
+      "family_id": "family_a4192aa6e401d4c669d3",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s009",
+      "selection_hints": [
+        "Use for explaining a topic through two complementary text sections.",
+        "Use when two similarly weighted categories each need a short heading and bullet list.",
+        "Suitable for bilingual, thematic, or paired informational content."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.5,\"kind\":\"group\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.0,\"y\":0.375},{\"h\":0.5,\"kind\":\"group\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.5,\"y\":0.375}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s009"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content requires multiple data views, a process sequence, or several independent sections.",
+        "Avoid when the visual cannot be paired with a concise explanatory text block."
+      ],
+      "description": "A title-led explanatory slide with a left text narrative and a prominent technical visual on the right.",
+      "family_id": "family_62607a6e8865dd6f0bcb",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use for explaining a concept with substantial text on the left and a large supporting visual on the right.",
+        "Suitable for technical, academic, or instructional content where an illustration clarifies the narrative."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.625,\"kind\":\"text\",\"role\":\"body\",\"w\":0.375,\"x\":0.0,\"y\":0.25},{\"h\":0.625,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.5,\"x\":0.5,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "The presentation does not need an agenda or table of contents.",
+        "The agenda requires detailed descriptions, dates, owners, or more than a short list of sections.",
+        "A visual roadmap or process flow is preferred over a simple chapter list."
+      ],
+      "description": "A spacious agenda slide with a prominent title in a vertical color panel and a concise chapter list on the right.",
+      "family_id": "family_844c96dae7e2bb5f5ffa",
+      "layout_pattern": "split",
+      "modalities": [
+        "text"
+      ],
+      "name": "agenda-split",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use for an early presentation agenda or table-of-contents page.",
+        "Best for introducing approximately three concise chapters or major sections.",
+        "Choose when a strong colored title panel and spacious list area fit the presentation's visual identity."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.375,\"kind\":\"text\",\"role\":\"title\",\"w\":0.25,\"x\":0.0,\"y\":0.25},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content depends on visuals, charts, or side-by-side comparison.",
+        "Avoid when more than one major content block is needed."
+      ],
+      "description": "A conventional instructional content slide with a prominent banner title and one broad explanatory bullet area.",
+      "family_id": "family_2481301742307bcc07f5",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for instructional guidance, usage notes, or explanatory bullet points.",
+        "Best for a clear heading followed by one moderately detailed text block."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.5,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.0,\"y\":0.375}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    }
+  ],
+  "schema_version": "2.0"
+}

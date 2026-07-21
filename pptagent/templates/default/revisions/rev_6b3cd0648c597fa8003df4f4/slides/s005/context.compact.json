@@ -1,0 +1,71 @@
+{
+  "family_ids": [
+    "family_136f14732691da648829"
+  ],
+  "overlay_image_path": "slides/s005/overlay.webp",
+  "page_number": 5,
+  "page_semantics": {
+    "density": "dense",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A text-focused content slide with a prominent heading and a large, dense explanatory bullet block on a dark geometric background.",
+    "title": "Bhubaneswar – The Temple City of India"
+  },
+  "reference_image_path": "slides/s005/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.028333
+      },
+      "capacity": {
+        "max_chars": 53,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 23,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.801667,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.17
+      },
+      "capacity": {
+        "max_chars": 1595,
+        "max_items": 7,
+        "max_lines": 6,
+        "min_chars": 683,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s005",
+  "theme_tokens": {
+    "--template-font-1": "Arial Rounded MT Bold"
+  }
+}

@@ -27,14 +27,6 @@
         ]
     },
     {
-        "name": "pptagent",
-        "description": "template-based generation for PPTAgent",
-        "command": "pptagent-mcp",
-        "env": {
-            "CONFIG_FILE": "$CONFIG_FILE"
-        }
-    },
-    {
         "name": "tool_agents",
         "description": "LLM-powered tool agents",
         "command": "python3",

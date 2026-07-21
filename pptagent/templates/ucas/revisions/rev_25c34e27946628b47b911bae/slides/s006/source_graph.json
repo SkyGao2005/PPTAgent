@@ -1,0 +1,424 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "inherited_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "notes": null,
+  "page_number": 6,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 4399449,
+        "width": 3868340,
+        "x": 439115,
+        "y": 1433550
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 2",
+      "normalized_bbox": {
+        "height": 0.641506,
+        "width": 0.423047,
+        "x": 0.048022,
+        "y": 0.209033
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0001",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "互补色"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": ":"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "在色轮上彼此相对的颜色（如红色与绿色，蓝色与橙色）。它们能产生强烈的视觉对比，让画面充满活力。"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "互补色: 在色轮上彼此相对的颜色（如红色与绿色，蓝色与橙色）。它们能产生强烈的视觉对比，让画面充满活力。"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "类似色"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": ":"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "在色轮上相邻的颜色（如黄色、黄绿色、绿色）。它们组合在一起通常显得和谐、宁静、舒适。"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "类似色: 在色轮上相邻的颜色（如黄色、黄绿色、绿色）。它们组合在一起通常显得和谐、宁静、舒适。"
+          }
+        ],
+        "text": "互补色: 在色轮上彼此相对的颜色（如红色与绿色，蓝色与橙色）。它们能产生强烈的视觉对比，让画面充满活力。\n类似色: 在色轮上相邻的颜色（如黄色、黄绿色、绿色）。它们组合在一起通常显得和谐、宁静、舒适。"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 365125,
+        "width": 2160000,
+        "x": 250826,
+        "y": 6356349
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "日期占位符 5",
+      "normalized_bbox": {
+        "height": 0.053241,
+        "width": 0.23622,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "placeholder_type": "date",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0002",
+      "source_id": 6,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "2025/5/8"
+          }
+        ],
+        "text": "2025/5/8"
+      },
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 365125,
+        "width": 2867933,
+        "x": 6025243,
+        "y": 6356349
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "页脚占位符 6",
+      "normalized_bbox": {
+        "height": 0.053241,
+        "width": 0.313641,
+        "x": 0.658929,
+        "y": 0.926852
+      },
+      "placeholder_type": "footer",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0003",
+      "source_id": 7,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#969FA7",
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "中国科学院大学"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "中国科学院大学"
+          }
+        ],
+        "text": "中国科学院大学"
+      },
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 365125,
+        "width": 1980000,
+        "x": 3582000,
+        "y": 6356349
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "灯片编号占位符 7",
+      "normalized_bbox": {
+        "height": 0.053241,
+        "width": 0.216535,
+        "x": 0.391732,
+        "y": 0.926852
+      },
+      "placeholder_type": "slide_number",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0004",
+      "source_id": 8,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "6"
+          }
+        ],
+        "text": "6"
+      },
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 720000,
+        "width": 7309273,
+        "x": 685191,
+        "y": 165934
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 8",
+      "normalized_bbox": {
+        "height": 0.104987,
+        "width": 0.799352,
+        "x": 0.074933,
+        "y": 0.024196
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0005",
+      "source_id": 9,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "章节标题：果壳的一些个配色"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "章节标题：果壳的一些个配色"
+          }
+        ],
+        "text": "章节标题：果壳的一些个配色"
+      },
+      "visible": true,
+      "z_index": 4
+    },
+    {
+      "asset_ids": [
+        "asset_6036cc9df069fdd45f8e87fc"
+      ],
+      "bbox": {
+        "height": 4661124,
+        "width": 4378705,
+        "x": 4572000,
+        "y": 1433551
+      },
+      "child_shape_ids": [],
+      "crop": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 9",
+      "normalized_bbox": {
+        "height": 0.679662,
+        "width": 0.478861,
+        "x": 0.5,
+        "y": 0.209033
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0006",
+      "source_id": 10,
+      "text": null,
+      "visible": true,
+      "z_index": 5
+    }
+  ],
+  "slide_id": "s006"
+}

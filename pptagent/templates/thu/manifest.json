@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0",
+  "template_id": "thu",
+  "name": "thu",
+  "status": "ready",
+  "latest_revision_id": "rev_5784f8099f436d0130d65f3c",
+  "active_revision_id": "rev_5784f8099f436d0130d65f3c",
+  "revisions": [
+    {
+      "revision_id": "rev_5784f8099f436d0130d65f3c",
+      "source_hash": "cd565df0b7aeba03012bcc63b3613824e9607a9287eabd17d172cbc38b52284f",
+      "slide_count": 10,
+      "created_at": "2026-07-21T08:09:53.593625Z"
+    }
+  ],
+  "source_hash": "cd565df0b7aeba03012bcc63b3613824e9607a9287eabd17d172cbc38b52284f",
+  "slide_count": 10,
+  "aspect_ratio": "16:9",
+  "thumbnail": "revisions/rev_5784f8099f436d0130d65f3c/slides/s001/reference.webp",
+  "error": null,
+  "created_at": "2026-07-21T05:47:03.232077Z",
+  "updated_at": "2026-07-21T08:09:53.595359Z"
+}

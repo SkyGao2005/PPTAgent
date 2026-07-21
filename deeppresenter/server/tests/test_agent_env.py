@@ -100,3 +100,58 @@ async def test_agent_env_accepts_multi_block_tool_result(tmp_path):
             "image_url": {"url": "data:image/png;base64,abc"},
         },
     ]
+
+
+@pytest.mark.asyncio
+async def test_template_tool_json_is_not_cut_into_invalid_json(tmp_path):
+    mcp_file = tmp_path / "mcp.json"
+    mcp_file.write_text("[]", encoding="utf-8")
+    (tmp_path / "workspace").mkdir()
+
+    env = AgentEnv(
+        tmp_path / "workspace",
+        _config(mcp_file),
+        cutoff_len=96,
+    )
+    env._tools_dict = {
+        "get_template_overview": {
+            "function": {
+                "parameters": {
+                    "type": "object",
+                    "properties": {},
+                }
+            }
+        }
+    }
+    env._tool_to_server["get_template_overview"] = "local"
+    payload = {
+        "template_id": "brand_deck",
+        "revision_id": "rev_001",
+        "families": [
+            {"family_id": f"family_{index:02d}", "description": "x" * 40}
+            for index in range(12)
+        ],
+    }
+
+    async def fake_execute_tool(tool_name, arguments):
+        return CallToolResult(
+            content=[
+                TextContent(
+                    type="text",
+                    text=json.dumps(payload, ensure_ascii=False, indent=2),
+                )
+            ]
+        )
+
+    env._execute_tool = fake_execute_tool
+    tool_call = ToolCall(
+        id="call-template-overview",
+        type="function",
+        function={"name": "get_template_overview", "arguments": "{}"},
+    )
+
+    message = await env.tool_execute(tool_call)
+    decoded = json.loads(message.content[0]["text"])
+
+    assert decoded["template_id"] == "brand_deck"
+    assert decoded["revision_id"] == "rev_001"

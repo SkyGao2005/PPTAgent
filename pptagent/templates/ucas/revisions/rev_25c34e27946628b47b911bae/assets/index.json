@@ -1,0 +1,230 @@
+{
+  "assets": [
+    {
+      "alt_text": null,
+      "asset_id": "asset_4b91c15191cce45914d19b96",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_4b91c15191cce45914d19b96.png",
+      "browser_pixel_height": 160,
+      "browser_pixel_width": 763,
+      "browser_sha256": "4b91c15191cce45914d19b96a77d1568eab0e0dcef10b1b92f0eb3a36df13c37",
+      "byte_size": 56278,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.096301,
+            "width": 0.344427,
+            "x": 0.031019,
+            "y": 0.096378
+          },
+          "page_number": 1,
+          "scope": "layout",
+          "shape_id": "s001-layout-sh0004",
+          "slide_id": "s001",
+          "source_name": "图片 14"
+        },
+        {
+          "bbox": {
+            "height": 0.096301,
+            "width": 0.344427,
+            "x": 0.031019,
+            "y": 0.096378
+          },
+          "page_number": 9,
+          "scope": "layout",
+          "shape_id": "s009-layout-sh0004",
+          "slide_id": "s009",
+          "source_name": "图片 8"
+        }
+      ],
+      "path": "assets/asset_4b91c15191cce45914d19b96.png",
+      "pixel_height": 160,
+      "pixel_width": 763,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "4b91c15191cce45914d19b96a77d1568eab0e0dcef10b1b92f0eb3a36df13c37",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alt_text": null,
+      "asset_id": "asset_6036cc9df069fdd45f8e87fc",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_6036cc9df069fdd45f8e87fc.png",
+      "browser_pixel_height": 572,
+      "browser_pixel_width": 284,
+      "browser_sha256": "6036cc9df069fdd45f8e87fc68942ed6df9bafa1723cb012a79a5cbd82124c2d",
+      "byte_size": 14224,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.679662,
+            "width": 0.478861,
+            "x": 0.5,
+            "y": 0.209033
+          },
+          "page_number": 6,
+          "scope": "slide",
+          "shape_id": "s006-sh0006",
+          "slide_id": "s006",
+          "source_name": "图片 9"
+        }
+      ],
+      "path": "assets/asset_6036cc9df069fdd45f8e87fc.png",
+      "pixel_height": 572,
+      "pixel_width": 284,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "6036cc9df069fdd45f8e87fc68942ed6df9bafa1723cb012a79a5cbd82124c2d",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alt_text": null,
+      "asset_id": "asset_76133485b54c6190eaae6d06",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_76133485b54c6190eaae6d06.png",
+      "browser_pixel_height": 298,
+      "browser_pixel_width": 298,
+      "browser_sha256": "76133485b54c6190eaae6d061a7e0a1b2a67f3ba2a49c825824d1e033dc4db34",
+      "byte_size": 38476,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 1,
+          "scope": "master",
+          "shape_id": "s001-master-sh0001",
+          "slide_id": "s001",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 2,
+          "scope": "master",
+          "shape_id": "s002-master-sh0001",
+          "slide_id": "s002",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 3,
+          "scope": "master",
+          "shape_id": "s003-master-sh0001",
+          "slide_id": "s003",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 4,
+          "scope": "master",
+          "shape_id": "s004-master-sh0001",
+          "slide_id": "s004",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 5,
+          "scope": "master",
+          "shape_id": "s005-master-sh0001",
+          "slide_id": "s005",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 6,
+          "scope": "master",
+          "shape_id": "s006-master-sh0001",
+          "slide_id": "s006",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 7,
+          "scope": "master",
+          "shape_id": "s007-master-sh0001",
+          "slide_id": "s007",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 8,
+          "scope": "master",
+          "shape_id": "s008-master-sh0001",
+          "slide_id": "s008",
+          "source_name": "图片 66"
+        },
+        {
+          "bbox": {
+            "height": 0.104987,
+            "width": 0.07874,
+            "x": 0.892688,
+            "y": 0.024196
+          },
+          "page_number": 9,
+          "scope": "master",
+          "shape_id": "s009-master-sh0001",
+          "slide_id": "s009",
+          "source_name": "图片 66"
+        }
+      ],
+      "path": "assets/asset_76133485b54c6190eaae6d06.png",
+      "pixel_height": 298,
+      "pixel_width": 298,
+      "reuse_policy": "always",
+      "role": "logo",
+      "sha256": "76133485b54c6190eaae6d061a7e0a1b2a67f3ba2a49c825824d1e033dc4db34",
+      "tags": [
+        "logo"
+      ]
+    }
+  ],
+  "schema_version": "2.0"
+}

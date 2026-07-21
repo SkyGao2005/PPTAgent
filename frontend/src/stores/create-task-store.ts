@@ -24,9 +24,9 @@ interface CreateTaskState {
   creating: boolean
   setTopic: (topic: string) => void
   setPageCount: (pageCount: number) => void
-  setRatio: (ratio: "16:9" | "4:3") => void
   setLanguage: (language: string) => void
-  setTemplateId: (templateId: string) => void
+  selectTemplate: (templateId: string, ratio: "16:9" | "4:3") => void
+  clearTemplate: () => void
   /** Returns how many files were actually added (capped at MAX_ATTACHMENTS). */
   addAttachments: (files: File[]) => number
   removeAttachment: (attachmentId: string) => void
@@ -44,9 +44,9 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   creating: false,
   setTopic: (topic) => set({ topic }),
   setPageCount: (pageCount) => set({ pageCount }),
-  setRatio: (ratio) => set({ ratio }),
   setLanguage: (language) => set({ language }),
-  setTemplateId: (templateId) => set({ templateId }),
+  selectTemplate: (templateId, ratio) => set({ templateId, ratio }),
+  clearTemplate: () => set({ templateId: "" }),
   addAttachments: (files) => {
     const room = Math.max(0, MAX_ATTACHMENTS - get().attachments.length)
     const accepted = files.slice(0, room)

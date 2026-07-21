@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import random
 from itertools import cycle, product
 from pathlib import Path
@@ -20,6 +21,167 @@ from deeppresenter.utils.constants import (
     RETRY_TIMES,
 )
 from deeppresenter.utils.log import debug, logging_openai_exceptions
+
+
+class ContextWindowExceededError(RuntimeError):
+    """Raised before a request, or immediately after a provider rejects its size."""
+
+
+def _estimate_text_tokens(text: str) -> int:
+    """Conservative tokenizer-independent estimate for mixed Latin/CJK text."""
+    ascii_chars = sum(ord(char) < 128 for char in text)
+    non_ascii_chars = len(text) - ascii_chars
+    return max(1, math.ceil(ascii_chars / 4 + non_ascii_chars * 1.25))
+
+
+def _as_mapping(value: Any) -> dict[str, Any]:
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json", exclude_none=True)
+    if isinstance(value, dict):
+        return value
+    return {}
+
+
+def _content_token_estimate(content: Any, image_token_estimate: int) -> int:
+    if content is None:
+        return 0
+    if isinstance(content, str):
+        return _estimate_text_tokens(content)
+    if not isinstance(content, list):
+        return _estimate_text_tokens(str(content))
+
+    tokens = 0
+    for raw_block in content:
+        block = _as_mapping(raw_block)
+        block_type = block.get("type")
+        if block_type in {"image", "image_url", "input_image"}:
+            tokens += image_token_estimate
+            continue
+        text = block.get("text") or block.get("content")
+        if text:
+            tokens += _estimate_text_tokens(str(text))
+    return tokens
+
+
+def estimate_chat_tokens(
+    messages: list[Any] | str,
+    tools: list[dict[str, Any]] | None = None,
+    image_token_estimate: int = 1_200,
+    response_format: type[BaseModel] | None = None,
+) -> int:
+    """Estimate text, tool schema/calls and image tokens before an API call."""
+    if isinstance(messages, str):
+        messages = [{"role": "user", "content": messages}]
+
+    tokens = 3
+    for raw_message in messages:
+        message = _as_mapping(raw_message)
+        tokens += 6
+        tokens += _content_token_estimate(
+            message.get("content"), image_token_estimate
+        )
+        if message.get("reasoning"):
+            tokens += _estimate_text_tokens(str(message["reasoning"]))
+        for tool_call in message.get("tool_calls") or []:
+            tokens += _estimate_text_tokens(
+                json.dumps(_as_mapping(tool_call), ensure_ascii=False)
+            )
+
+    if tools:
+        tokens += 8 + _estimate_text_tokens(
+            json.dumps(tools, ensure_ascii=False, default=str)
+        )
+    if response_format is not None:
+        tokens += 8 + _estimate_text_tokens(
+            json.dumps(response_format.model_json_schema(), ensure_ascii=False)
+        )
+    return tokens
+
+
+def is_context_overflow_error(error: BaseException) -> bool:
+    """Recognize provider-specific context overflow errors without retrying them."""
+    code = str(getattr(error, "code", "")).lower()
+    body = str(getattr(error, "body", "")).lower()
+    message = f"{error} {code} {body}".lower()
+    markers = (
+        "context_length_exceeded",
+        "context window",
+        "context length",
+        "maximum context",
+        "max context",
+        "too many tokens",
+        "token limit exceeded",
+        "prompt is too long",
+        "request too large",
+    )
+    return any(marker in message for marker in markers)
+
+
+class ContextBudgetConfig(BaseModel):
+    """Shared request-budget settings for a model and each endpoint."""
+
+    context_limit_tokens: int = Field(
+        default=CONTEXT_LENGTH_LIMIT,
+        gt=0,
+        description="Maximum input plus output tokens supported by the model",
+    )
+    reserved_output_tokens: int = Field(
+        default=10_000,
+        ge=0,
+        description="Tokens kept free for the model response",
+    )
+    context_safety_margin_tokens: int = Field(
+        default=2_000,
+        ge=0,
+        description="Additional guard band for tokenizer estimation error",
+    )
+    fold_trigger_ratio: float = Field(
+        default=0.70,
+        gt=0,
+        le=1,
+        description="Proactively fold history at this fraction of the input budget",
+    )
+    template_context_max_tokens: int = Field(
+        default=12_000,
+        gt=0,
+        description="Maximum pinned template context in one request",
+    )
+    template_overview_max_tokens: int = Field(default=1_800, gt=0)
+    template_reference_max_tokens: int = Field(default=1_200, gt=0)
+    max_template_reference_images: int = Field(default=2, ge=0)
+    image_token_estimate: int = Field(
+        default=1_200,
+        gt=0,
+        description="Conservative per-image estimate used during preflight",
+    )
+    compaction_input_max_tokens: int = Field(
+        default=12_000,
+        gt=0,
+        description="Maximum history payload sent to a compaction request",
+    )
+
+    @property
+    def effective_reserved_output_tokens(self) -> int:
+        sampling = getattr(self, "sampling_parameters", {})
+        requested = sampling.get("max_completion_tokens", sampling.get("max_tokens", 0))
+        try:
+            requested_tokens = int(requested)
+        except (TypeError, ValueError):
+            requested_tokens = 0
+        return max(self.reserved_output_tokens, requested_tokens)
+
+    @property
+    def input_token_budget(self) -> int:
+        return max(
+            1,
+            self.context_limit_tokens
+            - self.effective_reserved_output_tokens
+            - self.context_safety_margin_tokens,
+        )
+
+    def context_budget_kwargs(self) -> dict[str, Any]:
+        fields = ContextBudgetConfig.model_fields
+        return {name: getattr(self, name) for name in fields}
 
 
 def get_json_from_response(response: str) -> dict | list:
@@ -70,7 +232,7 @@ def get_json_from_response(response: str) -> dict | list:
     return json_repair.loads(response)
 
 
-class Endpoint(BaseModel):
+class Endpoint(ContextBudgetConfig):
     """LLM Endpoint Configuration"""
 
     base_url: str | None = Field(default=None, description="API base URL")
@@ -129,6 +291,17 @@ class Endpoint(BaseModel):
         tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         """Execute a chat or tool call using the endpoint client"""
+        estimated_tokens = estimate_chat_tokens(
+            messages,
+            tools,
+            self.image_token_estimate,
+            response_format,
+        )
+        if estimated_tokens > self.input_token_budget:
+            raise ContextWindowExceededError(
+                f"Request needs about {estimated_tokens} input tokens, but endpoint "
+                f"{self.model} allows {self.input_token_budget} after reserving output"
+            )
         if self.provider == "litellm":
             response = await self._call_litellm(messages, response_format, tools)
         elif tools is not None:
@@ -158,8 +331,9 @@ class Endpoint(BaseModel):
         message = response.choices[0].message
         debug(f"Response from {self.model}: {message}")
         if response_format is not None:
-            message.content = response_format(
-                **get_json_from_response(message.content)
+            parsed_json = json.dumps(get_json_from_response(message.content))
+            message.content = response_format.model_validate_json(
+                parsed_json
             ).model_dump_json(indent=2)
         assert tools is None or len(message.tool_calls or []), (
             f"No tool call returned from the model, got {message}"
@@ -170,7 +344,7 @@ class Endpoint(BaseModel):
         return response
 
 
-class LLM(BaseModel):
+class LLM(ContextBudgetConfig):
     """LLM Client Manager"""
 
     base_url: str | None = Field(default=None, description="API base URL")
@@ -234,10 +408,12 @@ class LLM(BaseModel):
                     provider=self.provider,
                     client_kwargs=self.client_kwargs,
                     sampling_parameters=self.sampling_parameters,
+                    **self.context_budget_kwargs(),
                 ),
             )
         for endpoint in self.endpoints:
-            self._endpoints.append(Endpoint(**endpoint))
+            endpoint_config = {**self.context_budget_kwargs(), **endpoint}
+            self._endpoints.append(Endpoint(**endpoint_config))
         assert len(self._endpoints) >= 1, "At least one endpoint must be configured"
 
         model_lower = self._endpoints[0].model.lower()
@@ -263,8 +439,30 @@ class LLM(BaseModel):
         if isinstance(messages, str):
             messages = [{"role": "user", "content": messages}]
 
+        estimated_tokens = estimate_chat_tokens(
+            messages,
+            tools,
+            self.image_token_estimate,
+            response_format,
+        )
+        if estimated_tokens > self.input_token_budget:
+            raise ContextWindowExceededError(
+                f"Request needs about {estimated_tokens} input tokens, but model "
+                f"{self.model_name} allows {self.input_token_budget} after reserving output"
+            )
+
+        eligible_endpoints = [
+            endpoint
+            for endpoint in self._endpoints
+            if estimated_tokens <= endpoint.input_token_budget
+        ]
+        if not eligible_endpoints:
+            raise ContextWindowExceededError(
+                f"No endpoint can accept the estimated {estimated_tokens} input tokens"
+            )
+
         errors = []
-        iter_endpoints = cycle(self._endpoints)
+        iter_endpoints = cycle(eligible_endpoints)
         async with self._semaphore:
             for _ in range(retry_times):
                 endpoint = next(iter_endpoints)
@@ -278,6 +476,10 @@ class LLM(BaseModel):
                 except (AssertionError, ValidationError) as e:
                     errors.append(f"[{endpoint.model}] {e}")
                 except Exception as e:
+                    if is_context_overflow_error(e):
+                        raise ContextWindowExceededError(
+                            f"Endpoint {endpoint.model} rejected the request as too large: {e}"
+                        ) from e
                     errors.append(f"[{endpoint.model}] {e}")
                     if self.secret_logging:
                         identifider = endpoint
@@ -425,8 +627,10 @@ class DeepPresenterConfig(BaseModel):
     t2i_model: LLM | None = Field(
         default=None, description="Text-to-image model configuration"
     )
+    _context_window_explicit: bool = PrivateAttr(default=False)
 
     def model_post_init(self, context):
+        self._context_window_explicit = self.context_window is not None
         if self.context_window is None:
             if self.context_folding:
                 self.context_window = CONTEXT_LENGTH_LIMIT // self.max_context_folds
@@ -441,6 +645,10 @@ class DeepPresenterConfig(BaseModel):
             debug(f"Context folding is disabled, context window: {self.context_window}")
 
         return super().model_post_init(context)
+
+    @property
+    def has_legacy_context_window_override(self) -> bool:
+        return self._context_window_explicit
 
     @classmethod
     def load_from_file(cls, config_path: str | None = None) -> "DeepPresenterConfig":

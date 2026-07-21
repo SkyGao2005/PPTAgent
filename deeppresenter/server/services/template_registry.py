@@ -1,16 +1,14 @@
 """模板注册中心 —— 线程安全，支持动态加载/卸载。
 
 职责：
-- 管理所有模板的 manifest 索引
-- 提供模板缓存（presentation + slide_induction）
-- 支持 hash 去重查找
+- 管理 Template IR manifest 索引
+- 支持 source hash 去重查找
 - 服务重启后从 manifest 文件恢复
 """
 
 import json
 import logging
 import threading
-from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
@@ -33,7 +31,6 @@ class TemplateRegistry:
     特性:
     - 线程安全（所有公共方法持锁）
     - hash → template_id 反向索引（去重）
-    - 缓存返回 deepcopy（防止 pptgen.pop() 破坏源数据）
     - 服务重启后自动从 manifest.json 恢复
     """
 
@@ -45,8 +42,6 @@ class TemplateRegistry:
 
         # manifest 索引: template_id → TemplateManifest
         self._manifests: dict[str, TemplateManifest] = {}
-        # 解析缓存: template_id → {"presentation": ..., "slide_induction": ..., "config": ...}
-        self._cache: dict[str, dict] = {}
         # hash → template_id 反向索引
         self._hash_index: dict[str, str] = {}
 
@@ -60,16 +55,16 @@ class TemplateRegistry:
             self._manifests[manifest.template_id] = manifest
             if manifest.source_hash:
                 self._hash_index[manifest.source_hash] = manifest.template_id
+            hash_preview = (manifest.source_hash or "")[:12]
             logger.debug(
                 f"Registered template {manifest.template_id} "
-                f"(status={manifest.status.value}, hash={manifest.source_hash[:12]}...)"
+                f"(status={manifest.status.value}, hash={hash_preview}...)"
             )
 
     def unregister(self, template_id: str) -> None:
-        """注销模板，清理索引和缓存"""
+        """注销模板并清理索引"""
         with self._lock:
             self._manifests.pop(template_id, None)
-            self._cache.pop(template_id, None)
             # 清理 hash 索引
             for h, tid in list(self._hash_index.items()):
                 if tid == template_id:
@@ -98,31 +93,6 @@ class TemplateRegistry:
             if tid:
                 return self._manifests.get(tid)
             return None
-
-    # ── 缓存管理 ──────────────────────────────────────────────
-
-    def cache_template(self, template_id: str, data: dict) -> None:
-        """缓存已解析的模板数据（presentation + slide_induction 等）"""
-        with self._lock:
-            self._cache[template_id] = data
-            logger.debug(f"Cached template {template_id}")
-
-    def get_cached(self, template_id: str) -> Optional[dict]:
-        """
-        获取缓存的模板数据 —— 返回 deepcopy 防止破坏性修改
-
-        pptgen.set_reference() 内部曾经对 slide_induction 执行 pop()，
-        虽然已修复，但此处返回 deepcopy 作为双保险。
-        """
-        with self._lock:
-            data = self._cache.get(template_id)
-            return deepcopy(data) if data else None
-
-    def invalidate_cache(self, template_id: str) -> None:
-        """使缓存失效"""
-        with self._lock:
-            self._cache.pop(template_id, None)
-            logger.debug(f"Invalidated cache for template {template_id}")
 
     def update_manifest(self, manifest: TemplateManifest) -> None:
         """更新 manifest（解析完成后调用）"""

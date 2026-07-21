@@ -27,7 +27,7 @@ describe("createTask attachment lifecycle", () => {
   it("reuses successful partial uploads on retry and clears files after success", async () => {
     const store = useCreateTaskStore.getState()
     store.setTopic("季度复盘")
-    store.setTemplateId("tpl")
+    store.selectTemplate("tpl", "16:9")
     store.addAttachments([fakeFile("a.pdf"), fakeFile("b.pdf")])
 
     mockApi.uploadAttachment
@@ -49,7 +49,7 @@ describe("createTask attachment lifecycle", () => {
   it("cleans an already-uploaded temporary attachment when the user removes it", async () => {
     const store = useCreateTaskStore.getState()
     store.setTopic("季度复盘")
-    store.setTemplateId("tpl")
+    store.selectTemplate("tpl", "16:9")
     store.addAttachments([fakeFile("a.pdf"), fakeFile("b.pdf")])
     mockApi.uploadAttachment
       .mockResolvedValueOnce({ attachment_id: "att-a" })
@@ -76,5 +76,18 @@ describe("addAttachments", () => {
 
     const third = addAttachments([fakeFile("c.pdf")])
     expect(third).toBe(0)
+  })
+})
+
+describe("template selection", () => {
+  it("updates the template id and its fixed canvas ratio atomically", () => {
+    const store = useCreateTaskStore.getState()
+
+    store.selectTemplate("beamer", "4:3")
+
+    expect(useCreateTaskStore.getState()).toMatchObject({
+      templateId: "beamer",
+      ratio: "4:3",
+    })
   })
 })

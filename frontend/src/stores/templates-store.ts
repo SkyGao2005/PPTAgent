@@ -239,6 +239,12 @@ export const useTemplatesStore = create<TemplatesState>((set, get) => {
       if (patch) {
         templateEventOverlays.set(templateId, { seq: event.seq, patch })
         patchTemplate(templateId, patch)
+        // The ready event only carries status/progress. Refresh the server
+        // summary so the newly compiled IR palette, layouts and revision id
+        // replace the upload-time placeholders without requiring a reload.
+        if (event.type === "template.ready") {
+          void get().fetchTemplates()
+        }
       }
     },
   }

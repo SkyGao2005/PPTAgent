@@ -1,0 +1,393 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [],
+  "notes": null,
+  "page_number": 2,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1026160,
+        "width": 8596668,
+        "x": 677334,
+        "y": 106680
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "Title 1",
+      "normalized_bbox": {
+        "height": 0.14963,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.015556
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s002-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "What is culture?"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "What is culture?"
+          }
+        ],
+        "text": "What is culture?"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 5382260,
+        "width": 8596668,
+        "x": 677334,
+        "y": 1132840
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "Content Placeholder 2",
+      "normalized_bbox": {
+        "height": 0.784815,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.165185
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s002-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "In Sri"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "Aurobindo’s"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "words,"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "In Sri Aurobindo’s words,"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "The culture of a people may be described as the expression of a consciousness of life which formulates itself in"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": true
+                },
+                "text": "three"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "aspects."
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "The culture of a people may be described as the expression of a consciousness of life which formulates itself in three aspects."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "There is a side of thought, of ideal, of upward will and soul’s aspiration, which is reflected in the people’s"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": true
+                },
+                "text": "philosophy and religion"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "."
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "There is a side of thought, of ideal, of upward will and soul’s aspiration, which is reflected in the people’s philosophy and religion."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "There is a side of"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": true
+                },
+                "text": "creative self-expression"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "and appreciative aesthesis, intelligence and imagination, which finds expression in its"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": true
+                },
+                "text": "art, poetry, literature, music, dance"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "There is a side of creative self-expression and appreciative aesthesis, intelligence and imagination, which finds expression in its art, poetry, literature, music, dance"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "And, there is a side of practical and outward formulation, which is provided for in its"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "en-IN",
+                  "size_pt": 24.0,
+                  "underline": true
+                },
+                "text": "society and politics"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "And, there is a side of practical and outward formulation, which is provided for in its society and politics"
+          }
+        ],
+        "text": "In Sri Aurobindo’s words,\nThe culture of a people may be described as the expression of a consciousness of life which formulates itself in three aspects.\nThere is a side of thought, of ideal, of upward will and soul’s aspiration, which is reflected in the people’s philosophy and religion.\nThere is a side of creative self-expression and appreciative aesthesis, intelligence and imagination, which finds expression in its art, poetry, literature, music, dance\nAnd, there is a side of practical and outward formulation, which is provided for in its society and politics"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s002"
+}

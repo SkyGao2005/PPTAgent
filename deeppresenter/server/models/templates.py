@@ -4,25 +4,21 @@
 供 routes、services 和外部使用。
 """
 
-import json
-import uuid
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from deeppresenter.templates.models import (
+    TemplateManifest as TemplateManifest,
+    TemplateStatus as TemplateStatus,
+)
 
 
 # =============================================================================
 # 枚举
 # =============================================================================
-
-
-class TemplateStatus(str, Enum):
-    PARSING = "parsing"
-    READY = "ready"
-    FAILED = "failed"
 
 
 class AspectRatio(str, Enum):
@@ -46,48 +42,6 @@ class TemplateErrorCode(str, Enum):
     INVALID_STATE = "INVALID_STATE"
 
 
-# =============================================================================
-# 核心模型
-# =============================================================================
-
-
-class TemplateManifest(BaseModel):
-    """模板元信息 —— 存于 workspace/templates/<template_id>/manifest.json"""
-
-    template_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
-    name: str
-    status: TemplateStatus = TemplateStatus.PARSING
-    source_hash: str = ""  # SHA256 of original.pptx
-    aspect_ratio: Optional[str] = None  # "16:9" | "4:3"
-    slide_count: int = 0
-    layout_count: int = 0
-    thumbnail: Optional[str] = None  # relative path inside template dir
-    created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
-    error: Optional[str] = None
-
-    # P1 补充字段
-    primary_color: Optional[str] = None
-    fonts: list[str] = Field(default_factory=list)
-
-    @classmethod
-    def load(cls, path: Path | str) -> "TemplateManifest":
-        """从 manifest.json 加载"""
-        if isinstance(path, str):
-            path = Path(path)
-        manifest_path = path / "manifest.json" if path.is_dir() else path
-        return cls(**json.loads(manifest_path.read_text(encoding="utf-8")))
-
-    def save(self, path: Path | str) -> None:
-        """保存到 manifest.json"""
-        if isinstance(path, str):
-            path = Path(path)
-        target = path / "manifest.json" if path.is_dir() else path
-        target.write_text(
-            json.dumps(self.model_dump(), ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-
-
 class TemplateErrorResponse(BaseModel):
     """统一错误响应"""
     code: TemplateErrorCode
@@ -105,6 +59,39 @@ class TemplateListResponse(BaseModel):
     """模板列表响应"""
     templates: list[TemplateManifest]
     count: int
+
+
+class TemplatePalette(BaseModel):
+    """Frontend-safe palette derived from one compiled Template IR revision."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    bg: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+    surface: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+    primary: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+    accent: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+    ink: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+    dark: bool
+
+
+class TemplateSummary(BaseModel):
+    """Stable response shared by template upload, list, and detail endpoints."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    name: str
+    description: str
+    owner: Literal["system", "user"]
+    status: Literal["ready", "parsing", "failed"]
+    progress: int = Field(ge=0, le=100)
+    error: str | None = None
+    slides: int = Field(ge=0)
+    ratio: Literal["16:9", "4:3"]
+    layouts: list[str]
+    palette: TemplatePalette
+    revision_id: str | None = None
+    thumbnail_url: str | None = None
 
 
 # =============================================================================
@@ -131,10 +118,9 @@ class GenerationEvent(BaseModel):
 class TemplateSettings(BaseModel):
     """模板相关配置（可从环境变量覆盖）"""
 
+    model_config = ConfigDict(validate_default=True)
+
     max_file_size: int = 50 * 1024 * 1024  # 50 MB
     max_slide_count: int = 100
     allowed_extensions: set[str] = {".pptx"}
     induction_timeout: int = 600  # 10 分钟超时
-
-    class Config:
-        env_prefix = "TEMPLATE_"

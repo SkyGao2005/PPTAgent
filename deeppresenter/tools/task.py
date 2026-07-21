@@ -7,7 +7,6 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 from PIL import Image
-from pptagent_pptx import Presentation
 
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.log import debug, set_logger, warning
@@ -90,13 +89,6 @@ def finalize(outcome: str, agent_name: str = "") -> str:
         except Exception as e:
             warning(f"Failed to rewrite image links: {e}")
 
-    elif agent_name == "PPTAgent":
-        assert path.is_file() and path.suffix == ".pptx", (
-            f"Outcome file should be a pptx file, got {path.suffix}"
-        )
-        prs = Presentation(str(path))
-        if len(prs.slides) <= 0:
-            return "PPTX file should contain at least one slide"
     elif agent_name == "Design":
         html_files = list(path.glob("*.html"))
         if len(html_files) <= 0:

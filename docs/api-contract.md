@@ -20,7 +20,8 @@
 | GET | `/api/tasks/{id}/slides` | 全部页 + 当前版本 | — | `SlideArtifact[]` |
 | POST | `/api/tasks/{id}/export` | 导出 | `{format: "pptx"\|"pdf"}` | `{export_id}` |
 | GET | `/api/templates` | 模板列表 | — | `TemplateSummary[]` |
-| POST | `/api/templates` | 上传模板（multipart `file`，`.pptx`，P1 支持 `.ppt`） | `FormData{file}` | `TemplateSummary`（status=parsing） |
+| POST | `/api/templates` | 上传模板（multipart `file`，仅 `.pptx`） | `FormData{file}` | `TemplateSummary`（status=parsing） |
+| GET | `/api/templates/{id}/thumbnail?revision_id={rev}` | 指定 READY revision 的模板首页渲染图 | — | `image/webp` |
 | DELETE | `/api/templates/{id}` | 删除模板 | — | — |
 | POST | `/api/templates/{id}/retry` **[新增]** | 重新解析失败模板 | — | — |
 | GET | `/api/templates/events` **[新增]** | 模板解析进度 SSE，支持 `?last_seq=`（`template.*` 事件） | — | `GenerationEvent` 流 |
@@ -82,10 +83,11 @@ interface GenerationEvent {
 
 ## 4. 实体类型
 
-完整定义见 `frontend/src/types/api.ts`：`TaskSnapshot`、`SlideArtifact`、`SlideRevision`、`TemplateSummary`（含 `error?: string | null` — 解析失败原因，与 `template.failed` 的 `payload.reason` 一致）、`CreateTaskPayload`（`attachment_ids` 来自 `POST /api/attachments` 回执）、`ChatReceipt`、`AttachmentReceipt`、`ExportReceipt`。
+完整定义见 `frontend/src/types/api.ts`：`TaskSnapshot`、`SlideArtifact`、`SlideRevision`、`TemplateSummary`（含解析失败原因 `error` 和固定到 `revision_id` 的 `thumbnail_url`）、`CreateTaskPayload`（`attachment_ids` 来自 `POST /api/attachments` 回执）、`ChatReceipt`、`AttachmentReceipt`、`ExportReceipt`。
 
 ## 5. 约定
 
 1. 预览图 URL 可被前端追加内容事件序号形式的缓存参数（例如 `?v=42`），后端需容忍多余 query 参数。版本号允许分支后复用，不能作为唯一内容标识。
 2. `seq` 以任务为作用域单调递增；模板事件流单独编号。
 3. REST 响应只用于初始 hydrate 与乐观 UI；一切状态推进以 SSE 事件为准。
+4. 模板只支持 `16:9` 与 `4:3`。`TemplateSummary.ratio` 来自已固定的 Template IR 画布；创建任务时若显式 `ratio` 与模板不一致，后端返回 422。前端选择模板时必须原子更新 `template_id` 与 `ratio`。

@@ -1,0 +1,244 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_52dd78a0ac7ee92797303b71",
+    "asset_daf5beb781e3ef46abbb16c0"
+  ],
+  "notes": null,
+  "page_number": 1,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2123126,
+        "width": 10993549,
+        "x": 599225,
+        "y": 1695241
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#144189",
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.309584,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.247192
+      },
+      "placeholder_type": "center_title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "哈工大简约主题"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "模板"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "哈工大简约主题PPT模板"
+          }
+        ],
+        "text": "哈工大简约主题PPT模板"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1340999,
+        "width": 10993547,
+        "x": 581193,
+        "y": 4194262
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "副标题 2",
+      "normalized_bbox": {
+        "height": 0.195538,
+        "width": 0.901702,
+        "x": 0.04767,
+        "y": 0.611587
+      },
+      "placeholder_type": "subtitle",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Name"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": ""
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "of Author"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Name of Author"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#144189",
+                  "font_family": null,
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Name of School"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Name of School"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "2025年5月30日 Friday"
+          }
+        ],
+        "text": "Name of Author\nName of School\n2025年5月30日 Friday"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s001"
+}

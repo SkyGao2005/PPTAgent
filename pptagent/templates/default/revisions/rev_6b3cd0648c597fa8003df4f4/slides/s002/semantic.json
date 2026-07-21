@@ -1,0 +1,98 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.ba360404",
+  "avoid_when": [
+    "Avoid when the content needs charts, imagery, or side-by-side comparison.",
+    "Avoid when the explanation cannot be condensed into a single substantial text block."
+  ],
+  "page_number": 2,
+  "page_semantics": {
+    "density": "dense",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A text-focused content slide presents a prominent question or topic above a dense explanatory list.",
+    "title": "What is culture?"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.14963,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.015556
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Primary slide heading introducing the concept or question to be explained.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s002-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.784815,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.165185
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 795,
+        "max_items": 7,
+        "max_lines": 6,
+        "min_chars": 341,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Large explanatory text area for an attribution or introductory line followed by several detailed points or thematic aspects.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s002-sh0002"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a definition, conceptual explanation, or quotation-supported overview.",
+    "Best for a clear heading followed by several substantial text points."
+  ],
+  "slide_id": "s002",
+  "warnings": []
+}

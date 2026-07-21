@@ -1,9 +1,10 @@
-from __future__ import annotations
 """任务管理器 —— 任务生命周期、状态机、快照持久化、取消与恢复。
 
 每个任务被包装为 ``asyncio.Task``，拥有独立工作区、EventBus 和状态快照。
 FastAPI 服务默认运行真实 AgentLoop；测试可显式启用占位执行器。
 """
+
+from __future__ import annotations
 
 import asyncio
 import json
@@ -21,6 +22,9 @@ from deeppresenter.server.models.events import (
 from deeppresenter.server.services.event_bus import EventBus
 from deeppresenter.server.services.event_reporter import EventReporter
 from deeppresenter.server.services.preview import PreviewService, artifact_url
+from deeppresenter.templates.context import TemplateContextProvider
+from deeppresenter.templates.models import SUPPORTED_ASPECT_RATIOS
+from deeppresenter.templates.store import TemplateAspectRatioMismatchError
 
 # 任务快照文件名
 SNAPSHOT_FILE = "task.json"
@@ -69,7 +73,9 @@ class TaskSnapshot:
         """转为可 JSON 序列化的字典。"""
         return {
             "task_id": self.task_id,
-            "status": self.status.value if isinstance(self.status, TaskStatus) else self.status,
+            "status": self.status.value
+            if isinstance(self.status, TaskStatus)
+            else self.status,
             "progress": self.progress,
             "current_stage": self.current_stage.value if self.current_stage else None,
             "instruction": self.instruction,
@@ -131,11 +137,13 @@ class TaskManager:
         use_placeholder: bool = True,
         config_path: Optional[str] = None,
         max_concurrent: int = 2,
+        template_context_provider: TemplateContextProvider | None = None,
     ) -> None:
         self.workspace_base = Path(workspace_base)
         self.workspace_base.mkdir(parents=True, exist_ok=True)
         self.use_placeholder = use_placeholder
         self.config_path = config_path
+        self.template_context_provider = template_context_provider
         # 并发控制
         self._concurrency_sem = asyncio.Semaphore(max_concurrent)
         # task_id → asyncio.Task（包装 AgentLoop 的协程）
@@ -161,6 +169,7 @@ class TaskManager:
         powerpoint_type: str = "16:9",
         template: Optional[str] = None,
         template_id: Optional[str] = None,
+        template_revision_id: Optional[str] = None,
         convert_type: Optional[str] = None,
         enable_planner: bool = False,
         language: str = "zh",
@@ -170,9 +179,51 @@ class TaskManager:
         立即写入初始快照、创建 EventBus、发出 task.created 事件，
         然后异步启动任务执行器。
         """
+        if convert_type not in (None, "deeppresenter"):
+            raise ValueError(
+                "The PPTAgent layout engine is no longer available in the "
+                "DeepPresenter generation pipeline. Parse the template into "
+                "Template IR and generate with convert_type='deeppresenter'."
+            )
+        resolved_template_id = template_id or template
+        if resolved_template_id and not self.use_placeholder:
+            if self.template_context_provider is None:
+                raise RuntimeError("Template IR store is not configured")
+            revision = self.template_context_provider.store.resolve(
+                resolved_template_id,
+                template_revision_id,
+            )
+            canvas = revision.metadata.get("canvas", {})
+            template_ratio = (
+                canvas.get("aspect_ratio") if isinstance(canvas, dict) else None
+            ) or revision.manifest.get("aspect_ratio")
+            if template_ratio not in SUPPORTED_ASPECT_RATIOS:
+                raise TemplateAspectRatioMismatchError(
+                    f"Template {revision.template_id} uses unsupported canvas ratio "
+                    f"{template_ratio!r}"
+                )
+            if powerpoint_type != template_ratio:
+                raise TemplateAspectRatioMismatchError(
+                    f"Template {revision.template_id} uses {template_ratio}, "
+                    f"but the task requested {powerpoint_type}"
+                )
+            resolved_template_id = revision.template_id
+            template_revision_id = revision.revision_id
+            template = revision.template_id
+
         task_id = uuid.uuid4().hex[:8]
         workspace = task_dir(self.workspace_base, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
+        template_context_path: str | None = None
+        if resolved_template_id and not self.use_placeholder:
+            assert self.template_context_provider is not None
+            template_context = await asyncio.to_thread(
+                self.template_context_provider.materialize,
+                resolved_template_id,
+                workspace,
+                template_revision_id,
+            )
+            template_context_path = str(template_context["context_dir"])
 
         # 创建事件总线
         bus = EventBus(workspace)
@@ -193,7 +244,9 @@ class TaskManager:
             "num_pages": num_pages,
             "powerpoint_type": powerpoint_type,
             "template": template,
-            "template_id": template_id,
+            "template_id": resolved_template_id,
+            "template_revision_id": template_revision_id,
+            "template_context_path": template_context_path,
             "convert_type": convert_type,
             "enable_planner": enable_planner,
             "language": language,
@@ -216,6 +269,8 @@ class TaskManager:
                 "num_pages": num_pages,
                 "powerpoint_type": powerpoint_type,
                 "template": template,
+                "template_id": resolved_template_id,
+                "template_revision_id": template_revision_id,
                 "convert_type": convert_type,
                 "attachments": attachments or [],
             },
@@ -236,6 +291,8 @@ class TaskManager:
                         num_pages=num_pages,
                         powerpoint_type=powerpoint_type,
                         template=template,
+                        template_id=resolved_template_id,
+                        template_revision_id=template_revision_id,
                         convert_type=convert_type,
                         enable_planner=enable_planner,
                         language=language,
@@ -281,14 +338,20 @@ class TaskManager:
             return False
 
         # 终态不可取消
-        if snapshot.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED):
+        if snapshot.status in (
+            TaskStatus.COMPLETED,
+            TaskStatus.FAILED,
+            TaskStatus.CANCELLED,
+        ):
             return False
 
         if not validate_task_transition(snapshot.status, TaskStatus.CANCELLED):
             return False
 
         # 更新状态
-        self._transition_to(task_id, TaskStatus.CANCELLED, message="任务已取消，已完成页面保留")
+        self._transition_to(
+            task_id, TaskStatus.CANCELLED, message="任务已取消，已完成页面保留"
+        )
         reporter = self._reporters.get(task_id)
         if reporter:
             await reporter.task_cancelled("任务已取消，已完成页面保留")
@@ -340,8 +403,9 @@ class TaskManager:
         cancel_evt = asyncio.Event()
         self._cancel_events[task_id] = cancel_evt
 
-        self._transition_to(task_id, TaskStatus.RUNNING, progress=snapshot.progress,
-                            error_message=None)
+        self._transition_to(
+            task_id, TaskStatus.RUNNING, progress=snapshot.progress, error_message=None
+        )
         await reporter.task_started(
             f"任务重新执行{'（跳过已完成页面）' if retry_failed_slides_only else ''}"
         )
@@ -349,6 +413,7 @@ class TaskManager:
         # 从快照恢复原始生成参数
         params = snapshot.generation_params
         skip_ids = snapshot.completed_slide_ids if retry_failed_slides_only else []
+
         async def _retry_with_semaphore():
             async with self._concurrency_sem:
                 await self._run_agent_loop(
@@ -358,6 +423,8 @@ class TaskManager:
                     num_pages=params.get("num_pages"),
                     powerpoint_type=params.get("powerpoint_type", "16:9"),
                     template=params.get("template"),
+                    template_id=params.get("template_id"),
+                    template_revision_id=params.get("template_revision_id"),
                     convert_type=params.get("convert_type"),
                     enable_planner=params.get("enable_planner", False),
                     language=params.get("language", "zh"),
@@ -370,7 +437,9 @@ class TaskManager:
 
     # ── 任务导出 ──────────────────────────────────────────────
 
-    async def export(self, task_id: str, fmt: Literal["pptx", "pdf"] = "pptx") -> Optional[str]:
+    async def export(
+        self, task_id: str, fmt: Literal["pptx", "pdf"] = "pptx"
+    ) -> Optional[str]:
         """触发导出，返回产物相对路径。
 
         先检查快照中记录的 result_artifact 是否在磁盘上存在，
@@ -527,6 +596,8 @@ class TaskManager:
         num_pages: Optional[str],
         powerpoint_type: str,
         template: Optional[str],
+        template_id: Optional[str],
+        template_revision_id: Optional[str],
         convert_type: Optional[str],
         enable_planner: bool,
         language: str,
@@ -559,20 +630,23 @@ class TaskManager:
 
             config = DeepPresenterConfig.load_from_file(self.config_path)
             workspace = task_dir(self.workspace_base, task_id)
-            request_convert_type = (
-                ConvertType(convert_type)
-                if convert_type
-                else (
-                    ConvertType.PPTAGENT
-                    if template
-                    else ConvertType.DEEPPRESENTER
-                )
-            )
+            template_context_path = None
+            if template_id:
+                template_context_dir = workspace / "template_context"
+                if not template_context_dir.is_dir():
+                    raise RuntimeError(
+                        "Pinned task-local Template IR context is missing"
+                    )
+                template_context_path = str(template_context_dir)
+            request_convert_type = ConvertType.DEEPPRESENTER
             request = InputRequest(
                 instruction=instruction,
                 attachments=attachments,
                 num_pages=num_pages,
                 template=template,
+                template_id=template_id,
+                template_revision_id=template_revision_id,
+                template_context_path=template_context_path,
                 powerpoint_type=PowerPointType(powerpoint_type),
                 convert_type=request_convert_type,
                 enable_planner=enable_planner,
@@ -594,8 +668,9 @@ class TaskManager:
             async for msg in loop.run(request):
                 if cancel_evt and cancel_evt.is_set():
                     await reporter.task_cancelled("任务已取消，已完成页面保留")
-                    self._transition_to(task_id, TaskStatus.CANCELLED,
-                                        result_artifact=final_artifact)
+                    self._transition_to(
+                        task_id, TaskStatus.CANCELLED, result_artifact=final_artifact
+                    )
                     return
                 if isinstance(msg, (str, Path)):
                     final_artifact = self._artifact_path(task_id, Path(msg))
@@ -686,7 +761,9 @@ class TaskManager:
                 # stage.started
                 self._snapshots[task_id].current_stage = stage
                 self._snapshots[task_id].progress = progress_start
-                self._save_snapshot(task_dir(self.workspace_base, task_id), self._snapshots[task_id])
+                self._save_snapshot(
+                    task_dir(self.workspace_base, task_id), self._snapshots[task_id]
+                )
                 await reporter.stage_started(stage, msg)
 
                 # 模拟该阶段的执行耗时
@@ -697,7 +774,9 @@ class TaskManager:
 
                 # stage.completed
                 self._snapshots[task_id].progress = progress_end
-                self._save_snapshot(task_dir(self.workspace_base, task_id), self._snapshots[task_id])
+                self._save_snapshot(
+                    task_dir(self.workspace_base, task_id), self._snapshots[task_id]
+                )
                 await reporter.stage_completed(stage, f"{msg}——完成")
 
             # task.completed

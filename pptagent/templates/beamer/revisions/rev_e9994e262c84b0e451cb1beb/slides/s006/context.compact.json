@@ -1,0 +1,52 @@
+{
+  "family_ids": [
+    "family_b67fa6203f50e7791857"
+  ],
+  "overlay_image_path": "slides/s006/overlay.webp",
+  "page_number": 6,
+  "page_semantics": {
+    "density": "sparse",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "closing",
+    "summary": "A minimalist closing page built around one large, centered two-line farewell statement.",
+    "title": "本次报告到此结束\n欢迎批评指正！"
+  },
+  "reference_image_path": "slides/s006/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.22888,
+        "width": 0.676031,
+        "x": 0.161984,
+        "y": 0.319439
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 3,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s006",
+  "theme_tokens": {
+    "--template-color-1": "#F6ECE2",
+    "--template-font-1": "Microsoft YaHei",
+    "--template-font-2": "Hiragino Sans GB W3",
+    "--template-font-3": "Adobe Heiti Std R"
+  }
+}

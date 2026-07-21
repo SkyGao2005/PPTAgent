@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0",
+  "template_id": "beamer",
+  "name": "beamer",
+  "status": "ready",
+  "latest_revision_id": "rev_e9994e262c84b0e451cb1beb",
+  "active_revision_id": "rev_e9994e262c84b0e451cb1beb",
+  "revisions": [
+    {
+      "revision_id": "rev_e9994e262c84b0e451cb1beb",
+      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9",
+      "slide_count": 6,
+      "created_at": "2026-07-21T08:07:28.035901Z"
+    }
+  ],
+  "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9",
+  "slide_count": 6,
+  "aspect_ratio": "4:3",
+  "thumbnail": "revisions/rev_e9994e262c84b0e451cb1beb/slides/s001/reference.webp",
+  "error": null,
+  "created_at": "2026-07-21T05:46:14.734750Z",
+  "updated_at": "2026-07-21T08:07:28.036753Z"
+}

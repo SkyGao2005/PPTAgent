@@ -1,0 +1,241 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "notes": null,
+  "page_number": 8,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 774447,
+        "width": 10972800,
+        "x": 361492,
+        "y": 146627
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s008-sh0001",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "Correlation Analysis"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Correlation Analysis"
+          }
+        ],
+        "text": "Correlation Analysis"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [
+        "asset_b3642a78187cdf1ccb5b3ca8"
+      ],
+      "bbox": {
+        "height": 3483327,
+        "width": 9205962,
+        "x": 1493018,
+        "y": 1076315
+      },
+      "child_shape_ids": [],
+      "crop": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "表格 13",
+      "normalized_bbox": {
+        "height": 0.507922,
+        "width": 0.755082,
+        "x": 0.122459,
+        "y": 0.156943
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s008-sh0002",
+      "source_id": 4,
+      "text": null,
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2040519,
+        "width": 9205963,
+        "x": 1493017,
+        "y": 4670854
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 2",
+      "normalized_bbox": {
+        "height": 0.297538,
+        "width": 0.755082,
+        "x": 0.122459,
+        "y": 0.681081
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s008-sh0003",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Heatmap shows relationships between content, vision, ppl, and fid."
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Heatmap shows relationships between content, vision, ppl, and fid."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Strength and direction of correlations indicated by color."
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Strength and direction of correlations indicated by color."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Values range from -1.00 to 1.00."
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "Values range from -1.00 to 1.00."
+          }
+        ],
+        "text": "Heatmap shows relationships between content, vision, ppl, and fid.\nStrength and direction of correlations indicated by color.\nValues range from -1.00 to 1.00."
+      },
+      "visible": true,
+      "z_index": 2
+    }
+  ],
+  "slide_id": "s008"
+}

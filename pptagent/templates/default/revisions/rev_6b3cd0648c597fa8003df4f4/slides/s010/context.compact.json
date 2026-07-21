@@ -1,0 +1,96 @@
+{
+  "family_ids": [
+    "family_d96cdb936f19dfd9bab8"
+  ],
+  "overlay_image_path": "slides/s010/overlay.webp",
+  "page_number": 10,
+  "page_semantics": {
+    "density": "medium",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A centered topic heading and concise explanatory text lead into one large supporting photograph.",
+    "title": "The Intangible – Indian Classical Dance\nODISSI of ODISHA"
+  },
+  "reference_image_path": "slides/s010/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.004699
+      },
+      "capacity": {
+        "max_chars": 78,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 34,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.257579,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.197292
+      },
+      "capacity": {
+        "max_chars": 461,
+        "max_items": 4,
+        "max_lines": 3,
+        "min_chars": 197,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "body",
+      "style_ref": "text.body"
+    },
+    {
+      "asset_ids": [
+        "asset_95aa26778caf7f0c2f3dfc64"
+      ],
+      "bbox": {
+        "height": 0.527097,
+        "width": 0.445312,
+        "x": 0.20625,
+        "y": 0.454871
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.8448388057606094
+      },
+      "kind": "image",
+      "region_id": "r003",
+      "required": false,
+      "role": "photo",
+      "style_ref": "image.photo"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s010",
+  "theme_tokens": {
+    "--template-font-1": "Arial Rounded MT Bold"
+  }
+}

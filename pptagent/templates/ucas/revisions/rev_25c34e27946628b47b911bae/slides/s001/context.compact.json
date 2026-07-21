@@ -1,0 +1,73 @@
+{
+  "family_ids": [
+    "family_43c2c442d8f2cfd79f4d"
+  ],
+  "overlay_image_path": "slides/s001/overlay.webp",
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal academic cover slide featuring a dominant title banner and centered presenter information beneath institutional branding.",
+    "title": "果壳简约主题PPT模板4:3"
+  },
+  "reference_image_path": "slides/s001/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286089,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.28157
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.195801,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.62036
+      },
+      "capacity": {
+        "max_chars": 55,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 23,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "subtitle",
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s001",
+  "theme_tokens": {
+    "--template-color-1": "#969FA7"
+  }
+}

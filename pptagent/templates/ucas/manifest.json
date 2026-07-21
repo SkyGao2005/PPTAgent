@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0",
+  "template_id": "ucas",
+  "name": "ucas",
+  "status": "ready",
+  "latest_revision_id": "rev_25c34e27946628b47b911bae",
+  "active_revision_id": "rev_25c34e27946628b47b911bae",
+  "revisions": [
+    {
+      "revision_id": "rev_25c34e27946628b47b911bae",
+      "source_hash": "1a51f302acd0b2e889635b270e1ee8e92e8bd0478b242e5525a1ba5ab18fea5f",
+      "slide_count": 9,
+      "created_at": "2026-07-21T08:10:43.741951Z"
+    }
+  ],
+  "source_hash": "1a51f302acd0b2e889635b270e1ee8e92e8bd0478b242e5525a1ba5ab18fea5f",
+  "slide_count": 9,
+  "aspect_ratio": "4:3",
+  "thumbnail": "revisions/rev_25c34e27946628b47b911bae/slides/s001/reference.webp",
+  "error": null,
+  "created_at": "2026-07-21T05:47:29.095999Z",
+  "updated_at": "2026-07-21T08:10:43.742827Z"
+}

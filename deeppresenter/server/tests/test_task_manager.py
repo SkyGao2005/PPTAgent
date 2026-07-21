@@ -8,13 +8,13 @@ import asyncio
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from deeppresenter.server.models.artifacts import task_dir
 from deeppresenter.server.models.events import (
     EventType,
-    GenerationEvent,
     StageName,
     TaskStatus,
 )
@@ -25,7 +25,6 @@ from deeppresenter.server.services.task_manager import (
     TaskManager,
     TaskSnapshot,
 )
-from deeppresenter.server.services.event_reporter import EventReporter
 from deeppresenter.server.services.preview import PreviewService
 
 
@@ -34,6 +33,7 @@ def tmp_workspace() -> Path:
     tmp = tempfile.mkdtemp(prefix="taskmgr_test_")
     yield Path(tmp)
     import shutil
+
     shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -49,8 +49,10 @@ class RecordingRetryManager(TaskManager):
         # 模拟真实 _run_agent_loop 的 skip file 写入
         if kwargs.get("skip_slide_ids"):
             from deeppresenter.server.services.task_manager import task_dir as _td
+
             skip_file = _td(self.workspace_base, kwargs["task_id"]) / ".retry_skip.json"
             import json as _json
+
             skip_file.write_text(
                 _json.dumps(kwargs["skip_slide_ids"], ensure_ascii=False),
                 encoding="utf-8",
@@ -173,7 +175,24 @@ class TestTaskCreate:
 
         class RecordingTaskManager(TaskManager):
             def __init__(self, workspace_base: Path):
-                super().__init__(workspace_base, use_placeholder=False)
+                provider = SimpleNamespace(
+                    store=SimpleNamespace(
+                        resolve=lambda template_id, revision_id=None: SimpleNamespace(
+                            template_id=template_id,
+                            revision_id=revision_id or "rev-pinned",
+                            metadata={"canvas": {"aspect_ratio": "4:3"}},
+                            manifest={},
+                        )
+                    ),
+                    materialize=lambda template_id, workspace, revision_id=None: {
+                        "context_dir": str(workspace / "template_context")
+                    },
+                )
+                super().__init__(
+                    workspace_base,
+                    use_placeholder=False,
+                    template_context_provider=provider,
+                )
                 self.calls = []
 
             async def _run_agent_loop(self, **kwargs):
@@ -186,7 +205,8 @@ class TestTaskCreate:
             num_pages="6",
             powerpoint_type="4:3",
             template="template-1",
-            convert_type="pptagent",
+            template_revision_id="rev-requested",
+            convert_type="deeppresenter",
             enable_planner=True,
             language="zh",
         )
@@ -200,7 +220,9 @@ class TestTaskCreate:
                 "num_pages": "6",
                 "powerpoint_type": "4:3",
                 "template": "template-1",
-                "convert_type": "pptagent",
+                "template_id": "template-1",
+                "template_revision_id": "rev-requested",
+                "convert_type": "deeppresenter",
                 "enable_planner": True,
                 "language": "zh",
             }
@@ -352,12 +374,13 @@ class TestTaskRetry:
         task_id = await manager.create(instruction="test")
 
         # 手动设为 FAILED
-        manager._transition_to(task_id, TaskStatus.FAILED,
-                               error_message="模拟失败")
+        manager._transition_to(task_id, TaskStatus.FAILED, error_message="模拟失败")
         # 需要重建 bus（placeholder runner 完成后 bus 已关闭）
         workspace = task_dir(tmp_workspace, task_id)
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         success = await manager.retry(task_id)
         assert success
@@ -399,12 +422,16 @@ class TestTaskExport:
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         snap = TaskSnapshot(
-            task_id=task_id, status=TaskStatus.COMPLETED,
-            progress=100.0, result_artifact="exports/latest.pptx",
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            progress=100.0,
+            result_artifact="exports/latest.pptx",
         )
         manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         artifact = await manager.export(task_id)
         assert artifact == "exports/latest.pptx"
@@ -420,12 +447,16 @@ class TestTaskExport:
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         snap = TaskSnapshot(
-            task_id=task_id, status=TaskStatus.COMPLETED,
-            progress=100.0, result_artifact="manuscript.pptx",
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            progress=100.0,
+            result_artifact="manuscript.pptx",
         )
         manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         artifact = await manager.export(task_id, fmt="pdf")
         assert artifact == "manuscript.pdf"
@@ -449,11 +480,16 @@ class TestRestoreSnapshots:
         task_id = "restore01"
         workspace = task_dir(tmp_workspace, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
-        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.COMPLETED,
-                            instruction="已完成任务", progress=100.0,
-                            result_artifact="exports/latest.pptx")
+        snap = TaskSnapshot(
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            instruction="已完成任务",
+            progress=100.0,
+            result_artifact="exports/latest.pptx",
+        )
         (workspace / SNAPSHOT_FILE).write_text(
-            json.dumps(snap.to_dict(), ensure_ascii=False), encoding="utf-8")
+            json.dumps(snap.to_dict(), ensure_ascii=False), encoding="utf-8"
+        )
 
         restored = await TaskManager.restore_snapshots(tmp_workspace)
         assert task_id in restored._snapshots
@@ -466,11 +502,13 @@ class TestRestoreSnapshots:
         task_id = "orphan01"
         workspace = task_dir(tmp_workspace, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
-        snap = TaskSnapshot(task_id=task_id, status=TaskStatus.RUNNING,
-                            instruction="orphan task")
+        snap = TaskSnapshot(
+            task_id=task_id, status=TaskStatus.RUNNING, instruction="orphan task"
+        )
         snap_path = workspace / SNAPSHOT_FILE
-        snap_path.write_text(json.dumps(snap.to_dict(), ensure_ascii=False),
-                             encoding="utf-8")
+        snap_path.write_text(
+            json.dumps(snap.to_dict(), ensure_ascii=False), encoding="utf-8"
+        )
 
         restored = await TaskManager.restore_snapshots(tmp_workspace)
         assert task_id in restored._snapshots
@@ -498,7 +536,7 @@ class TestRetryParams:
             num_pages="5",
             powerpoint_type="4:3",
             template="acme",
-            convert_type="pptagent",
+            convert_type="deeppresenter",
             enable_planner=True,
             language="zh",
         )
@@ -509,7 +547,7 @@ class TestRetryParams:
         assert params["num_pages"] == "5"
         assert params["powerpoint_type"] == "4:3"
         assert params["template"] == "acme"
-        assert params["convert_type"] == "pptagent"
+        assert params["convert_type"] == "deeppresenter"
         assert params["enable_planner"] is True
         assert params["language"] == "zh"
 
@@ -525,7 +563,9 @@ class TestRetryParams:
         manager._transition_to(task_id, TaskStatus.FAILED, error_message="失败")
         workspace = task_dir(tmp_workspace, task_id)
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
         params_before = manager.get_snapshot(task_id).generation_params
 
         await manager.retry(task_id)
@@ -544,7 +584,9 @@ class TestRetryParams:
         manager._transition_to(task_id, TaskStatus.FAILED, error_message="旧错误")
         workspace = task_dir(tmp_workspace, task_id)
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         await manager.retry(task_id)
         snap = manager.get_snapshot(task_id)
@@ -570,12 +612,15 @@ class TestExportRobustness:
 
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         snap = TaskSnapshot(
-            task_id=task_id, status=TaskStatus.COMPLETED,
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
             result_artifact="exports/missing.pptx",  # 不存在
         )
         manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         artifact = await manager.export(task_id)
         assert artifact is not None
@@ -592,7 +637,9 @@ class TestExportRobustness:
         snap = TaskSnapshot(task_id=task_id, status=TaskStatus.COMPLETED)
         manager._snapshots[task_id] = snap
         manager._buses[task_id] = EventBus(workspace)
-        manager._reporters[task_id] = EventReporter(task_id, manager._buses[task_id].publish)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
 
         artifact = await manager.export(task_id)
         assert artifact is None
@@ -697,7 +744,9 @@ class TestRetrySkip:
         if runner:
             await runner
         skip_file = workspace / ".retry_skip.json"
-        assert skip_file.exists(), ".retry_skip.json should have been written by _run_agent_loop"
+        assert skip_file.exists(), (
+            ".retry_skip.json should have been written by _run_agent_loop"
+        )
         assert json.loads(skip_file.read_text(encoding="utf-8")) == ["sld-xxx"]
 
 
@@ -713,10 +762,13 @@ class TestFailurePreservesSlides:
         manager = TaskManager(tmp_workspace, use_placeholder=True)
         tid = await manager.create(instruction="test")
 
-        manager._transition_to(tid, TaskStatus.FAILED,
-                               error_message="partial failure",
-                               completed_slide_ids=["sld-aaa", "sld-bbb"],
-                               completed_slides=2)
+        manager._transition_to(
+            tid,
+            TaskStatus.FAILED,
+            error_message="partial failure",
+            completed_slide_ids=["sld-aaa", "sld-bbb"],
+            completed_slides=2,
+        )
         snap = manager.get_snapshot(tid)
         assert snap.completed_slide_ids == ["sld-aaa", "sld-bbb"]
         assert snap.completed_slides == 2

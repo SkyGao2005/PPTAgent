@@ -18,13 +18,14 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, Request, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 from deeppresenter.server.models.templates import (
     GenerationEvent,
     TemplateErrorCode,
     TemplateErrorResponse,
     TemplateManifest,
+    TemplateSummary,
     TemplateSettings,
     TemplateStatus,
 )
@@ -32,12 +33,16 @@ from deeppresenter.server.services.template_registry import TemplateRegistry
 from deeppresenter.server.services.template_catalog import (
     bundled_template_ids,
     bundled_template_summaries,
+    bundled_template_summary,
+    bundled_templates_root,
+    compiled_template_summary,
 )
 from deeppresenter.server.services.template_service import (
     TemplateInductionService,
     sanitize_filename,
     validate_pptx,
 )
+from deeppresenter.templates import TemplateStore, TemplateStoreError, derive_template_id
 from deeppresenter.utils.log import debug, get_logger
 
 logger = get_logger()
@@ -106,6 +111,35 @@ async def _push_event(event: GenerationEvent) -> None:
         )
 
 
+def _sse_progress_callback(
+    service: TemplateInductionService,
+    registry: TemplateRegistry,
+    template_dir: Path,
+    template_id: str,
+):
+    """Create a task-local progress bridge without mutating shared service state."""
+
+    original_callback = service.progress_callback
+
+    async def callback(event_data: dict) -> None:
+        gen_event = GenerationEvent(**event_data)
+        await _push_event(gen_event)
+        if gen_event.event in ("template.ready", "template.failed"):
+            registry.update_manifest(TemplateManifest.load(template_dir))
+
+            async def delayed_cleanup() -> None:
+                await asyncio.sleep(5)
+                cleanup_event_queue(template_id)
+
+            asyncio.create_task(delayed_cleanup())
+        if original_callback:
+            result = original_callback(event_data)
+            if asyncio.iscoroutine(result):
+                await result
+
+    return callback
+
+
 # =============================================================================
 # 依赖注入辅助（实际应用通过 app.state 注入）
 # =============================================================================
@@ -149,7 +183,7 @@ def _get_settings(request: Request) -> TemplateSettings:
 # =============================================================================
 
 
-@router.post("")
+@router.post("", response_model=TemplateSummary)
 async def upload_template(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -209,8 +243,8 @@ async def upload_template(
     if existing:
         if existing.status == TemplateStatus.READY:
             debug(f"Duplicate template detected: {existing.template_id}")
-            return _manifest_summary(existing)
-        elif existing.status == TemplateStatus.PARSING:
+            return _manifest_summary(existing, registry.templates_dir)
+        elif existing.status == TemplateStatus.COMPILING:
             return JSONResponse(
                 status_code=409,
                 content={
@@ -221,7 +255,11 @@ async def upload_template(
             )
 
     # 6. 创建模板目录
-    template_id = existing.template_id if existing else safe_name
+    template_id = (
+        existing.template_id
+        if existing
+        else derive_template_id(file_hash, safe_name)
+    )
     # 防止 template_id 冲突
     counter = 1
     base_id = template_id
@@ -259,7 +297,7 @@ async def upload_template(
     manifest = TemplateManifest(
         template_id=template_id,
         name=safe_name,
-        status=TemplateStatus.PARSING,
+        status=TemplateStatus.COMPILING,
         source_hash=file_hash,
         slide_count=validation.slide_count,
     )
@@ -268,55 +306,54 @@ async def upload_template(
 
     # 9. 注册 service 进度回调
     service = await _get_induction_service(request)
-    original_callback = service.progress_callback
-
-    async def sse_callback(event_data: dict) -> None:
-        """桥接 service 进度事件到 SSE 队列"""
-        gen_event = GenerationEvent(**event_data)
-        await _push_event(gen_event)
-
-        # 终态时清理事件队列
-        if gen_event.event in ("template.ready", "template.failed"):
-            # 更新 registry 中的 manifest
-            fresh_manifest = TemplateManifest.load(template_dir)
-            registry.update_manifest(fresh_manifest)
-
-            # 终态时清理 SSE 队列（延迟 5s 让消费者读取完）
-            async def delayed_cleanup():
-                await asyncio.sleep(5)
-                cleanup_event_queue(template_id)
-
-            asyncio.create_task(delayed_cleanup())
-
-        # 也调用原始回调
-        if original_callback:
-            try:
-                result = original_callback(event_data)
-                if asyncio.iscoroutine(result):
-                    await result
-            except Exception:
-                pass
-
-    service.progress_callback = sse_callback
+    sse_callback = _sse_progress_callback(
+        service,
+        registry,
+        template_dir,
+        template_id,
+    )
 
     # 10. 后台启动解析
-    background_tasks.add_task(service.run_induction, template_id)
+    background_tasks.add_task(service.run_induction, template_id, sse_callback)
 
     logger.info(f"Template upload accepted: {template_id} (hash={file_hash[:12]}...)")
-    return _manifest_summary(manifest)
+    return _manifest_summary(manifest, registry.templates_dir)
 
 
-def _manifest_summary(manifest: TemplateManifest) -> dict[str, Any]:
+def _manifest_summary(
+    manifest: TemplateManifest,
+    templates_root: Path,
+) -> dict[str, Any]:
     """将解析服务的 manifest 映射为前端 TemplateSummary。"""
-    primary = manifest.primary_color or "#38506B"
+    if manifest.status is TemplateStatus.READY:
+        try:
+            return compiled_template_summary(
+                templates_root,
+                manifest.template_id,
+                owner="user",
+                description="用户上传模板",
+                name=manifest.name,
+            )
+        except TemplateStoreError as exc:
+            status = "failed"
+            error = manifest.error or f"Template IR 不可用: {exc}"
+    else:
+        status = (
+            "parsing"
+            if manifest.status is TemplateStatus.COMPILING
+            else "failed"
+        )
+        error = manifest.error
+
+    primary = "#38506B"
     return {
         "id": manifest.template_id,
         "name": manifest.name,
         "description": "用户上传模板",
         "owner": "user",
-        "status": manifest.status.value,
-        "progress": 100 if manifest.status == TemplateStatus.READY else 0,
-        "error": manifest.error,
+        "status": status,
+        "progress": 0,
+        "error": error,
         "slides": manifest.slide_count,
         "ratio": manifest.aspect_ratio or "16:9",
         "layouts": [],
@@ -328,17 +365,22 @@ def _manifest_summary(manifest: TemplateManifest) -> dict[str, Any]:
             "ink": "#22303E",
             "dark": False,
         },
+        "revision_id": manifest.active_revision_id,
+        "thumbnail_url": None,
     }
 
 
-@router.get("")
+@router.get("", response_model=list[TemplateSummary])
 async def list_templates(request: Request):
     """获取可用及解析中的模板"""
     registry = _get_registry(request)
-    manifests = registry.list_all(include_failed=False)
+    manifests = registry.list_all(include_failed=True)
     return [
         *bundled_template_summaries(),
-        *[_manifest_summary(item) for item in manifests],
+        *[
+            _manifest_summary(item, registry.templates_dir)
+            for item in manifests
+        ],
     ]
 
 
@@ -373,9 +415,13 @@ async def template_event_stream(last_seq: int = 0):
     )
 
 
-@router.get("/{template_id}")
+@router.get("/{template_id}", response_model=TemplateSummary)
 async def get_template(template_id: str, request: Request):
     """获取模板详情和解析状态"""
+    bundled = bundled_template_summary(template_id)
+    if bundled is not None:
+        return bundled
+
     registry = _get_registry(request)
     manifest = registry.get(template_id)
     if manifest is None:
@@ -386,7 +432,55 @@ async def get_template(template_id: str, request: Request):
                 message=f"模板 {template_id} 不存在",
             ).model_dump(),
         )
-    return manifest
+    return _manifest_summary(manifest, registry.templates_dir)
+
+
+@router.get("/{template_id}/thumbnail")
+async def get_template_thumbnail(
+    template_id: str,
+    request: Request,
+    revision_id: str | None = None,
+):
+    """Serve the first rendered page from one pinned READY revision."""
+
+    if template_id in bundled_template_ids():
+        templates_root = bundled_templates_root()
+    else:
+        registry = _get_registry(request)
+        manifest = registry.get(template_id)
+        if manifest is None:
+            raise HTTPException(404, detail="Template not found")
+        templates_root = registry.templates_dir
+
+    try:
+        revision = TemplateStore(templates_root).resolve(template_id, revision_id)
+        first_slide = min(
+            revision.load_slide_index(),
+            key=lambda item: int(item.get("page_number", 0)),
+        )
+        thumbnail = revision.resolve_path(
+            revision.slide_artifact_path(first_slide, "reference")
+        )
+    except (TemplateStoreError, OSError, ValueError) as exc:
+        raise HTTPException(404, detail="Template thumbnail not found") from exc
+
+    media_types = {
+        ".jpeg": "image/jpeg",
+        ".jpg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }
+    return FileResponse(
+        thumbnail,
+        media_type=media_types.get(thumbnail.suffix.lower(), "application/octet-stream"),
+        headers={
+            "Cache-Control": (
+                "public, max-age=31536000, immutable"
+                if revision_id is not None
+                else "no-cache"
+            )
+        },
+    )
 
 
 @router.get("/{template_id}/events")
@@ -462,13 +556,15 @@ async def retry_parse(
 
     # 重置状态
     template_dir = registry.templates_dir / template_id
-    manifest.status = TemplateStatus.PARSING
-    manifest.error = None
+    manifest = manifest.model_copy(
+        update={"status": TemplateStatus.COMPILING, "error": None}
+    )
     manifest.save(template_dir)
     registry.register(manifest)
 
     # 后台重新解析
-    background_tasks.add_task(service.run_induction, template_id)
+    callback = _sse_progress_callback(service, registry, template_dir, template_id)
+    background_tasks.add_task(service.run_induction, template_id, callback)
 
     return {"message": "重新解析已启动", "template_id": template_id}
 
@@ -489,7 +585,6 @@ async def delete_template(template_id: str, request: Request):
 
     # 注销并清理
     registry.unregister(template_id)
-    registry.invalidate_cache(template_id)
 
     template_dir = registry.templates_dir / template_id
     if template_dir.exists():

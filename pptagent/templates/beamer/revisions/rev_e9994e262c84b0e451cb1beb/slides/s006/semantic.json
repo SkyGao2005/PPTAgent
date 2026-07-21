@@ -1,0 +1,64 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.ba360404",
+  "avoid_when": [
+    "The presentation needs a detailed recap, next steps, or contact information.",
+    "The closing page must include visuals, multiple content blocks, or a call-to-action."
+  ],
+  "page_number": 6,
+  "page_semantics": {
+    "density": "sparse",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "closing",
+    "summary": "A minimalist closing page built around one large, centered two-line farewell statement.",
+    "title": "本次报告到此结束\n欢迎批评指正！"
+  },
+  "reading_order": [
+    "r001"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.22888,
+        "width": 0.676031,
+        "x": 0.161984,
+        "y": 0.319439
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 3,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large centered closing message indicating the presentation has ended and inviting feedback.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s006-sh0001"
+      ],
+      "style_ref": "text.title"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use as a simple final slide to conclude a formal presentation.",
+    "Choose when a prominent closing statement and invitation for feedback are sufficient."
+  ],
+  "slide_id": "s006",
+  "warnings": []
+}

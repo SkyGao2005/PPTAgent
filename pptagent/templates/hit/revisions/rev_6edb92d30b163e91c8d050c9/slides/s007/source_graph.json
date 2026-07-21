@@ -1,0 +1,241 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_daf5beb781e3ef46abbb16c0"
+  ],
+  "notes": null,
+  "page_number": 7,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 566738,
+        "width": 11029616,
+        "x": 581193,
+        "y": 4595886
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.082639,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.67015
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": null,
+                  "underline": null
+                },
+                "text": "图片内容页"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "图片内容页"
+          }
+        ],
+        "text": "图片内容页"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1093170,
+        "width": 11029617,
+        "x": 581193,
+        "y": 5178955
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "文本占位符 3",
+      "normalized_bbox": {
+        "height": 0.159401,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.75517
+      },
+      "placeholder_type": "body",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0002",
+      "source_id": 4,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 16.0,
+                  "underline": null
+                },
+                "text": "本页空白比较大，可以放图等内容，但是也不是不能放一些详细的内容啊，你说是吗，我的老伙计。"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "本页空白比较大，可以放图等内容，但是也不是不能放一些详细的内容啊，你说是吗，我的老伙计。"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 16.0,
+                  "underline": null
+                },
+                "text": "哦，这真是盖了帽了，这个图片也太太太太太太太太太好看了吧我的少奶奶"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "哦，这真是盖了帽了，这个图片也太太太太太太太太太好看了吧我的少奶奶"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": null,
+                  "font_family": null,
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 16.0,
+                  "underline": null
+                },
+                "text": "谁说不是呢我的老伙计"
+              }
+            ],
+            "style": {
+              "alignment": null,
+              "bold": null,
+              "color": null,
+              "font_family": null,
+              "italic": null,
+              "language": null,
+              "size_pt": null,
+              "underline": null
+            },
+            "text": "谁说不是呢我的老伙计"
+          }
+        ],
+        "text": "本页空白比较大，可以放图等内容，但是也不是不能放一些详细的内容啊，你说是吗，我的老伙计。\n哦，这真是盖了帽了，这个图片也太太太太太太太太太好看了吧我的少奶奶\n谁说不是呢我的老伙计"
+      },
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [
+        "asset_808f5857e34644a7f6a7baed"
+      ],
+      "bbox": {
+        "height": 4077370,
+        "width": 11394599,
+        "x": 581193,
+        "y": 288758
+      },
+      "child_shape_ids": [],
+      "crop": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 2",
+      "normalized_bbox": {
+        "height": 0.594542,
+        "width": 0.934596,
+        "x": 0.04767,
+        "y": 0.042105
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0003",
+      "source_id": 3,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    }
+  ],
+  "slide_id": "s007"
+}

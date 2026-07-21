@@ -1,0 +1,53 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [],
+  "notes": null,
+  "page_number": 7,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [
+        "asset_96db72ee0855d47f7d0766b3"
+      ],
+      "bbox": {
+        "height": 6249077,
+        "width": 6276975,
+        "x": 1852612,
+        "y": 304461
+      },
+      "child_shape_ids": [],
+      "crop": {
+        "bottom": 0.0,
+        "left": 0.0,
+        "right": 0.0,
+        "top": 0.0
+      },
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "Picture 2",
+      "normalized_bbox": {
+        "height": 0.91121,
+        "width": 0.514844,
+        "x": 0.151953,
+        "y": 0.044395
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s007-sh0001",
+      "source_id": 3,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    }
+  ],
+  "slide_id": "s007"
+}

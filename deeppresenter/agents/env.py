@@ -42,6 +42,11 @@ from deeppresenter.utils.mcp_client import MCPClient
 from deeppresenter.utils.typings import ChatMessage, MCPServer, Role
 
 LOCAL_TOOL_SERVER = "local"
+BOUNDED_STRUCTURED_TOOLS = {
+    "get_template_overview",
+    "search_template_references",
+    "get_template_reference",
+}
 
 
 class ToolTiming(BaseModel):
@@ -70,6 +75,10 @@ class AgentEnv:
         self.mcp_configs = []
         with open(config.mcp_config_file, encoding="utf-8") as f:
             for s in json.load(f):
+                # The legacy pptagent-mcp layout engine is intentionally not part
+                # of the DeepPresenter HTML generation runtime.
+                if s.get("name") == "pptagent":
+                    continue
                 server = MCPServer(**s)
                 if server.network and config.offline_mode:
                     continue
@@ -197,7 +206,11 @@ class AgentEnv:
         for block in result.content:
             if block.type == "text":
                 assert isinstance(block, TextContent)
-                if len(block.text) > self.cutoff_len:
+                if len(block.text) > self.cutoff_len and not (
+                    tool_call.function.name in BOUNDED_STRUCTURED_TOOLS
+                    and self._tool_to_server.get(tool_call.function.name)
+                    == LOCAL_TOOL_SERVER
+                ):
                     truncated = block.text[: self.cutoff_len]
                     truncated = truncated[: truncated.rfind("\n")]
 
@@ -266,7 +279,6 @@ class AgentEnv:
     ) -> None:
         if self.event_reporter is None:
             await self._maybe_render_html_preview(tool_call, arguments, result)
-            await self._maybe_capture_template_slide(tool_call, arguments, result)
             return
         try:
             if result.isError:
@@ -285,7 +297,6 @@ class AgentEnv:
                     payload={"tool_call_id": tool_call.id},
                 )
             await self._maybe_render_html_preview(tool_call, arguments, result)
-            await self._maybe_capture_template_slide(tool_call, arguments, result)
         except Exception as e:
             warning(f"Failed to report tool finish event: {e}")
 
@@ -327,7 +338,9 @@ class AgentEnv:
                 if existing and existing.preview_path:
                     url = artifact_url(self.workspace.stem, existing.preview_path)
                     if self.event_reporter is not None:
-                        await self.event_reporter.slide_preview_ready(slide_id, slide_index, url)
+                        await self.event_reporter.slide_preview_ready(
+                            slide_id, slide_index, url
+                        )
                         await self.event_reporter.slide_completed(slide_id, slide_index)
                     return
             artifact = await self.preview_service.render_html_slide(
@@ -369,102 +382,6 @@ class AgentEnv:
                     warning(f"Failed to report slide preview failure: {report_error}")
             warning(f"Failed to render slide preview: {e}")
 
-    async def _maybe_capture_template_slide(
-        self,
-        tool_call: ToolCall,
-        arguments: dict | None,
-        result: CallToolResult,
-    ) -> None:
-        """当 ``generate_slide`` 工具成功后，持久化模板模式 SlideArtifact。
-
-        与 ``_maybe_render_html_preview`` 对称：HTML 模式通过 inspect_slide
-        获取预览，模板模式通过 generate_slide 获取结构化页面数据。
-        """
-        if (
-            self.preview_service is None
-            or result.isError
-            or tool_call.function.name != "generate_slide"
-        ):
-            return
-        slide_id = None
-        slide_index = None
-        try:
-            from deeppresenter.server.services.preview import (
-                artifact_url,
-                stable_slide_id,
-            )
-
-            # 从工具参数和结果中提取 slide_data
-            slide_data: dict = {}
-            if arguments:
-                slide_data.update(arguments)
-            # 结果文本可能包含 JSON，尝试解析
-            result_text = self._tool_result_text(result)
-            if result_text:
-                try:
-                    import json as _json
-                    parsed = _json.loads(result_text)
-                    if isinstance(parsed, dict):
-                        slide_data.update(parsed)
-                except (_json.JSONDecodeError, TypeError):
-                    pass
-
-            # 确定页码——从参数或上下文计数
-            slide_index = slide_data.get("slide_index") or 1
-            if isinstance(slide_index, str):
-                slide_index = int(slide_index)
-            slide_id = stable_slide_id(self.workspace.stem, slide_index)
-            if self.event_reporter is not None:
-                await self.event_reporter.slide_started(slide_id, slide_index)
-
-            # retry 跳过已完成页：直接复用已有 artifact
-            if slide_id in self._skip_slide_ids:
-                existing = self.preview_service.get_slide(self.workspace.stem, slide_id)
-                if existing and existing.preview_path:
-                    url = artifact_url(self.workspace.stem, existing.preview_path)
-                    if self.event_reporter is not None:
-                        await self.event_reporter.slide_preview_ready(slide_id, slide_index, url)
-                        await self.event_reporter.slide_completed(slide_id, slide_index)
-                    return
-
-            artifact = await self.preview_service.render_template_slide(
-                self.workspace.stem,
-                slide_index,
-                slide_data,
-                slide_id=slide_id,
-                aspect_ratio=slide_data.get("aspect_ratio", "16:9"),
-            )
-
-            if self.event_reporter is not None:
-                await self.event_reporter.slide_preview_ready(
-                    artifact.slide_id,
-                    artifact.index,
-                    artifact_url(artifact.task_id, artifact.preview_path),
-                )
-                await self.event_reporter.slide_completed(
-                    artifact.slide_id,
-                    artifact.index,
-                )
-        except Exception as e:
-            if (
-                self.event_reporter is not None
-                and slide_id is not None
-                and slide_index is not None
-            ):
-                try:
-                    await self.event_reporter.slide_failed(
-                        slide_id,
-                        slide_index,
-                        f"模板模式第 {slide_index} 页持久化失败：{e}",
-                        payload={
-                            "error": str(e),
-                            "source_preserved": True,
-                        },
-                    )
-                except Exception as report_error:
-                    warning(f"Failed to report template slide failure: {report_error}")
-            warning(f"Failed to capture template slide: {e}")
-
     @staticmethod
     def _tool_result_text(result: CallToolResult) -> str:
         texts = []
@@ -479,8 +396,12 @@ class AgentEnv:
         self._skip_slide_ids: set[str] = set()
         if skip_file.exists():
             try:
-                self._skip_slide_ids = set(json.loads(skip_file.read_text(encoding="utf-8")))
-                debug(f"Retry mode: skipping {len(self._skip_slide_ids)} completed slides")
+                self._skip_slide_ids = set(
+                    json.loads(skip_file.read_text(encoding="utf-8"))
+                )
+                debug(
+                    f"Retry mode: skipping {len(self._skip_slide_ids)} completed slides"
+                )
             except (json.JSONDecodeError, OSError):
                 pass
 

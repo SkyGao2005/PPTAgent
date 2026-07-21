@@ -13,6 +13,8 @@ export interface TemplatePalette {
 
 export interface TemplateSummary {
   id: string
+  /** Immutable Template IR revision used by bundled and parsed templates. */
+  revision_id?: string
   name: string
   description: string
   owner: TemplateOwner
@@ -24,6 +26,8 @@ export interface TemplateSummary {
   ratio: "16:9" | "4:3"
   layouts: string[]
   palette: TemplatePalette
+  /** First rendered page from the pinned Template IR revision. */
+  thumbnail_url?: string | null
 }
 
 export type TaskStatus =

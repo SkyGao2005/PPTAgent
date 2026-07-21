@@ -70,6 +70,15 @@ class Role(StrEnum):
     TOOL = "tool"
 
 
+class ContextLayer(StrEnum):
+    """Retention policy used by the agent's context preflight."""
+
+    PINNED = "pinned"
+    EPHEMERAL = "ephemeral"
+    SUMMARIZABLE = "summarizable"
+    EXTERNAL = "external"
+
+
 class ChatMessage(BaseModel):
     """Chat message model"""
 
@@ -122,6 +131,34 @@ class ChatMessage(BaseModel):
                 return True
         return False
 
+    @property
+    def context_layer(self) -> ContextLayer:
+        """Return the retention layer without changing the wire message schema."""
+        raw_layer = self.extra_info.get("context_layer")
+        if raw_layer is None:
+            if self.role == Role.SYSTEM:
+                return ContextLayer.PINNED
+            return ContextLayer.SUMMARIZABLE
+        if isinstance(raw_layer, ContextLayer):
+            return raw_layer
+        return ContextLayer(str(raw_layer).lower())
+
+    def set_context_layer(
+        self,
+        layer: ContextLayer,
+        *,
+        template_context: bool = False,
+    ) -> "ChatMessage":
+        """Annotate retention metadata and return the message for fluent setup."""
+        self.extra_info["context_layer"] = layer.value
+        if template_context:
+            self.extra_info["template_context"] = True
+        return self
+
+    @property
+    def is_template_context(self) -> bool:
+        return bool(self.extra_info.get("template_context", False))
+
 
 class ToolSet(BaseModel):
     include_tool_servers: list[str] | Literal["all"] = "all"
@@ -166,7 +203,6 @@ class Cost(BaseModel):
 
 class ConvertType(StrEnum):
     DEEPPRESENTER = "deeppresenter"
-    PPTAGENT = "pptagent"
 
 
 class PowerPointType(StrEnum):
@@ -183,6 +219,9 @@ class InputRequest(BaseModel):
     attachments: list[str] = []
     num_pages: str | None = None
     template: str | None = None
+    template_id: str | None = None
+    template_revision_id: str | None = None
+    template_context_path: str | None = None
     powerpoint_type: PowerPointType = PowerPointType.WIDE_SCREEN
     convert_type: ConvertType = ConvertType.DEEPPRESENTER
     enable_planner: bool = False
@@ -227,15 +266,6 @@ class InputRequest(BaseModel):
             prompt.append("Number of pages: " + self.num_pages)
         if self.attachments:
             prompt.append("Attachments: " + ", ".join(self.attachments))
-        return "\n".join(prompt)
-
-    @property
-    def pptagent_prompt(self):
-        prompt = [self.instruction]
-        if self.template is not None and self.template not in self.instruction:
-            prompt.append("PPT Template: " + self.template)
-        if self.num_pages is not None and self.num_pages not in self.instruction:
-            prompt.append("Number of pages: " + self.num_pages)
         return "\n".join(prompt)
 
     @property

@@ -1,4 +1,3 @@
-from __future__ import annotations
 """DeepPresenter FastAPI 服务入口。
 
 启动方式::
@@ -14,6 +13,8 @@ from __future__ import annotations
     DEEPPRESENTER_SERVER_PLACEHOLDER=1 uvicorn deeppresenter.server.app:app
 """
 
+from __future__ import annotations
+
 import asyncio
 import os
 from functools import partial
@@ -28,8 +29,11 @@ from deeppresenter.server.routes.slide_editing import router as slide_editing_ro
 from deeppresenter.server.routes.templates import router as templates_router
 from deeppresenter.server.routes.tasks import router as tasks_router
 from deeppresenter.server.services.task_manager import TaskManager
+from deeppresenter.server.services.template_catalog import bundled_templates_root
 from deeppresenter.server.services.template_registry import TemplateRegistry
 from deeppresenter.server.services.template_service import TemplateInductionService
+from deeppresenter.templates.context import TemplateContextProvider
+from deeppresenter.templates.store import TemplateStore
 
 WORKSPACE_BASE = Path(
     os.getenv(
@@ -51,28 +55,30 @@ def _build_template_induction_service(
     workspace: Path,
     settings: TemplateSettings,
 ) -> TemplateInductionService:
-    """首次上传模板时再加载 LLM 和图像模型。"""
-    from pptagent.llms import AsyncLLM
-    from pptagent.model_utils import get_image_model
-
+    """Build the independent Template IR compiler, with per-page VLM labels."""
+    from deeppresenter.templates import (
+        DeepPresenterStructuredVLMClient,
+        DeterministicAnnotator,
+        LibreOfficeRenderer,
+        TemplateCompiler,
+        VLMAnnotator,
+    )
     from deeppresenter.utils.config import DeepPresenterConfig
 
     config = DeepPresenterConfig.load_from_file(config_path)
-    language_model = AsyncLLM(
-        model=config.research_agent.model,
-        base_url=config.research_agent.base_url,
-        api_key=config.research_agent.api_key,
-    )
-    vision_config = config.vision_model or config.design_agent
-    vision_model = AsyncLLM(
-        model=vision_config.model,
-        base_url=vision_config.base_url,
-        api_key=vision_config.api_key,
-    )
+    vision_model = config.vision_model or config.design_agent
+    annotator = DeterministicAnnotator()
+    if vision_model.is_multimodal:
+        annotator = VLMAnnotator(
+            DeepPresenterStructuredVLMClient(vision_model),
+            model_id=vision_model.model_name,
+        )
+
     return TemplateInductionService(
-        language_model=language_model,
-        vision_model=vision_model,
-        image_models=get_image_model("cpu"),
+        compiler=TemplateCompiler(
+            renderer=LibreOfficeRenderer(required=True),
+            annotator=annotator,
+        ),
         workspace=workspace,
         settings=settings,
     )
@@ -93,8 +99,8 @@ def create_app(
     """
     app = FastAPI(
         title="DeepPresenter API",
-        description="PPTAgent 任务编排与实时进度服务",
-        version="0.1.0",
+        description="DeepPresenter HTML generation and Template IR service",
+        version="0.2.0",
     )
 
     base = workspace_base or WORKSPACE_BASE
@@ -108,18 +114,26 @@ def create_app(
     except ValueError:
         max_concurrent = 2
 
+    template_workspace = base / "templates_api"
+    template_settings = TemplateSettings()
+    app.state.template_registry = TemplateRegistry(template_workspace)
+    app.state.template_settings = template_settings
+    template_store = TemplateStore(
+        [app.state.template_registry.templates_dir, bundled_templates_root()]
+    )
+    template_context_provider = TemplateContextProvider(template_store)
+    app.state.template_store = template_store
+    app.state.template_context_provider = template_context_provider
+
     manager = TaskManager(
         workspace_base=base,
         use_placeholder=use_placeholder,
         config_path=resolved_config_path,
         max_concurrent=max_concurrent,
+        template_context_provider=template_context_provider,
     )
     app.state.task_manager = manager
 
-    template_workspace = base / "templates_api"
-    template_settings = TemplateSettings()
-    app.state.template_registry = TemplateRegistry(template_workspace)
-    app.state.template_settings = template_settings
     app.state.induction_service = None
     app.state.template_service_lock = asyncio.Lock()
     app.state.template_service_factory = partial(

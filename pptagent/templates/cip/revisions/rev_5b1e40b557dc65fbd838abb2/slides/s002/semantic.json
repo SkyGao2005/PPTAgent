@@ -1,0 +1,98 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.ba360404",
+  "avoid_when": [
+    "Avoid when the presentation needs a visual roadmap, timeline, or detailed section descriptions.",
+    "Avoid when there are more agenda items than can fit as a short, readable list."
+  ],
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "layout_pattern": "title_body",
+    "message_pattern": "summary",
+    "modalities": [
+      "text"
+    ],
+    "stage": "agenda",
+    "summary": "A clean agenda page with a prominent heading and a spacious vertical list of major presentation sections.",
+    "title": "目录"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Slide heading identifying the page as the presentation agenda or table of contents.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s002-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.717357,
+        "width": 0.93122,
+        "x": 0.03913,
+        "y": 0.2
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 48,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 20,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large bulleted list for the presentation's main sections or topics.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s002-sh0002"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use near the beginning of a presentation to preview a short sequence of major sections.",
+    "Choose when a simple, text-led agenda with four or similarly few items is sufficient."
+  ],
+  "slide_id": "s002",
+  "warnings": []
+}
