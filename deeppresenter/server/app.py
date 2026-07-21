@@ -24,6 +24,7 @@ from fastapi import FastAPI
 
 from deeppresenter.server.models.templates import TemplateSettings
 from deeppresenter.server.routes.attachments import router as attachments_router
+from deeppresenter.server.routes.slide_editing import router as slide_editing_router
 from deeppresenter.server.routes.templates import router as templates_router
 from deeppresenter.server.routes.tasks import router as tasks_router
 from deeppresenter.server.services.task_manager import TaskManager
@@ -151,6 +152,7 @@ def create_app(
 
     app.include_router(tasks_router)
     app.include_router(attachments_router)
+    app.include_router(slide_editing_router)
     app.include_router(templates_router)
 
     @app.get("/health")
