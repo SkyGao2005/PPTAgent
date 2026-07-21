@@ -1,8 +1,9 @@
-from __future__ import annotations
 """任务相关 FastAPI 路由 —— 创建、查询、取消、SSE 订阅。
 
 所有路由均挂在 ``/api/tasks`` 下。
 """
+
+from __future__ import annotations
 
 import json
 import asyncio
@@ -14,9 +15,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from deeppresenter.server.models.artifacts import SlideArtifact, is_path_safe, task_dir
+from deeppresenter.server.models.templates import TemplateStatus
 from deeppresenter.server.routes.attachments import resolve_attachment_paths
 from deeppresenter.server.services.preview import artifact_url
 from deeppresenter.server.services.task_manager import TaskManager
+from deeppresenter.server.services.template_catalog import is_bundled_template
 
 TASK_HEARTBEAT_INTERVAL = 30
 
@@ -39,7 +42,9 @@ class CreateTaskRequest(BaseModel):
     powerpoint_type: str = Field(default="16:9", description="画面比例")
     ratio: Optional[str] = Field(default=None, description="前端工作台画面比例字段")
     template: Optional[str] = Field(default=None, description="模板 ID")
-    template_id: Optional[str] = Field(default=None, description="前端工作台模板 ID 字段")
+    template_id: Optional[str] = Field(
+        default=None, description="前端工作台模板 ID 字段"
+    )
     convert_type: Optional[str] = Field(
         default=None, description="转换模式 deeppresenter/pptagent"
     )
@@ -72,6 +77,29 @@ def _get_manager(request: Request) -> TaskManager:
     return manager
 
 
+def _resolve_template(
+    body: CreateTaskRequest, request: Request
+) -> tuple[str | None, str | None]:
+    """Resolve a frontend template id against templates owned by the backend."""
+    if body.template:
+        return body.template, body.template_id or body.template
+    if not body.template_id:
+        return None, None
+    if is_bundled_template(body.template_id):
+        return body.template_id, body.template_id
+
+    registry = request.app.state.template_registry
+    manifest = registry.get(body.template_id)
+    if manifest is None:
+        raise HTTPException(status_code=422, detail=f"模板 {body.template_id} 不存在")
+    if manifest.status != TemplateStatus.READY:
+        raise HTTPException(
+            status_code=409,
+            detail=f"模板 {body.template_id} 尚未解析完成",
+        )
+    return body.template_id, body.template_id
+
+
 def _require_task(manager: TaskManager, task_id: str):
     snapshot = manager.get_snapshot(task_id)
     if snapshot is None:
@@ -96,9 +124,7 @@ def _slide_summary(task_id: str, slide: SlideArtifact) -> dict:
         "revision": slide.revision,
         "current_revision": slide.revision,
         "preview_url": (
-            artifact_url(task_id, slide.preview_path)
-            if slide.preview_path
-            else None
+            artifact_url(task_id, slide.preview_path) if slide.preview_path else None
         ),
         "created_at": slide.created_at,
         "updated_at": slide.updated_at,
@@ -194,15 +220,14 @@ async def create_task(
         else resolve_attachment_paths(manager.workspace_base, body.attachment_ids)
     )
     language = "zh" if body.language.lower().startswith("zh") else body.language
+    template, template_id = _resolve_template(body, request)
     task_id = await manager.create(
         instruction=instruction,
         attachments=attachments,
         num_pages=num_pages,
         powerpoint_type=powerpoint_type,
-        # 前端 main 的 template_id 是 UI 模板库 ID；C2 后端当前只在
-        # 显式 template 字段下启用 PPTAgent 模板模式，避免误入模板链路。
-        template=body.template,
-        template_id=body.template_id,
+        template=template,
+        template_id=template_id,
         convert_type=body.convert_type,
         enable_planner=body.enable_planner,
         language=language,
@@ -316,20 +341,28 @@ async def cancel_task(task_id: str, request: Request):
             status_code=409,
             detail=f"任务当前状态为 {snapshot.status.value}，无法取消",
         )
-    return {"task_id": task_id, "status": "cancelled", "message": "任务已取消，已完成页面保留"}
+    return {
+        "task_id": task_id,
+        "status": "cancelled",
+        "message": "任务已取消，已完成页面保留",
+    }
 
 
 class RetryRequest(BaseModel):
     """重试请求体。"""
 
-    retry_failed_slides_only: bool = Field(default=True, description="是否仅重试失败页面")
+    retry_failed_slides_only: bool = Field(
+        default=True, description="是否仅重试失败页面"
+    )
 
 
 @router.post("/{task_id}/retry")
 async def retry_task(task_id: str, body: RetryRequest, request: Request):
     """重试失败的任务。"""
     manager = _get_manager(request)
-    success = await manager.retry(task_id, retry_failed_slides_only=body.retry_failed_slides_only)
+    success = await manager.retry(
+        task_id, retry_failed_slides_only=body.retry_failed_slides_only
+    )
     if not success:
         snapshot = manager.get_snapshot(task_id)
         if snapshot is None:
@@ -348,7 +381,9 @@ class ExportRequest(BaseModel):
 
 
 @router.post("/{task_id}/export")
-async def export_task(task_id: str, request: Request, body: ExportRequest | None = None):
+async def export_task(
+    task_id: str, request: Request, body: ExportRequest | None = None
+):
     """导出任务最终产物。"""
     manager = _get_manager(request)
     fmt = (body.format if body else "pptx").lower()
@@ -411,4 +446,5 @@ async def get_artifact(
     media_type = media_type_map.get(suffix, "application/octet-stream")
 
     from fastapi.responses import FileResponse
+
     return FileResponse(full_path, media_type=media_type)

@@ -532,17 +532,19 @@ export function TemplatesPage() {
                           正在解析 · {previewTemplate.progress ?? 0}%
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        className="mt-1.5 h-9 w-full rounded-full text-[12px] text-hint hover:bg-white/55 hover:text-destructive"
-                        onClick={() => {
-                          setPreviewId(null)
-                          setDeleteId(previewTemplate.id)
-                        }}
-                      >
-                        <Trash2Icon className="size-3.5" />
-                        删除模板
-                      </Button>
+                      {previewTemplate.owner === "user" && (
+                        <Button
+                          variant="ghost"
+                          className="mt-1.5 h-9 w-full rounded-full text-[12px] text-hint hover:bg-white/55 hover:text-destructive"
+                          onClick={() => {
+                            setPreviewId(null)
+                            setDeleteId(previewTemplate.id)
+                          }}
+                        >
+                          <Trash2Icon className="size-3.5" />
+                          删除模板
+                        </Button>
+                      )}
                     </div>
                   </aside>
                 </div>

@@ -29,12 +29,16 @@ from deeppresenter.server.models.templates import (
     TemplateStatus,
 )
 from deeppresenter.server.services.template_registry import TemplateRegistry
+from deeppresenter.server.services.template_catalog import (
+    bundled_template_ids,
+    bundled_template_summaries,
+)
 from deeppresenter.server.services.template_service import (
     TemplateInductionService,
     sanitize_filename,
     validate_pptx,
 )
-from deeppresenter.utils.log import debug, error, get_logger
+from deeppresenter.utils.log import debug, get_logger
 
 logger = get_logger()
 
@@ -45,81 +49,6 @@ ALLOWED_EXTENSIONS = {".pptx"}
 ALLOWED_MIME = {
     "application/vnd.openxmlformats-officedocument.presentationml.presentation"
 }
-
-SYSTEM_TEMPLATES = [
-    {
-        "id": "obsidian",
-        "name": "曜石商务",
-        "description": "深空蓝与镏金点缀，适合年度汇报与高层提案",
-        "owner": "system",
-        "status": "ready",
-        "slides": 32,
-        "ratio": "16:9",
-        "layouts": ["封面", "目录", "章节页", "标题 + 要点", "双栏对比", "数据看板"],
-        "palette": {
-            "bg": "#101522",
-            "surface": "#1A2233",
-            "primary": "#E8B45A",
-            "accent": "#8FA3CC",
-            "ink": "#F2EEE6",
-            "dark": True,
-        },
-    },
-    {
-        "id": "mist",
-        "name": "晨雾极简",
-        "description": "低饱和灰蓝与充足留白，适合策略与咨询场景",
-        "owner": "system",
-        "status": "ready",
-        "slides": 26,
-        "ratio": "16:9",
-        "layouts": ["封面", "目录", "章节页", "标题 + 要点", "左文右图", "引言页"],
-        "palette": {
-            "bg": "#F4F6F8",
-            "surface": "#FFFFFF",
-            "primary": "#38506B",
-            "accent": "#7FA6C9",
-            "ink": "#22303E",
-            "dark": False,
-        },
-    },
-    {
-        "id": "azure",
-        "name": "学术深蓝",
-        "description": "严谨的学术蓝配色，适合研究汇报与课题答辩",
-        "owner": "system",
-        "status": "ready",
-        "slides": 28,
-        "ratio": "4:3",
-        "layouts": ["封面", "目录", "章节页", "标题 + 要点", "时间线", "封底"],
-        "palette": {
-            "bg": "#FFFFFF",
-            "surface": "#F2F5FA",
-            "primary": "#1D4E89",
-            "accent": "#5B8DEF",
-            "ink": "#1B2430",
-            "dark": False,
-        },
-    },
-    {
-        "id": "jade",
-        "name": "翡翠年报",
-        "description": "沉稳墨绿与柔和灰白，适合 ESG 报告与年度总结",
-        "owner": "system",
-        "status": "ready",
-        "slides": 30,
-        "ratio": "16:9",
-        "layouts": ["封面", "目录", "章节页", "双栏对比", "数据看板", "时间线"],
-        "palette": {
-            "bg": "#F5F7F4",
-            "surface": "#FFFFFF",
-            "primary": "#1E5C4A",
-            "accent": "#8FBCA5",
-            "ink": "#20302A",
-            "dark": False,
-        },
-    },
-]
 
 # 全局 SSE 事件队列
 _event_queues: dict[str, asyncio.Queue] = {}
@@ -232,17 +161,23 @@ async def upload_template(
 
     # 1. 校验扩展名
     if file.filename is None:
-        raise HTTPException(400, detail={
-            "code": TemplateErrorCode.UNSUPPORTED_FORMAT,
-            "message": "未提供文件名",
-        })
+        raise HTTPException(
+            400,
+            detail={
+                "code": TemplateErrorCode.UNSUPPORTED_FORMAT,
+                "message": "未提供文件名",
+            },
+        )
 
     suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
-        raise HTTPException(400, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.UNSUPPORTED_FORMAT,
-            message=f"仅支持 {ALLOWED_EXTENSIONS} 格式，收到: {suffix}",
-        ).model_dump())
+        raise HTTPException(
+            400,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.UNSUPPORTED_FORMAT,
+                message=f"仅支持 {ALLOWED_EXTENSIONS} 格式，收到: {suffix}",
+            ).model_dump(),
+        )
 
     # 2. 安全文件名
     safe_name = sanitize_filename(Path(file.filename).stem)
@@ -251,10 +186,13 @@ async def upload_template(
     content = await file.read()
     if len(content) > settings.max_file_size:
         max_mb = settings.max_file_size // 1024 // 1024
-        raise HTTPException(400, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.FILE_TOO_LARGE,
-            message=f"文件大小超过 {max_mb}MB 限制",
-        ).model_dump())
+        raise HTTPException(
+            400,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.FILE_TOO_LARGE,
+                message=f"文件大小超过 {max_mb}MB 限制",
+            ).model_dump(),
+        )
 
     # 4. 校验 PPTX 结构
     validation = validate_pptx(content)
@@ -287,7 +225,10 @@ async def upload_template(
     # 防止 template_id 冲突
     counter = 1
     base_id = template_id
-    while (registry.templates_dir / template_id).exists():
+    reserved_ids = bundled_template_ids()
+    while (
+        registry.templates_dir / template_id
+    ).exists() or template_id in reserved_ids:
         # 检查是否是失败的残留
         existing_manifest_path = registry.templates_dir / template_id / "manifest.json"
         if existing_manifest_path.exists():
@@ -298,7 +239,9 @@ async def upload_template(
                 if existing_manifest.status == TemplateStatus.FAILED:
                     # 覆盖失败的模板
                     registry.unregister(template_id)
-                    shutil.rmtree(registry.templates_dir / template_id, ignore_errors=True)
+                    shutil.rmtree(
+                        registry.templates_dir / template_id, ignore_errors=True
+                    )
                     break
             except Exception:
                 pass
@@ -393,7 +336,10 @@ async def list_templates(request: Request):
     """获取可用及解析中的模板"""
     registry = _get_registry(request)
     manifests = registry.list_all(include_failed=False)
-    return [*SYSTEM_TEMPLATES, *[_manifest_summary(item) for item in manifests]]
+    return [
+        *bundled_template_summaries(),
+        *[_manifest_summary(item) for item in manifests],
+    ]
 
 
 @router.get("/events")
@@ -433,10 +379,13 @@ async def get_template(template_id: str, request: Request):
     registry = _get_registry(request)
     manifest = registry.get(template_id)
     if manifest is None:
-        raise HTTPException(404, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
-            message=f"模板 {template_id} 不存在",
-        ).model_dump())
+        raise HTTPException(
+            404,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
+                message=f"模板 {template_id} 不存在",
+            ).model_dump(),
+        )
     return manifest
 
 
@@ -446,10 +395,13 @@ async def template_events(template_id: str, request: Request):
     registry = _get_registry(request)
     manifest = registry.get(template_id)
     if manifest is None:
-        raise HTTPException(404, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
-            message=f"模板 {template_id} 不存在",
-        ).model_dump())
+        raise HTTPException(
+            404,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
+                message=f"模板 {template_id} 不存在",
+            ).model_dump(),
+        )
 
     async def event_generator():
         queue = get_event_queue(template_id)
@@ -466,7 +418,7 @@ async def template_events(template_id: str, request: Request):
                     break
             except asyncio.TimeoutError:
                 # 发送心跳，保持连接
-                yield f": heartbeat\n\n"
+                yield ": heartbeat\n\n"
 
     return StreamingResponse(
         event_generator(),
@@ -491,16 +443,22 @@ async def retry_parse(
 
     manifest = registry.get(template_id)
     if manifest is None:
-        raise HTTPException(404, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
-            message=f"模板 {template_id} 不存在",
-        ).model_dump())
+        raise HTTPException(
+            404,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
+                message=f"模板 {template_id} 不存在",
+            ).model_dump(),
+        )
 
     if manifest.status != TemplateStatus.FAILED:
-        raise HTTPException(400, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.INVALID_STATE,
-            message=f"只有失败的模板可以重试，当前状态: {manifest.status.value}",
-        ).model_dump())
+        raise HTTPException(
+            400,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.INVALID_STATE,
+                message=f"只有失败的模板可以重试，当前状态: {manifest.status.value}",
+            ).model_dump(),
+        )
 
     # 重置状态
     template_dir = registry.templates_dir / template_id
@@ -521,10 +479,13 @@ async def delete_template(template_id: str, request: Request):
     registry = _get_registry(request)
     manifest = registry.get(template_id)
     if manifest is None:
-        raise HTTPException(404, detail=TemplateErrorResponse(
-            code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
-            message=f"模板 {template_id} 不存在",
-        ).model_dump())
+        raise HTTPException(
+            404,
+            detail=TemplateErrorResponse(
+                code=TemplateErrorCode.TEMPLATE_NOT_FOUND,
+                message=f"模板 {template_id} 不存在",
+            ).model_dump(),
+        )
 
     # 注销并清理
     registry.unregister(template_id)

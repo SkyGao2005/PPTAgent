@@ -259,7 +259,7 @@ def test_create_task_accepts_frontend_payload(tmp_workspace):
         "/api/tasks",
         json={
             "topic": "前端字段兼容测试",
-            "template_id": "tpl-obsidian",
+            "template_id": "default",
             "page_count": 5,
             "ratio": "16:9",
             "language": "zh-CN",
@@ -271,16 +271,15 @@ def test_create_task_accepts_frontend_payload(tmp_workspace):
     body = response.json()
     task_id = body["task_id"]
     assert body["topic"] == "前端字段兼容测试"
-    assert body["template_id"] == "tpl-obsidian"
+    assert body["template_id"] == "default"
     assert body["ratio"] == "16:9"
     snapshot = app.state.task_manager.get_snapshot(task_id)
     assert snapshot.instruction == "前端字段兼容测试"
     assert snapshot.generation_params["num_pages"] == "5"
     assert snapshot.generation_params["powerpoint_type"] == "16:9"
     assert snapshot.generation_params["language"] == "zh"
-    assert snapshot.generation_params["template_id"] == "tpl-obsidian"
-    # template_id 是前端 UI 模板 ID，C2 HTML 生成不应误入 PPTAgent 模板模式。
-    assert snapshot.generation_params["template"] is None
+    assert snapshot.generation_params["template_id"] == "default"
+    assert snapshot.generation_params["template"] == "default"
 
 
 def test_slide_edit_revisions_fallback_to_current_preview(tmp_workspace):
@@ -311,7 +310,10 @@ def test_slide_edit_revisions_fallback_to_current_preview(tmp_workspace):
     assert body[0]["revision"] == 1
     assert body[0]["label"] == "初始版本"
     assert body[0]["created_at"]
-    assert body[0]["preview_url"] == f"/api/tasks/{task_id}/artifacts/{artifact.preview_path}"
+    assert (
+        body[0]["preview_url"]
+        == f"/api/tasks/{task_id}/artifacts/{artifact.preview_path}"
+    )
 
 
 def test_slide_edit_chat_updates_html_preview_and_emits_applied_event(tmp_workspace):
@@ -366,7 +368,7 @@ def test_slide_edit_chat_updates_html_preview_and_emits_applied_event(tmp_worksp
     assert applied[-1]["payload"]["revision"] == 2
 
 
-def test_templates_route_returns_ready_system_templates(tmp_workspace):
+def test_templates_route_returns_real_backend_templates(tmp_workspace):
     app = _create_test_app(tmp_workspace)
     client = TestClient(app)
 
@@ -377,6 +379,21 @@ def test_templates_route_returns_ready_system_templates(tmp_workspace):
     assert templates
     assert templates[0]["status"] == "ready"
     assert "palette" in templates[0]
+    template_ids = {template["id"] for template in templates}
+    assert {"beamer", "cip", "default", "hit", "thu", "ucas"} <= template_ids
+    assert not {"obsidian", "mist", "azure", "jade"} & template_ids
+
+
+def test_create_task_rejects_frontend_only_template(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/tasks",
+        json={"topic": "不存在的前端模板", "template_id": "obsidian"},
+    )
+
+    assert response.status_code == 422
 
 
 def test_frontend_attachment_upload_can_be_used_for_create(tmp_workspace):
