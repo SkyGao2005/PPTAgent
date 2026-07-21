@@ -1,0 +1,425 @@
+{
+  "opening": {
+    "slides": [
+      1
+    ],
+    "template_id": 1,
+    "elements": [
+      {
+        "name": "decorative shape 1",
+        "type": "image",
+        "data": [
+          "rectangle"
+        ]
+      },
+      {
+        "name": "date",
+        "type": "text",
+        "data": [
+          "2021年9月 September, 2021"
+        ],
+        "suggested_characters": 23
+      },
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "decorative shape 2",
+        "type": "image",
+        "data": [
+          "rectangle"
+        ]
+      },
+      {
+        "name": "organization",
+        "type": "text",
+        "data": [
+          "网络信息中心"
+        ],
+        "suggested_characters": 10
+      }
+    ]
+  },
+  "ending": {
+    "slides": [
+      8
+    ],
+    "template_id": 8,
+    "elements": [
+      {
+        "name": "decorative rectangle shape 1",
+        "type": "image",
+        "data": [
+          "rectangle"
+        ]
+      },
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "谢谢大家"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "date footer",
+        "type": "text",
+        "data": [
+          "2021年9月 September, 2021"
+        ],
+        "suggested_characters": 23
+      },
+      {
+        "name": "organization footer",
+        "type": "text",
+        "data": [
+          "网络信息中心"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "decorative rectangle shape 2",
+        "type": "image",
+        "data": [
+          "rectangle"
+        ]
+      }
+    ]
+  },
+  "Four Vertical Columns with Colored Header Bars and Bulleted Lists separated by Dotted Lines:image": {
+    "template_id": 7,
+    "slides": [
+      7
+    ],
+    "elements": [
+      {
+        "name": "picture",
+        "type": "image",
+        "data": [
+          "picture"
+        ]
+      },
+      {
+        "name": "subtitle",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "body paragraphs",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息",
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 30
+      },
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "callout text 1",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 18
+      },
+      {
+        "name": "callout text 2",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 18
+      },
+      {
+        "name": "callout text 3",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 18
+      }
+    ]
+  },
+  "Numbered List on Left with Large Vertical Image on Right Separated by Diagonal Divider:text": {
+    "template_id": 2,
+    "slides": [
+      2
+    ],
+    "elements": [
+      {
+        "name": "section number",
+        "type": "text",
+        "data": [
+          "01"
+        ],
+        "suggested_characters": 2
+      },
+      {
+        "name": "section title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      }
+    ]
+  },
+  "Three side-by-side cards with top icons, text blocks, and large percentages at the bottom:image": {
+    "template_id": 6,
+    "slides": [
+      6
+    ],
+    "elements": [
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "placeholder image",
+        "type": "image",
+        "data": [
+          "picture"
+        ]
+      }
+    ]
+  },
+  "Diagonal Split Layout with Background Image, Large Number, and Three Bullet Points:text": {
+    "template_id": 3,
+    "slides": [
+      3
+    ],
+    "elements": [
+      {
+        "name": "introduction text",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 40
+      },
+      {
+        "name": "section heading 1",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "section description 1",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "section heading 2",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "section description 2",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "section heading 3",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      }
+    ]
+  },
+  "Three sequential vertical pill-shaped containers with icons and descriptive text below:text": {
+    "template_id": 5,
+    "slides": [
+      5
+    ],
+    "elements": [
+      {
+        "name": "subtitle 1",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "subtitle 2",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "subtitle 3",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "subtitle 4",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 20
+      },
+      {
+        "name": "bullets 1",
+        "type": "text",
+        "data": [
+          "要点说明文本内容",
+          "要点说明文本内容"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "bullets 2",
+        "type": "text",
+        "data": [
+          "要点说明文本内容"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "bullets 3",
+        "type": "text",
+        "data": [
+          "要点说明文本内容",
+          "要点说明文本内容",
+          "要点说明文本内容",
+          "要点说明文本内容"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "bullets 4",
+        "type": "text",
+        "data": [
+          "要点说明文本内容",
+          "要点说明文本内容"
+        ],
+        "suggested_characters": 25
+      },
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      }
+    ]
+  },
+  "Central dual-icon graphic flanked by text blocks on left and right:text": {
+    "template_id": 4,
+    "slides": [
+      4
+    ],
+    "elements": [
+      {
+        "name": "main title",
+        "type": "text",
+        "data": [
+          "标题文本内容"
+        ],
+        "suggested_characters": 15
+      },
+      {
+        "name": "subheading 1",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 12
+      },
+      {
+        "name": "subheading 2",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 12
+      },
+      {
+        "name": "subheading 3",
+        "type": "text",
+        "data": [
+          "章节标题文本"
+        ],
+        "suggested_characters": 12
+      },
+      {
+        "name": "body text 1",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 30
+      },
+      {
+        "name": "body text 2",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 30
+      },
+      {
+        "name": "body text 3",
+        "type": "text",
+        "data": [
+          "正文段落内容，用于展示详细的说明信息"
+        ],
+        "suggested_characters": 30
+      }
+    ]
+  },
+  "functional_keys": [
+    "opening",
+    "ending"
+  ],
+  "language": {
+    "lid": "zh"
+  }
+}

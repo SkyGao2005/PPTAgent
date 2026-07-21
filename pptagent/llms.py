@@ -1,4 +1,5 @@
 import base64
+import json
 import re
 import threading
 from dataclasses import dataclass
@@ -304,12 +305,47 @@ class AsyncLLM(LLM):
                         **client_kwargs,
                     )
                 else:
-                    completion = await self.client.chat.completions.parse(
-                        model=self.model,
-                        messages=system + history + message,
-                        response_format=response_format,
-                        **client_kwargs,
-                    )
+                    try:
+                        completion = await self.client.chat.completions.parse(
+                            model=self.model,
+                            messages=system + history + message,
+                            response_format=response_format,
+                            **client_kwargs,
+                        )
+                    except Exception:
+                        # Fallback: non-OpenAI models (Qwen, DeepSeek) don't support
+                        # structured output via parse(). Use create() + manual JSON
+                        # Recreate client first (parse() failure may leave it in bad state)
+                        self.client = AsyncOpenAI(
+                            base_url=self.base_url,
+                            api_key=self.api_key,
+                            timeout=self.timeout,
+                        )
+                        schema: dict = getattr(response_format, "model_json_schema", None)
+                        if schema and callable(schema):
+                            schema = schema()
+                        if schema:
+                            json_inst = (
+                                f"\nYou MUST respond with valid JSON that matches this schema:\n"
+                                f"{json.dumps(schema)}\n"
+                                f"Do NOT include any text outside the JSON object."
+                            )
+                            for msg in reversed(message):
+                                if msg.get("role") == "user":
+                                    content = msg.get("content", "")
+                                    if isinstance(content, list):
+                                        for block in content:
+                                            if block.get("type") == "text":
+                                                block["text"] = block.get("text", "") + json_inst
+                                                break
+                                    else:
+                                        msg["content"] = (content or "") + json_inst
+                                    break
+                        completion = await self.client.chat.completions.create(
+                            model=self.model,
+                            messages=system + history + message,
+                            **client_kwargs,
+                        )
 
         except Exception as e:
             logger.error("Error in AsyncLLM call: %s", e)

@@ -16,6 +16,8 @@ RUN apt-get update && \
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
+RUN npm config set registry https://registry.npmmirror.com
+
 # Install Chromium and dependencies
 RUN apt-get update && apt-get install -y --fix-missing --no-install-recommends \
         chromium \
@@ -80,10 +82,8 @@ ENV PATH="/opt/.venv/bin:${PATH}" \
 RUN printenv | grep -E '^(PATH|PYTHONUNBUFFERED|VIRTUAL_ENV|PUPPETEER_|LANG|LC_ALL|MPLCONFIGDIR|MCP_CLIENT_DOCKER)=' | sed 's/^/export /' > /etc/profile.d/docker-env.sh && \
     echo 'source /etc/profile.d/docker-env.sh' >> /etc/bash.bashrc
 
-# Clone the repository at specific commit
-RUN git clone https://github.com/wonderwhy-er/DesktopCommanderMCP.git . && \
-    git checkout 252a00d624c2adc5707fa743c57a1b68bc223689 && \
-    rm -rf .git
+# Use the vendored sandbox source so image builds do not depend on GitHub.
+COPY deeppresenter/docker/sandbox-mcp/ .
 
 RUN npm install --ignore-scripts && npm install -g @mermaid-js/mermaid-cli pptxgenjs playwright sharp
 

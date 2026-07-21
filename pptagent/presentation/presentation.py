@@ -381,6 +381,7 @@ class Presentation:
         """
 
         from pptagent.apis import del_para
+        from pptagent.presentation.shapes import _set_norm_autofit
 
         for shape in slide:
             if not shape.text_frame.is_textframe:
@@ -393,6 +394,11 @@ class Presentation:
                             para.real_idx,
                         )
                     )
+            # Ensure text auto-fits within shape boundaries.
+            # Runs after all edit/delete closures so the final content is fitted.
+            shape._closures[ClosureType.POST_PROCESS].append(
+                Closure(_set_norm_autofit, -1)
+            )
 
         return self.build_slide(slide)
 

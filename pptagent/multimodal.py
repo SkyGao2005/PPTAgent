@@ -38,9 +38,16 @@ class ImageLabler:
 
         for slide in self.presentation.slides:
             for shape in slide.shape_filter(Picture):
+                img_key = basename(shape.img_path)
+                if img_key == "pic_placeholder.png":
+                    continue
+                if shape.caption is None and img_key in image_stats:
+                    caption = image_stats[img_key].get("caption")
+                    if caption:
+                        shape.caption = max(caption.split("\n"), key=len)
+                # Fallback: if caption is still None (empty stats), use semantic name
                 if shape.caption is None:
-                    caption = image_stats[basename(shape.img_path)]["caption"]
-                    shape.caption = max(caption.split("\n"), key=len)
+                    shape.caption = shape.semantic_name or "Picture"
 
     async def caption_images_async(self, vision_model: AsyncLLM):
         """

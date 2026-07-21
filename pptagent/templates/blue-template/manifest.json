@@ -1,0 +1,14 @@
+{
+  "template_id": "blue-template",
+  "name": "blue-template",
+  "status": "ready",
+  "source_hash": "fb2fe79e8ab436e42f19f5c6543d009c9a06d9ea428ccad63e6d96d3c0fdbf5e",
+  "aspect_ratio": "16:9",
+  "slide_count": 8,
+  "layout_count": 0,
+  "thumbnail": "thumbnails/thumbnail_md.jpg",
+  "created_at": "2026-07-16T12:08:10.903350",
+  "error": null,
+  "primary_color": null,
+  "fonts": []
+}

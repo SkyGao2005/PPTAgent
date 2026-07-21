@@ -8,6 +8,7 @@ from deeppresenter.server.models.events import (
     TaskStatus,
     parse_events_from_jsonl,
 )
+from deeppresenter.server.models.templates import TemplateManifest, TemplateStatus
 
 __all__ = [
     "EventType",
@@ -15,5 +16,7 @@ __all__ = [
     "SlideArtifact",
     "StageName",
     "TaskStatus",
+    "TemplateManifest",
+    "TemplateStatus",
     "parse_events_from_jsonl",
 ]

@@ -15,6 +15,7 @@ from pptagent.apis import API_TYPES, CodeExecutor
 from pptagent.document import Document
 from pptagent.llms import AsyncLLM
 from pptagent.presentation import (
+    FreeShape,
     GroupShape,
     Layout,
     Picture,
@@ -106,18 +107,25 @@ class PPTGen(ABC):
         """
         self.presentation = presentation
 
-        self.reference_lang = Language(**slide_induction.pop("language"))
-        self.functional_layouts = slide_induction.pop("functional_keys")
+        # FIXED (P0-9): Use .get() instead of .pop() to avoid destroying
+        # the shared dictionary cached in TemplateRegistry / MCP server.
+        # The caller should also pass deepcopy as a double safeguard.
+        self.reference_lang = Language(**slide_induction.get("language", {}))
+        self.functional_layouts = slide_induction.get("functional_keys", [])
 
         self.layouts: dict[str, Layout] = {
             k: Layout(title=k, **v) for k, v in slide_induction.items()
+            if k not in ("functional_keys", "language")
         }
-        self.empty_prs = deepcopy(self.presentation)
         assert hide_small_pic_ratio is None or hide_small_pic_ratio > 0, (
             "hide_small_pic_ratio must be positive or None"
         )
         if hide_small_pic_ratio is not None:
             self._hide_small_pics(hide_small_pic_ratio, keep_in_background)
+        self._hide_decorative_shapes()
+        # IMPORTANT: deepcopy AFTER all slide mutations so that
+        # decorative shapes moved to backgrounds are captured.
+        self.empty_prs = deepcopy(self.presentation)
 
         self.text_layouts = [
             k
@@ -326,6 +334,8 @@ class PPTGen(ABC):
             if len(pictures) == 0:
                 continue
             for father, pic in pictures:
+                if pic.caption is None:
+                    continue
                 if pic.area / pic.slide_area < area_ratio:
                     father.shapes.remove(pic)
                     if keep_in_background:
@@ -340,6 +350,39 @@ class PPTGen(ABC):
                 self.layouts[layout.title.replace(":image", ":text")] = (
                     self.layouts.pop(layout.title)
                 )
+
+    def _hide_decorative_shapes(self):
+        """Move non-content FreeShape objects to the background layer.
+
+        FreeShape objects (AUTO_SHAPE, LINE, FREEFORM) that have no meaningful
+        text content are invisible to the schema extraction LLM (their
+        to_html() returns \"\"), so the LLM never provides content for them.
+        They are purely decorative elements like background rectangles, divider
+        lines, or ornamental shapes.
+
+        Many templates have FreeShapes whose text_frame exists but contains
+        only empty strings or whitespace (e.g.  decorative parallelograms,
+        triangles, icons).  Both cases are detected here.
+
+        By moving them to the backgrounds list with shape_idx=-1, they are
+        built first during SlidePage.build() and end up at the bottom of the
+        PPTX z-order stack, ensuring text content always renders on top.
+        """
+        for _layout_title, layout in list(self.layouts.items()):
+            template_slide = self.presentation.slides[layout.template_id - 1]
+            for father, fshape in template_slide.shape_filter(
+                FreeShape, return_father=True
+            ):
+                # A FreeShape is decorative if it has no text frame at all,
+                # OR if its text frame exists but contains only whitespace.
+                has_text = (
+                    fshape.text_frame.is_textframe
+                    and (fshape.text_frame.text or "").strip()
+                )
+                if not has_text:
+                    father.shapes.remove(fshape)
+                    fshape.shape_idx = -1
+                    template_slide.backgrounds.append(fshape)
 
     def _collect_history(self, code_executor: CodeExecutor):
         """

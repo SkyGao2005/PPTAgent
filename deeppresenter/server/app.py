@@ -14,16 +14,21 @@ from __future__ import annotations
     DEEPPRESENTER_SERVER_PLACEHOLDER=1 uvicorn deeppresenter.server.app:app
 """
 
+import asyncio
 import os
+from functools import partial
 from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI
 
+from deeppresenter.server.models.templates import TemplateSettings
 from deeppresenter.server.routes.attachments import router as attachments_router
 from deeppresenter.server.routes.templates import router as templates_router
 from deeppresenter.server.routes.tasks import router as tasks_router
 from deeppresenter.server.services.task_manager import TaskManager
+from deeppresenter.server.services.template_registry import TemplateRegistry
+from deeppresenter.server.services.template_service import TemplateInductionService
 
 WORKSPACE_BASE = Path(
     os.getenv(
@@ -38,6 +43,38 @@ def _env_flag(name: str, default: bool = False) -> bool:
     if value is None:
         return default
     return value.lower() in {"1", "true", "yes", "on"}
+
+
+def _build_template_induction_service(
+    config_path: str | None,
+    workspace: Path,
+    settings: TemplateSettings,
+) -> TemplateInductionService:
+    """首次上传模板时再加载 LLM 和图像模型。"""
+    from pptagent.llms import AsyncLLM
+    from pptagent.model_utils import get_image_model
+
+    from deeppresenter.utils.config import DeepPresenterConfig
+
+    config = DeepPresenterConfig.load_from_file(config_path)
+    language_model = AsyncLLM(
+        model=config.research_agent.model,
+        base_url=config.research_agent.base_url,
+        api_key=config.research_agent.api_key,
+    )
+    vision_config = config.vision_model or config.design_agent
+    vision_model = AsyncLLM(
+        model=vision_config.model,
+        base_url=vision_config.base_url,
+        api_key=vision_config.api_key,
+    )
+    return TemplateInductionService(
+        language_model=language_model,
+        vision_model=vision_model,
+        image_models=get_image_model("cpu"),
+        workspace=workspace,
+        settings=settings,
+    )
 
 
 def create_app(
@@ -78,6 +115,19 @@ def create_app(
     )
     app.state.task_manager = manager
 
+    template_workspace = base / "templates_api"
+    template_settings = TemplateSettings()
+    app.state.template_registry = TemplateRegistry(template_workspace)
+    app.state.template_settings = template_settings
+    app.state.induction_service = None
+    app.state.template_service_lock = asyncio.Lock()
+    app.state.template_service_factory = partial(
+        _build_template_induction_service,
+        resolved_config_path,
+        template_workspace,
+        template_settings,
+    )
+
     @app.on_event("startup")
     async def _restore_tasks():
         """服务启动时从磁盘恢复任务快照，孤儿 running 标记为 failed。"""
@@ -105,7 +155,8 @@ def create_app(
 
     @app.get("/health")
     async def health():
-        return {"status": "ok"}
+        templates = app.state.template_registry.list_all(include_failed=True)
+        return {"status": "ok", "templates": len(templates)}
 
     return app
 

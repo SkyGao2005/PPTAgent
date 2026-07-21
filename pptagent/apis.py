@@ -467,6 +467,7 @@ def replace_image(slide: SlidePage, doc: Document | None, img_id: int, image_pat
     r = min(shape.width / img_size[0], shape.height / img_size[1])
     new_width = img_size[0] * r
     new_height = img_size[1] * r
+    shape.left = Pt(shape.left + (shape.width - new_width) / 2)
     shape.top = Pt(shape.top + (shape.height - new_height) / 2)
     shape.width = Pt(new_width)
     shape.height = Pt(new_height)
