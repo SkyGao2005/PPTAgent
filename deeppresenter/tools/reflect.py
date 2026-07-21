@@ -3,6 +3,8 @@ import os
 import re
 import tempfile
 from collections import defaultdict
+from glob import glob
+from os.path import join
 from pathlib import Path
 from typing import Literal
 
@@ -20,8 +22,23 @@ from pptagent.model_utils import _get_lid_model
 
 mcp = FastMCP("DeepPresenter", lifespan=playwright_lifespan)
 CONFIG = DeepPresenterConfig.load_from_file(os.getenv("CONFIG_FILE"))
-LID_MODEL = _get_lid_model()
 REFLECTIVE_DESIGN = CONFIG.design_agent.is_multimodal and CONFIG.heavy_reflect
+
+
+def _detect_language(markdown: str) -> str:
+    try:
+        from huggingface_hub.constants import HUGGINGFACE_HUB_CACHE
+        from modelscope.hub.utils.utils import get_cache_dir
+
+        lid_files = glob(join(HUGGINGFACE_HUB_CACHE, "*/*/*/lid.176.bin")) + glob(
+            join(get_cache_dir(), "*/*/*/lid.176.bin")
+        )
+        if not lid_files:
+            return "unknown"
+        label = _get_lid_model().predict(markdown[:1000].replace("\n", " "))
+        return label[0][0].replace("__label__", "")
+    except Exception:
+        return "unknown"
 
 
 @mcp.tool()
@@ -79,8 +96,7 @@ def inspect_manuscript(md_file: str) -> dict:
     pages = [p for p in markdown.split("\n---\n") if p.strip()]
     result = defaultdict(list)
     result["num_pages"] = len(pages)
-    label = LID_MODEL.predict(markdown[:1000].replace("\n", " "))
-    result["language"] = label[0][0].replace("__label__", "")
+    result["language"] = _detect_language(markdown)
 
     seen_images = set()
     for match in re.finditer(r"!\[(.*?)\]\((.*?)\)", markdown):

@@ -1,6 +1,12 @@
 FROM node:lts-bookworm-slim
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+RUN sed -i \
+    -e 's|http://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g' \
+    -e 's|http://deb.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' \
+    -e 's|http://security.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' \
+    /etc/apt/sources.list.d/debian.sources
+
 # Install ca-certificates first to avoid GPG signature issues, then other packages
 RUN apt-get update && \
     apt-get install -y --fix-missing --no-install-recommends ca-certificates && \
@@ -32,8 +38,6 @@ RUN apt-get update && apt-get install -y --fix-missing --no-install-recommends \
         xdg-utils \
         fonts-dejavu \
         fonts-noto \
-        fonts-noto-cjk \
-        fonts-noto-cjk-extra \
         fonts-noto-color-emoji \
         fonts-freefont-ttf \
         fonts-urw-base35 \
@@ -52,7 +56,6 @@ WORKDIR /usr/src/pptagent
 COPY . .
 
 RUN npm install --prefix deeppresenter/html2pptx --ignore-scripts && \
-    npm exec --prefix deeppresenter/html2pptx playwright install chromium && \
     npm install --prefix /root/.cache/deeppresenter/html2pptx fast-glob minimist pptxgenjs playwright sharp
 
 WORKDIR /usr/src/app
@@ -66,6 +69,8 @@ ENV PATH="/opt/.venv/bin:${PATH}" \
     VIRTUAL_ENV="/opt/.venv" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    PLAYWRIGHT_BROWSERS_PATH=0 \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
     MPLCONFIGDIR=/etc/matplotlib \
