@@ -45,3 +45,4 @@ frontend/dist/
 frontend/node_modules/
 .env
 docs/frontend-commit-plan.md
+.agents/

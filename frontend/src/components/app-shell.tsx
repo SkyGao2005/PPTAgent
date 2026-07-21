@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 
 import { AppHeader } from "@/components/app-header"
+import { SceneBackground } from "@/components/scene-background"
 
 interface AppShellProps {
   children: ReactNode
@@ -8,9 +9,11 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="min-h-svh bg-background">
+    <div className="relative min-h-svh">
+      <SceneBackground />
       <AppHeader />
-      {children}
+      {/* pt clears the floating pill nav (top-5 + nav height + breathing room). */}
+      <div className="relative z-10 pt-24">{children}</div>
     </div>
   )
 }

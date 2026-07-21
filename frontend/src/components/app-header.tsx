@@ -1,6 +1,5 @@
 import { NavLink } from "react-router-dom"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 
@@ -11,47 +10,38 @@ const navItems = [
 
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/92 backdrop-blur-md">
-      <div className="mx-auto flex h-15 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-5 sm:gap-8">
-          <NavLink
-            to="/"
-            className="flex items-center gap-2.5 text-foreground"
-          >
-            <BrandMark className="size-[22px]" />
-            <span className="font-heading text-[17px] font-semibold tracking-tight">
-              PPTAgent
-            </span>
-          </NavLink>
-          <nav className="flex items-center gap-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                    isActive && "bg-muted font-medium text-foreground",
-                  )
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            内部预览
+    <liquid-glass
+      blur-amount="3"
+      scale="70"
+      className="glass-panel fixed top-5 left-1/2 z-50 w-max -translate-x-1/2 rounded-full [--liquid-glass-tint:rgba(255,255,255,0.20)]"
+    >
+      <div className="flex items-center gap-4 py-[9px] pr-2.5 pl-5">
+        <NavLink to="/" className="flex items-center gap-2.5 text-foreground">
+          <BrandMark />
+          <span className="font-heading text-[17.5px] font-semibold tracking-tight">
+            PPTAgent
           </span>
-          <Avatar size="sm">
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              李
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        </NavLink>
+        <nav className="flex items-center gap-0.5">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "rounded-full px-[17px] py-[9px] text-[13.5px] transition-colors",
+                  isActive
+                    ? "bg-primary font-semibold text-primary-foreground"
+                    : "font-medium text-foreground/75 hover:bg-white/55 hover:text-foreground",
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
       </div>
-    </header>
+    </liquid-glass>
   )
 }

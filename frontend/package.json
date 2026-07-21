@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_USE_MOCK=1 vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest run",

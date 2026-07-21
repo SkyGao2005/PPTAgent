@@ -1,33 +1,32 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDropzone } from "react-dropzone"
 import {
+  ArrowRightIcon,
+  CheckIcon,
   ChevronDownIcon,
   FileSpreadsheetIcon,
   FileTextIcon,
   LoaderCircleIcon,
-  PresentationIcon,
-  SparklesIcon,
-  Trash2Icon,
-  UploadCloudIcon,
+  PlusIcon,
+  XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { AppShell } from "@/components/app-shell"
-import { TemplateCover } from "@/components/template-cover"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
+import { useFlipLayout } from "@/lib/use-flip-layout"
 import { usePageMetadata } from "@/lib/use-page-metadata"
+import { usePresenceList } from "@/lib/use-presence-list"
 import { cn } from "@/lib/utils"
 import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
@@ -38,6 +37,13 @@ const suggestions = [
   "团队季度 OKR 复盘",
   "行业趋势研究分享",
 ]
+
+// Setting chips inside the prompt card, per the liquid-glass design
+// ("Template: Meridian ▾", "12 slides ▾").
+const chipClass =
+  "flex items-center gap-1.5 rounded-full px-3.5 py-[7px] text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground aria-expanded:bg-white/55 disabled:opacity-50"
+
+const attachmentKey = (attachment: { id: string }): string => attachment.id
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) {
@@ -53,22 +59,23 @@ function AttachmentIcon({ name }: { name: string }) {
   return <FileTextIcon className="size-4" />
 }
 
+function ChipChevron() {
+  return <ChevronDownIcon className="size-3.5 text-hint" />
+}
+
 export function CreatePage() {
   usePageMetadata("新建演示")
   const navigate = useNavigate()
-  const [advancedOpen, setAdvancedOpen] = useState(false)
   const {
     topic,
     pageCount,
     ratio,
-    language,
     templateId,
     attachments,
     creating,
     setTopic,
     setPageCount,
     setRatio,
-    setLanguage,
     setTemplateId,
     addAttachments,
     removeAttachment,
@@ -78,14 +85,14 @@ export function CreatePage() {
   const templatesLoaded = useTemplatesStore((state) => state.loaded)
   const templatesLoadError = useTemplatesStore((state) => state.loadError)
   const readyTemplates = templates.filter((template) => template.status === "ready")
-  // The grid shows only four cards; a template picked from the library must
-  // stay visible even when it is not among the first four.
-  const firstFour = readyTemplates.slice(0, 4)
   const selectedTemplate = readyTemplates.find((template) => template.id === templateId)
-  const shownTemplates =
-    selectedTemplate && !firstFour.some((template) => template.id === templateId)
-      ? [selectedTemplate, ...firstFour.slice(0, 3)]
-      : firstFour
+  const attachmentEntries = usePresenceList(attachments, attachmentKey, 160)
+  const attachmentLayoutKeys = attachmentEntries.map((entry) => entry.key)
+  const attachmentMotionToken = attachmentEntries.map((entry) => entry.key).join("|")
+  const registerAttachmentNode = useFlipLayout(
+    attachmentLayoutKeys,
+    attachmentMotionToken,
+  )
 
   useEffect(() => {
     if (!templatesLoaded) {
@@ -135,9 +142,16 @@ export function CreatePage() {
     [addAttachments, creating],
   )
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    open: openFilePicker,
+  } = useDropzone({
     onDrop,
     disabled: creating,
+    noClick: true,
+    noKeyboard: true,
     maxSize: 20 * 1024 * 1024,
     accept: {
       "application/pdf": [".pdf"],
@@ -170,312 +184,288 @@ export function CreatePage() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="mx-auto w-full max-w-[860px] px-4 py-10 outline-none sm:px-6 sm:py-12"
+        className="mx-auto flex w-full max-w-[840px] flex-col items-center px-4 pt-8 pb-16 outline-none sm:pt-12"
       >
-        <div className="animate-fade-up mb-8">
-          <h1 className="font-heading text-[28px] font-bold tracking-tight">新建演示</h1>
-          <p className="mt-1.5 text-sm text-hint">
-            描述你的主题，选择模板，剩下的交给 AI。
+        <div className="animate-fade-up flex flex-col items-center text-center">
+          <h1 className="font-serif text-[40px] font-black tracking-tight text-balance sm:text-[48px]">
+            今天要演示什么？
+          </h1>
+          <p className="mt-2.5 mb-9 max-w-[520px] text-[15px] text-hint text-pretty">
+            描述你的主题、附上参考资料，PPTAgent 负责大纲、版式和每一页内容。
           </p>
         </div>
 
-        <div className="space-y-4">
-          <Card className="gap-4 shadow-none">
-            <CardHeader>
-              <div className="flex items-baseline justify-between gap-4">
-                <CardTitle className="text-[15px]">演示主题</CardTitle>
-                <span className="font-heading text-xs tabular-nums text-hint">
-                  {topic.length} / 200
+        <liquid-glass
+          blur-amount="9"
+          className="glass-panel w-full rounded-[28px] shadow-[0_24px_70px_rgba(30,32,44,0.16),inset_0_1px_1px_rgba(255,255,255,0.8)]"
+        >
+          <div
+            {...getRootProps({
+              className: "relative flex flex-col gap-4 p-6 pb-4",
+              "aria-label": "演示主题与参考资料，支持拖放文件",
+            })}
+          >
+            <input {...getInputProps()} />
+            <div
+              data-visible={isDragActive}
+              aria-hidden={!isDragActive}
+              className="drop-target-overlay pointer-events-none absolute inset-2 z-10 flex items-center justify-center rounded-[22px] border-2 border-dashed border-primary bg-white/80 text-sm font-bold"
+            >
+              松开即可添加参考资料
+            </div>
+
+            <Textarea
+              value={topic}
+              onChange={(event) => setTopic(event.target.value)}
+              aria-label="演示主题"
+              maxLength={200}
+              rows={3}
+              className="min-h-22 resize-none rounded-none border-0 bg-transparent p-0 text-[16px] leading-7 shadow-none focus-visible:border-transparent focus-visible:ring-0 md:text-[16px]"
+              placeholder="描述你的演示——主题、受众、篇幅、语气……"
+            />
+
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
+              {attachmentEntries.map((entry) => (
+                <span
+                  key={entry.key}
+                  ref={(node) => registerAttachmentNode(entry.key, node)}
+                  className="inline-flex"
+                >
+                  <span
+                    data-phase={entry.phase}
+                    aria-hidden={entry.phase === "exiting"}
+                    className="attachment-chip-presence flex items-center gap-1.5 rounded-full border border-border bg-white/60 py-[7px] pr-2.5 pl-3.5 text-[13.5px] font-medium"
+                  >
+                    <span className="text-hint">
+                      <AttachmentIcon name={entry.value.name} />
+                    </span>
+                    <span className="max-w-44 truncate">{entry.value.name}</span>
+                    <span className="font-heading text-xs tabular-nums text-hint">
+                      {formatFileSize(entry.value.size)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`移除 ${entry.value.name}`}
+                      disabled={creating || entry.phase === "exiting"}
+                      tabIndex={entry.phase === "exiting" ? -1 : 0}
+                      className="ml-0.5 rounded-full p-0.5 text-hint transition-colors hover:bg-accent hover:text-foreground"
+                      onClick={() => removeAttachment(entry.value.id)}
+                    >
+                      <XIcon className="size-4" />
+                    </button>
+                  </span>
                 </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3.5">
-              <Textarea
-                value={topic}
-                onChange={(event) => setTopic(event.target.value)}
-                aria-label="演示主题"
-                maxLength={200}
-                rows={3}
-                className="min-h-24 resize-none rounded-[10px] bg-[#FDFDFC] p-4 text-[15px] leading-7"
-                placeholder="例如：2026 半年度经营分析与下半年战略规划，面向管理层汇报……"
-              />
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    className="rounded-full border bg-muted px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-primary/60 hover:bg-accent hover:text-primary"
-                    onClick={() => setTopic(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="gap-4 shadow-none">
-            <CardHeader>
-              <div className="flex flex-wrap items-baseline gap-2">
-                <CardTitle className="text-[15px]">参考资料</CardTitle>
-                <span className="text-xs text-hint">可选 · 支持 PDF / Word / Excel</span>
-              </div>
-              <p className="mt-1 text-[13px] text-hint">
-                AI 会阅读这些材料，提取数据与要点写入幻灯片。
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {attachments.map((attachment) => (
-                <div
-                  key={attachment.id}
-                  className="flex items-center gap-3 rounded-[10px] border bg-[#FDFDFC] px-3 py-2.5"
-                >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <AttachmentIcon name={attachment.name} />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                    {attachment.name}
-                  </span>
-                  <span className="font-heading text-xs tabular-nums text-hint">
-                    {formatFileSize(attachment.size)}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`移除 ${attachment.name}`}
-                    disabled={creating}
-                    onClick={() => removeAttachment(attachment.id)}
-                  >
-                    <Trash2Icon />
-                  </Button>
-                </div>
               ))}
-              <div
-                {...getRootProps({
-                  role: "button",
-                  tabIndex: 0,
-                  "aria-label": "添加参考资料，支持点击选择或拖放文件",
-                  className: cn(
-                    "flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[10px] border-[1.5px] border-dashed px-5 py-6 text-sm text-hint transition-colors hover:border-primary/60 hover:bg-accent/40 hover:text-primary",
-                    isDragActive && "border-primary bg-accent/60 text-primary",
-                  ),
-                })}
+              <button
+                type="button"
+                disabled={creating}
+                className="mr-1 flex items-center gap-1.5 rounded-full border border-dashed border-input px-3.5 py-[7px] text-[13.5px] font-medium text-hint transition-colors hover:border-foreground/50 hover:text-foreground"
+                onClick={openFilePicker}
               >
-                <input {...getInputProps()} />
-                <UploadCloudIcon className="size-5" />
-                <span>{isDragActive ? "松开即可添加" : "点击添加文件，或拖拽到此处"}</span>
-              </div>
-            </CardContent>
-          </Card>
+                <PlusIcon className="size-4" />
+                参考资料
+              </button>
 
-          <Card className="gap-4 shadow-none">
-            <CardHeader>
-              <div className="flex items-baseline justify-between gap-4">
-                <CardTitle className="text-[15px]">模板</CardTitle>
-                <Button
-                  type="button"
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0"
-                  onClick={() => navigate("/templates")}
+              <span className="flex-1" />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<button type="button" className={chipClass} />}
                 >
-                  浏览模板库 →
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {templatesLoadError ? (
-                <div
-                  role="alert"
-                  className="flex items-center justify-between rounded-[10px] border border-dashed px-4 py-3 text-[13px] text-hint"
-                >
-                  模板列表加载失败：{templatesLoadError}
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0"
-                    onClick={() => void useTemplatesStore.getState().fetchTemplates()}
-                  >
-                    重试
-                  </Button>
-                </div>
-              ) : !templatesLoaded ? (
-                <div
-                  aria-label="正在加载模板"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-                >
-                  {Array.from({ length: 4 }, (_, index) => (
-                    <div key={index} className="skeleton-shimmer aspect-[4/3] rounded-xl" />
-                  ))}
-                </div>
-              ) : shownTemplates.length === 0 ? (
-                <div
-                  role="status"
-                  className="rounded-[10px] border border-dashed px-4 py-5 text-center text-[13px] text-hint"
-                >
-                  <p>当前没有可用模板，请先到模板库上传并等待解析完成。</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => navigate("/templates")}
-                  >
-                    前往模板库
-                  </Button>
-                </div>
-              ) : (
-                <div
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-                  role="group"
-                  aria-label="选择演示模板"
-                >
-                  {shownTemplates.map((template) => {
-                    const selected = template.id === templateId
-                    return (
-                      <button
+                  模板:{" "}
+                  <strong className="font-semibold text-foreground">
+                    {selectedTemplate?.name ??
+                      (templatesLoaded ? "选择模板" : "载入中…")}
+                  </strong>
+                  <ChipChevron />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  {templatesLoadError ? (
+                    <>
+                      <DropdownMenuItem disabled>
+                        模板列表加载失败
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => void useTemplatesStore.getState().fetchTemplates()}
+                      >
+                        重试加载
+                      </DropdownMenuItem>
+                    </>
+                  ) : !templatesLoaded ? (
+                    <DropdownMenuItem disabled>载入模板中…</DropdownMenuItem>
+                  ) : readyTemplates.length === 0 ? (
+                    <DropdownMenuItem disabled>暂无可用模板</DropdownMenuItem>
+                  ) : (
+                    readyTemplates.map((template) => (
+                      <DropdownMenuItem
                         key={template.id}
-                        type="button"
-                        aria-pressed={selected}
-                        aria-label={`${template.name}，${template.ratio}${selected ? "，已选择" : ""}`}
                         className={cn(
-                          "overflow-hidden rounded-xl border-2 text-left transition-all",
-                          selected
-                            ? "border-primary bg-accent/50 ring-3 ring-primary/10"
-                            : "border-border bg-card hover:border-primary/50",
+                          template.id === templateId &&
+                            "bg-foreground/[0.065]",
                         )}
                         onClick={() => setTemplateId(template.id)}
                       >
-                        <TemplateCover template={template} />
-                        <div className="flex items-center justify-between gap-2 px-2.5 py-2">
-                          <span className="truncate text-[13px] font-medium">
-                            {template.name}
+                        <span className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1">
+                          {[
+                            template.palette.bg,
+                            template.palette.primary,
+                            template.palette.accent,
+                          ].map((color, index) => (
+                            <span
+                              key={index}
+                              className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </span>
+                        <span className="flex-1 truncate">{template.name}</span>
+                        <span className="font-heading text-[11px] tabular-nums text-hint">
+                          {template.ratio}
+                        </span>
+                        {template.id === templateId && (
+                          <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                            <CheckIcon className="size-3.5" />
                           </span>
-                          {selected ? (
-                            <span className="shrink-0 text-[11px] font-bold text-primary">
-                              ✓ 已选
-                            </span>
-                          ) : (
-                            <span className="shrink-0 text-[10px] text-hint">
-                              {template.ratio}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                        )}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="mt-1 bg-foreground text-background focus:bg-foreground/85 focus:text-background focus:**:text-background"
+                    onClick={() => navigate("/templates")}
+                  >
+                    <span className="flex-1 font-medium">浏览模板库</span>
+                    <ArrowRightIcon className="size-4" />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <Card className="gap-5 shadow-none">
-            <CardHeader>
-              <CardTitle className="text-[15px]">生成设置</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-8 sm:grid-cols-2">
-              <div>
-                <div className="mb-4 flex items-baseline justify-between">
-                  <Label className="text-[13px] text-muted-foreground">页数</Label>
-                  <span className="font-heading text-sm font-semibold tabular-nums">
-                    {pageCount} 页
-                  </span>
-                </div>
-                <Slider
-                  aria-label="页数"
-                  min={5}
-                  max={30}
-                  step={1}
-                  value={[pageCount]}
-                  onValueChange={(value) =>
-                    setPageCount(typeof value === "number" ? value : value[0])
-                  }
-                />
-                <div className="font-heading mt-2 flex justify-between text-[11px] text-hint">
-                  <span>5</span>
-                  <span>30</span>
-                </div>
-              </div>
-              <div>
-                <Label className="mb-3 block text-[13px] text-muted-foreground">
-                  画面比例
-                </Label>
-                <div className="grid grid-cols-2 gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<button type="button" className={chipClass} aria-label="页数" />}
+                >
+                  <strong className="font-heading font-semibold text-foreground tabular-nums">
+                    {pageCount}
+                  </strong>{" "}
+                  页
+                  <ChipChevron />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 p-4">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[13px] font-medium">页数</span>
+                    <span className="font-heading text-[13px] font-semibold tabular-nums">
+                      {pageCount} 页
+                    </span>
+                  </div>
+                  <Slider
+                    aria-label="页数"
+                    min={5}
+                    max={30}
+                    step={1}
+                    value={[pageCount]}
+                    className="mt-3.5"
+                    onValueChange={(value) =>
+                      setPageCount(typeof value === "number" ? value : value[0])
+                    }
+                  />
+                  <div className="font-heading mt-2 flex justify-between text-[11px] text-hint">
+                    <span>5</span>
+                    <span>30</span>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<button type="button" className={chipClass} aria-label="画面比例" />}
+                >
+                  <strong className="font-heading font-semibold text-foreground">
+                    {ratio}
+                  </strong>
+                  <ChipChevron />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
                   {(["16:9", "4:3"] as const).map((item) => (
-                    <button
+                    <DropdownMenuItem
                       key={item}
-                      type="button"
-                      aria-pressed={ratio === item}
                       className={cn(
-                        "flex h-10 items-center justify-center gap-2 rounded-[10px] border-2 text-[13px] font-medium transition-colors",
-                        ratio === item
-                          ? "border-primary bg-accent/60 text-primary"
-                          : "border-border bg-card text-muted-foreground hover:border-input",
+                        ratio === item && "bg-foreground/[0.065]",
                       )}
                       onClick={() => setRatio(item)}
                     >
-                      <PresentationIcon className="size-4" />
-                      {item}
-                    </button>
+                      <span className="font-heading flex-1">{item}</span>
+                      {ratio === item && (
+                        <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                          <CheckIcon className="size-3.5" />
+                        </span>
+                      )}
+                    </DropdownMenuItem>
                   ))}
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between border-t pt-4 text-sm font-medium"
-                  aria-expanded={advancedOpen}
-                  onClick={() => setAdvancedOpen((open) => !open)}
-                >
-                  高级选项
-                  <ChevronDownIcon
-                    className={cn(
-                      "size-4 text-muted-foreground transition-transform",
-                      advancedOpen && "rotate-180",
-                    )}
-                  />
-                </button>
-                {advancedOpen && (
-                  <div className="mt-4 grid gap-2 sm:max-w-xs">
-                    <Label htmlFor="language">输出语言</Label>
-                    <Select
-                      value={language}
-                      onValueChange={(value) => value && setLanguage(value)}
-                    >
-                      <SelectTrigger id="language" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="zh-CN">简体中文</SelectItem>
-                        <SelectItem value="en-US">English</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-        <div className="mt-7 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <span className="text-[13px] text-hint">
-            预计用时约 {estimatedMinutes} 分钟 · 生成过程中可随时编辑已完成页面
-          </span>
-          <Button
-            size="lg"
-            className="h-12 w-full rounded-xl px-7 text-[15px] font-bold shadow-lg shadow-primary/20 sm:w-auto"
-            disabled={!topic.trim() || !templateId || creating}
-            onClick={() => void handleGenerate()}
-          >
-            {creating ? (
-              <LoaderCircleIcon className="animate-spin" />
-            ) : (
-              <SparklesIcon />
-            )}
-            开始生成
-          </Button>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border/80 pt-3.5">
+              <span className="pl-1 text-[12.5px] text-hint">
+                <span className="font-heading tabular-nums">{topic.length} / 200</span>
+                {" · "}预计用时约 {estimatedMinutes} 分钟
+              </span>
+              <Button
+                size="lg"
+                className="h-11 rounded-full px-5 text-sm font-semibold shadow-[0_10px_26px_rgba(27,28,32,0.3)]"
+                disabled={!topic.trim() || !templateId || creating}
+                onClick={() => void handleGenerate()}
+              >
+                {creating && <LoaderCircleIcon className="animate-spin" />}
+                开始生成
+                {!creating && <ArrowRightIcon data-icon="inline-end" />}
+              </Button>
+            </div>
+          </div>
+        </liquid-glass>
+
+        {templatesLoadError ? (
+          <div role="alert" className="mt-4 text-[13px] text-hint">
+            模板列表加载失败：{templatesLoadError}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 pl-2"
+              onClick={() => void useTemplatesStore.getState().fetchTemplates()}
+            >
+              重试
+            </Button>
+          </div>
+        ) : templatesLoaded && readyTemplates.length === 0 ? (
+          <div role="status" className="mt-4 text-[13px] text-hint">
+            当前没有可用模板，请先到
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 px-1 underline-offset-2"
+              onClick={() => navigate("/templates")}
+            >
+              模板库
+            </Button>
+            上传并等待解析完成。
+          </div>
+        ) : null}
+
+        <div className={cn("flex flex-wrap justify-center gap-2", templatesLoadError || (templatesLoaded && readyTemplates.length === 0) ? "mt-4" : "mt-5")}>
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              className="glass-chip rounded-full px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground"
+              onClick={() => setTopic(suggestion)}
+            >
+              {suggestion}
+            </button>
+          ))}
         </div>
       </main>
     </AppShell>
