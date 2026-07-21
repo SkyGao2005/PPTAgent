@@ -59,6 +59,12 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-motion-fast: 160ms;
+  --duration-motion-standard: 200ms;
+
   --animate-shimmer: shimmer 1.2s linear infinite;
   --animate-fade-up: fade-up 0.3s ease both;
   --animate-light-up: light-up 0.6s ease both;
@@ -505,6 +511,145 @@
   animation: var(--animate-shimmer);
 }
 
+@layer components {
+  .slide-preview-layer {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity var(--duration-motion-fast) var(--ease-out),
+      transform var(--duration-motion-fast) var(--ease-out);
+  }
+
+  .slide-preview-layer[data-phase="entering"] {
+    opacity: 0;
+    transform: scale(0.995);
+  }
+
+  .slide-preview-layer[data-phase="leaving"] {
+    opacity: 0;
+  }
+
+  .slide-preview-busy {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-motion-fast) var(--ease-out);
+  }
+
+  .slide-preview-busy[data-visible="true"] {
+    opacity: 1;
+  }
+
+  .slide-preview-busy[data-visible="false"] .animate-spin {
+    animation-play-state: paused;
+  }
+
+  .drop-target-overlay {
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity var(--duration-motion-fast) var(--ease-out),
+      transform var(--duration-motion-fast) var(--ease-out),
+      visibility 0s linear var(--duration-motion-fast);
+  }
+
+  .drop-target-overlay[data-visible="true"] {
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1);
+    transition-delay: 0s;
+  }
+
+  .reconnect-status {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--duration-motion-fast) var(--ease-out),
+      transform var(--duration-motion-fast) var(--ease-out),
+      visibility 0s linear var(--duration-motion-fast);
+  }
+
+  .reconnect-status[data-visible="true"] {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .template-status-layer {
+    opacity: 0;
+    transform: scale(0.97);
+    pointer-events: none;
+    transition:
+      opacity var(--duration-motion-standard) var(--ease-out),
+      transform var(--duration-motion-standard) var(--ease-out);
+  }
+
+  .template-status-layer[data-visible="true"] {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .template-status-layer[data-visible="false"] .template-progress-stripe {
+    animation-play-state: paused !important;
+  }
+
+  .template-status-badge {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity var(--duration-motion-fast) var(--ease-out),
+      transform var(--duration-motion-fast) var(--ease-out);
+  }
+
+  .template-progress-stripe {
+    transition-timing-function: var(--ease-out);
+  }
+
+  .template-grid-resolved {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity var(--duration-motion-standard) var(--ease-out),
+      transform var(--duration-motion-standard) var(--ease-out);
+  }
+
+  .template-card-presence,
+  .attachment-chip-presence {
+    opacity: 1;
+    transform: scale(1);
+    transition:
+      opacity var(--duration-motion-fast) var(--ease-out),
+      transform var(--duration-motion-fast) var(--ease-out);
+  }
+
+  .template-card-presence[data-phase="entering"],
+  .attachment-chip-presence[data-phase="entering"] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  .template-card-presence[data-phase="exiting"],
+  .attachment-chip-presence[data-phase="exiting"] {
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@starting-style {
+  .template-status-badge {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  .template-grid-resolved {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+}
+
 /* Stroke-drawing animation for the generation-complete checkmark. */
 @keyframes draw-stroke {
   to {
@@ -512,13 +657,103 @@
   }
 }
 
+@keyframes reduced-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  }
+
+  .liquid-scene-base,
+  .liquid-scene-orb,
+  .liquid-scene-sheen {
+    animation: none !important;
+    will-change: auto;
+  }
+
+  .animate-fade-up,
+  .animate-light-up {
+    animation: reduced-fade 200ms var(--ease-out) both !important;
+  }
+
+  .animate-soft-pulse,
+  .animate-blink,
+  .animate-stripe,
+  .skeleton-shimmer {
+    animation: none !important;
+  }
+
+  .animate-spin {
+    animation-duration: 2s !important;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"],
+  [data-slot="tooltip-content"] {
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-animation-duration: 200ms !important;
+  }
+
+  [data-slot="sheet-content"][data-starting-style],
+  [data-slot="sheet-content"][data-ending-style] {
+    translate: none !important;
+    opacity: 0;
+    transition-duration: 200ms !important;
+  }
+
+  .slide-preview-layer {
+    transform: none !important;
+    transition: opacity 200ms var(--ease-out);
+  }
+
+  .generation-tracker {
+    transition-property: opacity, border-color !important;
+    transition-duration: 200ms !important;
+  }
+
+  .drop-target-overlay {
+    transform: none !important;
+    transition:
+      opacity 200ms var(--ease-out),
+      visibility 0s linear 200ms;
+  }
+
+  .drop-target-overlay[data-visible="true"] {
+    transition-delay: 0s;
+  }
+
+  .reconnect-status {
+    transform: none !important;
+    transition:
+      opacity 200ms var(--ease-out),
+      visibility 0s linear 200ms;
+  }
+
+  .reconnect-status[data-visible="true"] {
+    transition-delay: 0s;
+  }
+
+  .template-status-layer,
+  .template-status-badge,
+  .template-grid-resolved,
+  .template-card-presence,
+  .attachment-chip-presence {
+    transform: none !important;
+    transition: opacity 200ms var(--ease-out);
   }
 }

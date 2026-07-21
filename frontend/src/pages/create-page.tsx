@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
+import { useFlipLayout } from "@/lib/use-flip-layout"
 import { usePageMetadata } from "@/lib/use-page-metadata"
+import { usePresenceList } from "@/lib/use-presence-list"
 import { cn } from "@/lib/utils"
 import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
@@ -40,6 +42,8 @@ const suggestions = [
 // ("Template: Meridian ▾", "12 slides ▾").
 const chipClass =
   "flex items-center gap-1.5 rounded-full px-3.5 py-[7px] text-[13.5px] font-medium text-muted-foreground transition-colors hover:bg-white/55 hover:text-foreground aria-expanded:bg-white/55 disabled:opacity-50"
+
+const attachmentKey = (attachment: { id: string }): string => attachment.id
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) {
@@ -82,6 +86,13 @@ export function CreatePage() {
   const templatesLoadError = useTemplatesStore((state) => state.loadError)
   const readyTemplates = templates.filter((template) => template.status === "ready")
   const selectedTemplate = readyTemplates.find((template) => template.id === templateId)
+  const attachmentEntries = usePresenceList(attachments, attachmentKey, 160)
+  const attachmentLayoutKeys = attachmentEntries.map((entry) => entry.key)
+  const attachmentMotionToken = attachmentEntries.map((entry) => entry.key).join("|")
+  const registerAttachmentNode = useFlipLayout(
+    attachmentLayoutKeys,
+    attachmentMotionToken,
+  )
 
   useEffect(() => {
     if (!templatesLoaded) {
@@ -195,11 +206,13 @@ export function CreatePage() {
             })}
           >
             <input {...getInputProps()} />
-            {isDragActive && (
-              <div className="pointer-events-none absolute inset-2 z-10 flex items-center justify-center rounded-[22px] border-2 border-dashed border-primary bg-white/80 text-sm font-bold">
-                松开即可添加参考资料
-              </div>
-            )}
+            <div
+              data-visible={isDragActive}
+              aria-hidden={!isDragActive}
+              className="drop-target-overlay pointer-events-none absolute inset-2 z-10 flex items-center justify-center rounded-[22px] border-2 border-dashed border-primary bg-white/80 text-sm font-bold"
+            >
+              松开即可添加参考资料
+            </div>
 
             <Textarea
               value={topic}
@@ -212,27 +225,35 @@ export function CreatePage() {
             />
 
             <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
-              {attachments.map((attachment) => (
+              {attachmentEntries.map((entry) => (
                 <span
-                  key={attachment.id}
-                  className="flex items-center gap-1.5 rounded-full border border-border bg-white/60 py-[7px] pr-2.5 pl-3.5 text-[13.5px] font-medium"
+                  key={entry.key}
+                  ref={(node) => registerAttachmentNode(entry.key, node)}
+                  className="inline-flex"
                 >
-                  <span className="text-hint">
-                    <AttachmentIcon name={attachment.name} />
-                  </span>
-                  <span className="max-w-44 truncate">{attachment.name}</span>
-                  <span className="font-heading text-xs tabular-nums text-hint">
-                    {formatFileSize(attachment.size)}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`移除 ${attachment.name}`}
-                    disabled={creating}
-                    className="ml-0.5 rounded-full p-0.5 text-hint transition-colors hover:bg-accent hover:text-foreground"
-                    onClick={() => removeAttachment(attachment.id)}
+                  <span
+                    data-phase={entry.phase}
+                    aria-hidden={entry.phase === "exiting"}
+                    className="attachment-chip-presence flex items-center gap-1.5 rounded-full border border-border bg-white/60 py-[7px] pr-2.5 pl-3.5 text-[13.5px] font-medium"
                   >
-                    <XIcon className="size-4" />
-                  </button>
+                    <span className="text-hint">
+                      <AttachmentIcon name={entry.value.name} />
+                    </span>
+                    <span className="max-w-44 truncate">{entry.value.name}</span>
+                    <span className="font-heading text-xs tabular-nums text-hint">
+                      {formatFileSize(entry.value.size)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`移除 ${entry.value.name}`}
+                      disabled={creating || entry.phase === "exiting"}
+                      tabIndex={entry.phase === "exiting" ? -1 : 0}
+                      className="ml-0.5 rounded-full p-0.5 text-hint transition-colors hover:bg-accent hover:text-foreground"
+                      onClick={() => removeAttachment(entry.value.id)}
+                    >
+                      <XIcon className="size-4" />
+                    </button>
+                  </span>
                 </span>
               ))}
               <button

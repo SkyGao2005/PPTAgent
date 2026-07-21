@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useParams } from "react-router-dom"
 import {
   ArrowLeftIcon,
@@ -132,7 +132,7 @@ function SlideThumb({
         aria-current={selected ? "page" : undefined}
         onClick={onSelect}
         className={cn(
-          "relative block min-w-0 flex-1 overflow-hidden rounded-[8px] text-left transition-all",
+          "relative block min-w-0 flex-1 overflow-hidden rounded-[8px] text-left",
           ratio === "4:3" ? "aspect-[4/3]" : "aspect-video",
           slide.status === "completed" || slide.status === "editing"
             ? "bg-card shadow-[0_2px_8px_rgba(30,32,44,0.08),inset_0_0_0_1px_rgba(27,28,32,0.06)] hover:shadow-[0_4px_12px_rgba(30,32,44,0.16)]"
@@ -225,6 +225,99 @@ function BootCanvas({ stage, ratio }: { stage: TaskStage; ratio: "16:9" | "4:3" 
   )
 }
 
+interface PreviewLayer {
+  key: string
+  src: string
+  phase: "entering" | "present" | "leaving"
+}
+
+const PREVIEW_TRANSITION_MS = 160
+
+function usePreviewLayers(
+  slide: SlideView,
+  src: string | null | undefined,
+): PreviewLayer[] {
+  const previewKey = `${slide.id}:${slide.revision}:${slide.previewVersion}`
+  const [layers, setLayers] = useState<PreviewLayer[]>(() =>
+    src ? [{ key: previewKey, src, phase: "present" }] : [],
+  )
+  const slideIdRef = useRef(slide.id)
+  const previewKeyRef = useRef(previewKey)
+  const requestRef = useRef(0)
+
+  useLayoutEffect(() => {
+    const request = ++requestRef.current
+    let frame = 0
+    let cleanupTimer = 0
+
+    if (slideIdRef.current !== slide.id) {
+      slideIdRef.current = slide.id
+      previewKeyRef.current = previewKey
+      setLayers(src ? [{ key: previewKey, src, phase: "present" }] : [])
+      return
+    }
+
+    if (!src) {
+      previewKeyRef.current = previewKey
+      setLayers([])
+      return
+    }
+
+    if (previewKeyRef.current === previewKey) {
+      return
+    }
+
+    // A newer preview can arrive before the previous entrance frame runs.
+    // Settle the already-loaded newest layer first so cancelling that frame
+    // can never leave the canvas transparent while the next image preloads.
+    setLayers((current) => {
+      const newest = current[current.length - 1]
+      if (!newest || (current.length === 1 && newest.phase === "present")) {
+        return current
+      }
+      return [{ ...newest, phase: "present" }]
+    })
+
+    const image = new Image()
+    let committed = false
+    const commit = (): void => {
+      if (committed || requestRef.current !== request || slideIdRef.current !== slide.id) {
+        return
+      }
+      committed = true
+      previewKeyRef.current = previewKey
+      setLayers((current) => [
+        ...current.map((layer) => ({ ...layer, phase: "leaving" as const })),
+        { key: previewKey, src, phase: "entering" as const },
+      ].slice(-2))
+      frame = window.requestAnimationFrame(() => {
+        setLayers((current) =>
+          current.map((layer) =>
+            layer.key === previewKey ? { ...layer, phase: "present" } : layer,
+          ),
+        )
+      })
+      cleanupTimer = window.setTimeout(() => {
+        setLayers((current) => current.filter((layer) => layer.key === previewKey))
+      }, PREVIEW_TRANSITION_MS)
+    }
+
+    image.addEventListener("load", commit, { once: true })
+    image.src = src
+    if (image.complete && image.naturalWidth > 0) {
+      commit()
+    }
+
+    return () => {
+      image.removeEventListener("load", commit)
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(cleanupTimer)
+    }
+  }, [previewKey, slide.id, src])
+
+  return layers
+}
+
 function SlideCanvas({
   slide,
   ratio,
@@ -237,7 +330,15 @@ function SlideCanvas({
   onRetry: () => void
 }) {
   const src = previewSrc(slide.previewUrl, slide.previewVersion)
+  const previewLayers = usePreviewLayers(slide, src)
   const aspect = ratio === "4:3" ? "aspect-[4/3]" : "aspect-video"
+  const previewBusy = slide.status === "editing" || slide.status === "generating"
+  const busyLabelRef = useRef("正在生成本页…")
+  if (slide.status === "editing") {
+    busyLabelRef.current = "正在修改本页…"
+  } else if (slide.status === "generating") {
+    busyLabelRef.current = "正在生成本页…"
+  }
 
   if (slide.status === "failed") {
     return (
@@ -302,23 +403,27 @@ function SlideCanvas({
 
   return (
     <div className={cn("relative w-full bg-card", aspect)}>
-      {src && (
+      {previewLayers.map((layer, index) => (
         <img
-          key={`${slide.id}:${slide.revision}:${src.length}`}
-          src={src}
-          alt={slide.title}
+          key={layer.key}
+          src={layer.src}
+          alt={index === previewLayers.length - 1 ? slide.title : ""}
+          aria-hidden={index !== previewLayers.length - 1}
+          data-phase={layer.phase}
           draggable={false}
-          className="pointer-events-none absolute inset-0 size-full select-none object-cover"
+          className="slide-preview-layer pointer-events-none absolute inset-0 size-full select-none object-cover"
         />
-      )}
-      {(slide.status === "editing" || slide.status === "generating") && (
-        <div className="absolute inset-0 flex items-center justify-center bg-card/45">
-          <span className="flex items-center gap-2 rounded-full bg-card/95 px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm">
-            <LoaderCircleIcon className="size-3.5 animate-spin" />
-            {slide.status === "editing" ? "正在修改本页…" : "正在生成本页…"}
-          </span>
-        </div>
-      )}
+      ))}
+      <div
+        data-visible={previewBusy}
+        aria-hidden={!previewBusy}
+        className="slide-preview-busy absolute inset-0 flex items-center justify-center bg-card/45"
+      >
+        <span className="flex items-center gap-2 rounded-full bg-card/95 px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm">
+          <LoaderCircleIcon className="size-3.5 animate-spin" />
+          {busyLabelRef.current}
+        </span>
+      </div>
     </div>
   )
 }
@@ -515,8 +620,9 @@ function GenerationPanel({
   const success = phase === "success" || phase === "exit"
   return (
     <div
+      data-phase={phase}
       className={cn(
-        "flex-none overflow-hidden border-b border-border/70 transition-all duration-600 ease-in-out",
+        "generation-tracker flex-none overflow-hidden border-b border-border/70 transition-all duration-600 ease-in-out",
         phase === "exit" ? "max-h-0 border-transparent opacity-0" : "max-h-[300px] opacity-100",
       )}
     >
@@ -997,8 +1103,9 @@ export function WorkbenchPage() {
       <SceneBackground />
       <div className="relative z-10 flex h-full flex-col gap-3 p-3 sm:p-3.5">
         {/* ══ top bar ══ */}
-        <liquid-glass blur-amount="10" className="glass-panel z-30 flex-none rounded-[18px]">
-          <header className="flex items-center gap-2.5 overflow-x-auto px-3.5 py-2.5 sm:gap-4 sm:px-4.5">
+        <div className="relative z-30 flex-none">
+          <liquid-glass blur-amount="10" className="glass-panel rounded-[18px]">
+            <header className="flex items-center gap-2.5 overflow-x-auto px-3.5 py-2.5 sm:gap-4 sm:px-4.5">
             <Link
               to="/"
               className="flex shrink-0 items-center gap-2 text-foreground"
@@ -1194,18 +1301,20 @@ export function WorkbenchPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </header>
-        </liquid-glass>
-
-        {connection === "reconnecting" && (
-          <div
-            role="status"
-            className="flex h-9 flex-none items-center justify-center gap-2 rounded-2xl border border-amber-300/60 bg-amber-50/85 text-xs text-amber-800 backdrop-blur-md"
-          >
-            <WifiOffIcon className="size-3.5" />
-            连接中断，正在重连…任务仍在后台继续
+            </header>
+          </liquid-glass>
+          <div className="pointer-events-none absolute top-[calc(100%+0.5rem)] left-1/2 z-20 w-[min(34rem,calc(100%-2rem))] -translate-x-1/2">
+            <div
+              role="status"
+              data-visible={connection === "reconnecting"}
+              aria-hidden={connection !== "reconnecting"}
+              className="reconnect-status flex h-9 items-center justify-center gap-2 rounded-2xl border border-amber-300/60 bg-amber-50/85 text-xs text-amber-800 shadow-[0_10px_28px_rgba(120,83,12,0.12)] backdrop-blur-md"
+            >
+              <WifiOffIcon className="size-3.5" />
+              连接中断，正在重连…任务仍在后台继续
+            </div>
           </div>
-        )}
+        </div>
 
         <div className="glass-card flex h-10 flex-none items-center gap-2 rounded-2xl px-2 xl:hidden">
           <Button
@@ -1249,14 +1358,14 @@ export function WorkbenchPage() {
           <section className="flex min-w-0 flex-1 flex-col items-center justify-center overflow-auto px-1 py-2 select-none sm:px-4">
             {isBooting ? (
               <div className="w-full" style={{ maxWidth: canvasMaxWidth }}>
-                <div className="overflow-hidden rounded-2xl shadow-[0_30px_80px_rgba(30,32,44,0.22),0_2px_8px_rgba(30,32,44,0.08)]">
+                <div className="overflow-hidden rounded-2xl shadow-[0_20px_36px_-26px_rgba(30,32,44,0.3),0_2px_8px_rgba(30,32,44,0.08)]">
                   <BootCanvas stage={task.stage} ratio={task.ratio} />
                 </div>
               </div>
             ) : (
               selected && (
                 <div className="w-full" style={{ maxWidth: canvasMaxWidth }}>
-                  <div className="overflow-hidden rounded-2xl shadow-[0_30px_80px_rgba(30,32,44,0.22),0_2px_8px_rgba(30,32,44,0.08)]">
+                  <div className="overflow-hidden rounded-2xl shadow-[0_20px_36px_-26px_rgba(30,32,44,0.3),0_2px_8px_rgba(30,32,44,0.08)]">
                     <SlideCanvas
                       slide={selected}
                       ratio={task.ratio}

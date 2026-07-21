@@ -57,22 +57,30 @@ export function TemplateCover({
         </span>
       )}
 
-      {showStatus && template.status === "parsing" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 bg-white/75 backdrop-blur-[2px]">
+      {showStatus && (
+        <div
+          data-visible={template.status === "parsing"}
+          aria-hidden={template.status !== "parsing"}
+          className="template-status-layer absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 bg-white/75 backdrop-blur-[2px]"
+        >
           <span className="text-xs font-medium text-muted-foreground">
             解析中 {template.progress ?? 0}%
           </span>
           <span className="block h-[5px] w-3/5 overflow-hidden rounded-full bg-border">
             <span
-              className="animate-stripe block h-full rounded-full bg-[repeating-linear-gradient(45deg,#1b1c20,#1b1c20_7px,#4a4b52_7px,#4a4b52_14px)] bg-[length:28px_100%] transition-[width] duration-400"
+              className="template-progress-stripe animate-stripe block h-full rounded-full bg-[repeating-linear-gradient(45deg,#1b1c20,#1b1c20_7px,#4a4b52_7px,#4a4b52_14px)] bg-[length:28px_100%] transition-[width] duration-400"
               style={{ width: `${template.progress ?? 0}%` }}
             />
           </span>
         </div>
       )}
 
-      {showStatus && template.status === "failed" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/70 backdrop-blur-sm">
+      {showStatus && (
+        <div
+          data-visible={template.status === "failed"}
+          aria-hidden={template.status !== "failed"}
+          className="template-status-layer absolute inset-0 z-20 flex flex-col items-center justify-center gap-1.5 bg-white/70 backdrop-blur-sm"
+        >
           <span className="animate-light-up flex size-8 items-center justify-center rounded-full bg-destructive text-white shadow-[0_8px_20px_color-mix(in_srgb,var(--destructive)_45%,transparent)]">
             <TriangleAlertIcon className="size-4" />
           </span>
