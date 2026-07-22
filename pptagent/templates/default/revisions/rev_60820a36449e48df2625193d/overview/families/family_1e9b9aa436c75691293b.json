@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs multiple data views, a comparison, or several short content blocks.",
+    "Avoid when the narrative cannot fit comfortably beside a tall image.",
+    "Avoid when a prominent visible headline is essential."
+  ],
+  "description": "A tall image anchors the left side while a dense explanatory passage occupies the right, with an optional heading area across the top.",
+  "digest": "Tall photo beside dense explanatory text",
+  "family_id": "family_1e9b9aa436c75691293b",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s011",
+  "selection_hints": [
+    "Choose for an image-led profile, cultural topic, case study, or historical explanation.",
+    "Use when a tall subject photo should sit beside one substantial narrative block.",
+    "Works best for detailed editorial content with strong visual support."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "Tall photo beside dense explanatory text",
+      "page_number": 11,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s011",
+      "summary": "A tall image anchors the left side while a dense explanatory passage occupies the right, with an optional heading area across the top."
+    }
+  ],
+  "stage": "content"
+}

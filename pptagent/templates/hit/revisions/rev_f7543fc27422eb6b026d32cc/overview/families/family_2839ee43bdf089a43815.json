@@ -1,0 +1,67 @@
+{
+  "avoid_when": [
+    "Avoid for detailed explanations, data, or multi-part content.",
+    "Avoid when the slide needs imagery, charts, or multiple content blocks.",
+    "Avoid for detailed analysis, charts, or dense body content.",
+    "Avoid when the page needs multiple parallel content sections.",
+    "Avoid when no chapter or major topic transition is needed."
+  ],
+  "description": "A formal section divider places a large left-aligned chapter title and concise subtitle just above a strong branded footer band.",
+  "digest": "section divider with title and brief subtitle",
+  "family_id": "family_2839ee43bdf089a43815",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a section needs a prominent heading and one brief explanatory line.",
+    "Works well for formal academic or institutional presentations.",
+    "Use when a section title needs a brief explanatory line.",
+    "Works well as a formal transition in an institutional presentation.",
+    "Use to introduce a new chapter or major presentation section.",
+    "Choose when a prominent section title needs one short supporting line.",
+    "Suitable for a formal academic or institutional presentation."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "section divider with title and brief subtitle",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A formal section divider places a large left-aligned chapter title and concise subtitle just above a strong branded footer band."
+    },
+    {
+      "density": "sparse",
+      "digest": "section divider with title and short intro",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A sparse chapter divider uses a large lower-page heading, a short supporting line, and a date within the dark footer band."
+    },
+    {
+      "density": "sparse",
+      "digest": "chapter divider with subtitle and date",
+      "page_number": 8,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A restrained chapter divider places a large left-aligned heading and brief subtitle above a strong institutional footer band."
+    }
+  ],
+  "stage": "section"
+}

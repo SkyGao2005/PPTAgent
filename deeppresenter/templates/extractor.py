@@ -49,7 +49,7 @@ from .models import (
 )
 
 
-EXTRACTOR_VERSION = "pptx-ir-4"
+EXTRACTOR_VERSION = "pptx-ir-6"
 _DRAWING_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
 _PRESENTATION_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
 _EMU_PER_INCH = 914400
@@ -145,7 +145,12 @@ class PptxExtractor:
                     inherited_asset_ids.extend(assets)
                     # Template chrome (colour blocks, rules, logo placement)
                     # lives on the layout and master; generation cannot honour
-                    # it unless the IR records its geometry.
+                    # it unless the IR records its geometry. A layout may hide
+                    # the master's shapes, and then they are not on the page.
+                    if scope is ShapeScope.MASTER and not self._shows_master_shapes(
+                        slide
+                    ):
+                        chrome = []
                     shapes = chrome + shapes
                 background_asset_ids.extend(
                     self._extract_background_assets(
@@ -360,8 +365,8 @@ class PptxExtractor:
 
         result: list[str] = []
         chrome: list[ShapeNode] = []
-        for index, shape in enumerate(owner.shapes):
-            shape_id = f"{slide_id}-{scope.value}-sh{index + 1:04d}"
+        for z_index, (identifier, shape) in enumerate(self._flatten(owner.shapes)):
+            shape_id = f"{slide_id}-{scope.value}-sh{identifier}"
             normalized = self._normalize(self._bbox(shape), canvas)
             self._extract_text(shape, colors, fonts)
             asset_ids = self._extract_shape_assets(
@@ -376,7 +381,7 @@ class PptxExtractor:
             )
             result.extend(asset_ids)
             node = self._chrome_node(
-                shape, shape_id, scope, index, normalized, asset_ids, palette
+                shape, shape_id, scope, z_index, normalized, asset_ids, palette
             )
             if node is not None:
                 chrome.append(node)
@@ -422,6 +427,42 @@ class PptxExtractor:
             line_color=self._resolved_line(shape, palette),
         )
 
+    @classmethod
+    def _flatten(cls, shapes: Any, prefix: str = "") -> Iterable[tuple[str, Any]]:
+        """Walk a shape tree, descending into groups.
+
+        Template decoration is often a single group; the group itself carries
+        no fill, so only its children describe what is painted.
+        """
+
+        for index, shape in enumerate(shapes, start=1):
+            identifier = f"{prefix}{index:04d}"
+            if getattr(shape, "shape_type", None) == MSO_SHAPE_TYPE.GROUP:
+                yield from cls._flatten(shape.shapes, prefix=f"{identifier}-")
+                continue
+            yield identifier, shape
+
+    @staticmethod
+    def _shows_master_shapes(slide: Any) -> bool:
+        """Whether the slide's layout inherits the master's decorations."""
+
+        value = slide.slide_layout.element.get("showMasterSp")
+        return value not in {"0", "false"}
+
+    @staticmethod
+    def _shape_properties(shape: Any) -> Any:
+        """Return a shape's own ``spPr``/``grpSpPr`` element.
+
+        Scoping matters: a descendant search would happily return the fill of
+        a text run or an outline and report it as the shape's background.
+        """
+
+        for tag in ("spPr", "grpSpPr"):
+            node = shape.element.find(f"./{{{_PRESENTATION_NS}}}{tag}")
+            if node is not None:
+                return node
+        return None
+
     @staticmethod
     def _resolved_fill(shape: Any, palette: ThemePalette) -> str | None:
         """Resolve a shape fill, including theme-scheme references."""
@@ -429,15 +470,23 @@ class PptxExtractor:
         direct = PptxExtractor._shape_color(getattr(shape, "fill", None))
         if direct is not None:
             return direct
-        properties = shape.element.find(f".//{{{_DRAWING_NS}}}solidFill")
-        return resolve_color(properties, palette)
+        properties = PptxExtractor._shape_properties(shape)
+        if properties is None:
+            return None
+        return resolve_color(
+            properties.find(f"{{{_DRAWING_NS}}}solidFill"),
+            palette,
+        )
 
     @staticmethod
     def _resolved_line(shape: Any, palette: ThemePalette) -> str | None:
         direct = PptxExtractor._shape_line_color(shape)
         if direct is not None:
             return direct
-        line = shape.element.find(f".//{{{_DRAWING_NS}}}ln")
+        properties = PptxExtractor._shape_properties(shape)
+        if properties is None:
+            return None
+        line = properties.find(f"{{{_DRAWING_NS}}}ln")
         if line is None:
             return None
         return resolve_color(line.find(f"{{{_DRAWING_NS}}}solidFill"), palette)

@@ -33,7 +33,7 @@ from deeppresenter.templates.models import (
     Theme,
 )
 from deeppresenter.templates.scaffold import build_layout_css
-from deeppresenter.templates.styles import StyleResolver
+from deeppresenter.templates.styles import StyleResolver, theme_for_master
 
 BUNDLED = Path(__file__).resolve().parents[3] / "pptagent" / "templates"
 
@@ -227,3 +227,77 @@ def test_layered_overview_keeps_every_family_in_the_index() -> None:
     assert detail["selection_hints"] == families[0].selection_hints
     assert detail["avoid_when"] == families[0].avoid_when
     assert detail["slides"][0]["slide_id"] == "s001"
+
+
+def test_shape_fill_is_not_read_from_descendant_text_or_outline() -> None:
+    """A descendant search reports a run's colour as the shape's fill."""
+
+    from lxml import etree
+
+    from deeppresenter.templates.extractor import _DRAWING_NS
+
+    presentation = Presentation(str(BUNDLED / "beamer" / "source.pptx"))
+    palette = theme_for_master(presentation.slide_masters[0])
+    checked = 0
+    for slide in presentation.slides:
+        for shape in slide.shapes:
+            loose = shape.element.find(f".//{{{_DRAWING_NS}}}solidFill")
+            scoped = PptxExtractor._shape_properties(shape)  # noqa: SLF001
+            resolved = PptxExtractor._resolved_fill(shape, palette)  # noqa: SLF001
+            if loose is None or scoped is None:
+                continue
+            own = scoped.find(f"{{{_DRAWING_NS}}}solidFill")
+            if own is None:
+                # The shape has no fill of its own, so neither may the IR.
+                assert resolved is None, (
+                    f"{shape.name!r} took its fill from "
+                    f"{etree.QName(loose.getparent()).localname}"
+                )
+                checked += 1
+    assert checked, "expected at least one fill-less shape carrying styled text"
+
+
+def test_master_chrome_is_dropped_when_the_layout_hides_it() -> None:
+    """thu's cover layout sets showMasterSp="0"."""
+
+    result = PptxExtractor().extract(BUNDLED / "thu" / "source.pptx")
+    cover = result.source_graphs[0]
+
+    assert not [s for s in cover.shapes if s.scope is ShapeScope.MASTER]
+    assert [s for s in cover.shapes if s.scope is ShapeScope.LAYOUT]
+
+
+def test_scaffold_paints_chrome_behind_content() -> None:
+    """Positive z-index chrome would otherwise hide the content regions."""
+
+    result = PptxExtractor().extract(BUNDLED / "thu" / "source.pptx")
+    css = build_layout_css(_semantic(), result.source_graphs[0], result.theme)
+
+    chrome_z = [
+        int(line.split("z-index:")[1].split(";")[0])
+        for line in css.splitlines()
+        if line.startswith(".tpl-")
+    ]
+    content_z = [
+        int(line.split("z-index:")[1].split(";")[0])
+        for line in css.splitlines()
+        if line.startswith(".r-")
+    ]
+    assert chrome_z and content_z
+    assert max(chrome_z) < min(content_z)
+
+
+def test_chrome_descends_into_grouped_decoration() -> None:
+    """default's entire visual identity sits inside one layout group."""
+
+    result = PptxExtractor().extract(BUNDLED / "default" / "source.pptx")
+    chrome = [
+        shape
+        for shape in result.source_graphs[0].shapes
+        if shape.scope is not ShapeScope.SLIDE
+    ]
+
+    # The group itself carries no fill; only its children are painted.
+    fills = {shape.fill_color for shape in chrome if shape.fill_color}
+    assert "#90C226" in fills
+    assert len(chrome) >= 8

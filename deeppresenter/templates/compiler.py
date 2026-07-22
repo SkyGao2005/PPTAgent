@@ -146,6 +146,7 @@ class TemplateCompiler:
                 source_pptx=source_pptx,
                 staging_dir=staging_dir,
                 annotation_cache_dir=template_dir / ".annotation-cache",
+                name=name or existing_manifest.name or template_id,
             )
             revision_dir.parent.mkdir(parents=True, exist_ok=True)
             try:
@@ -196,6 +197,7 @@ class TemplateCompiler:
         source_pptx: Path,
         staging_dir: Path,
         annotation_cache_dir: Path,
+        name: str,
     ) -> Revision:
         source_dir = staging_dir / "source"
         source_dir.mkdir(parents=True)
@@ -254,6 +256,7 @@ class TemplateCompiler:
             families=families,
             semantics=semantics,
             entries=entries,
+            name=name,
         )
         report = self._validate(
             extraction,
@@ -496,6 +499,7 @@ class TemplateCompiler:
         families: list[LayoutFamily],
         semantics: list[Semantic],
         entries: list[SlideIndexEntry],
+        name: str,
     ) -> None:
         """Compile both overview tiers so generation never re-projects them."""
 
@@ -503,7 +507,7 @@ class TemplateCompiler:
             template_id=template_id,
             revision_id=revision_id,
             schema_version=SCHEMA_VERSION,
-            name=template_id,
+            name=name,
             canvas=extraction.canvas,
             theme=extraction.theme,
             families=families,

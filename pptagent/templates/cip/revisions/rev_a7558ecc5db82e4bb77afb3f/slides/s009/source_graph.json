@@ -1,0 +1,159 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8",
+    "asset_5cabde49ecf2b341df5e7dc9"
+  ],
+  "notes": null,
+  "page_number": 9,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [
+        "asset_aff11db7738f68006ecc4ba8"
+      ],
+      "bbox": {
+        "height": 738450,
+        "width": 4855029,
+        "x": 0,
+        "y": 12665
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 5",
+      "normalized_bbox": {
+        "height": 0.107677,
+        "width": 0.398214,
+        "x": 0.0,
+        "y": 0.001847
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s009-layout-sh0004",
+      "source_id": 6,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [
+        "asset_5cabde49ecf2b341df5e7dc9"
+      ],
+      "bbox": {
+        "height": 738450,
+        "width": 1616700,
+        "x": 10266459,
+        "y": 12665
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "Picture 2",
+      "normalized_bbox": {
+        "height": 0.107677,
+        "width": 0.132603,
+        "x": 0.842065,
+        "y": 0.001847
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s009-layout-sh0005",
+      "source_id": 8,
+      "text": null,
+      "visible": true,
+      "z_index": 4
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1610767,
+        "width": 12192001,
+        "x": 0,
+        "y": 2422527
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 2",
+      "normalized_bbox": {
+        "height": 0.234874,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.353241
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s009-sh0001",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "SimHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 48.0,
+                  "underline": null
+                },
+                "text": "Thank yo"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "SimHei",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 48.0,
+                  "underline": null
+                },
+                "text": "u"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "SimHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 28.0,
+              "underline": null
+            },
+            "text": "Thank you"
+          }
+        ],
+        "text": "Thank you"
+      },
+      "visible": true,
+      "z_index": 0
+    }
+  ],
+  "slide_id": "s009"
+}

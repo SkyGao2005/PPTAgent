@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the visual is secondary or unnecessary.",
+    "Avoid for short, sparse messages or data-heavy analysis.",
+    "Avoid when multiple separate content modules are needed."
+  ],
+  "description": "A dense split-layout content page pairs a tall supporting image on the left with a prominent title and detailed explanatory points on the right.",
+  "digest": "large reference image with detailed explanation",
+  "family_id": "family_d5718743c1e53db6be46",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s012",
+  "selection_hints": [
+    "Use for a detailed concept explanation supported by one dominant reference image.",
+    "Choose when the image and text carry complementary information.",
+    "Suitable for educational, cultural, historical, or technical exposition."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large reference image with detailed explanation",
+      "page_number": 12,
+      "region_roles": [
+        "bullet_group",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s012",
+      "summary": "A dense split-layout content page pairs a tall supporting image on the left with a prominent title and detailed explanatory points on the right."
+    }
+  ],
+  "stage": "content"
+}

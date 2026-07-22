@@ -1,0 +1,155 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid when the opening page needs imagery, branding, or a detailed abstract.",
+        "Avoid for regular content slides or information-dense layouts."
+      ],
+      "description": "A minimalist formal cover centers the presentation title in a blue band, followed by presenter details and a date.",
+      "digest": "cover with title band and presenter details",
+      "family_id": "family_5c1c56f1a94aef5d93cf",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use as an opening cover for a formal interview, proposal, or internal presentation.",
+        "Choose when the title, presenter details, and date are the only required information."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.125,\"y\":0.25},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.75,\"x\":0.125,\"y\":0.375},{\"h\":0.0,\"kind\":\"text\",\"role\":\"footer\",\"w\":0.125,\"x\":0.5,\"y\":0.75}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when detailed conclusions, next steps, or contact information must be presented.",
+        "Avoid when the closing slide needs imagery, branding, or multiple content sections."
+      ],
+      "description": "A minimalist closing page uses one oversized centered text block and ample white space to end the presentation clearly.",
+      "digest": "minimal centered closing statement",
+      "family_id": "family_b67fa6203f50e7791857",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use as a simple final slide after the presentation content.",
+        "Choose when a prominent two-line closing or thank-you message is sufficient."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.625,\"x\":0.125,\"y\":0.375}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content has no supporting visual.",
+        "Avoid when several parallel sections or data views are required.",
+        "Avoid when the visual and text need unequal emphasis."
+      ],
+      "description": "A broad heading introduces a balanced two-column layout with a large explanatory visual on the left and descriptive prose on the right.",
+      "digest": "title with diagram and explanatory text",
+      "family_id": "family_b69c15a98693bb59ca67",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use for explaining one concept with a supporting visual.",
+        "Use when an image or diagram and a moderate paragraph should receive balanced space.",
+        "Use for educational, technical, biographical, or case-study content with one main illustration."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.625,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.375,\"x\":0.0,\"y\":0.125},{\"h\":0.625,\"kind\":\"text\",\"role\":\"body\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s003"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content is primarily visual or image-led.",
+        "Avoid when there is no structured data suitable for a table.",
+        "Avoid when detailed commentary requires multiple separate text sections."
+      ],
+      "description": "A prominent header introduces a large multi-column table, followed by a rounded callout that highlights the main takeaway.",
+      "digest": "large data table with takeaway callout",
+      "family_id": "family_d94c95bc8b82a548f650",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "table"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s005",
+      "selection_hints": [
+        "Use for presenting a substantial matrix or structured dataset.",
+        "Use when a table needs a clearly highlighted takeaway beneath it.",
+        "Use for evidence-led content with one concise interpretation."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"table\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.5,\"kind\":\"table\",\"role\":\"table\",\"w\":0.875,\"x\":0.125,\"y\":0.125},{\"h\":0.125,\"kind\":\"text\",\"role\":\"body\",\"w\":0.875,\"x\":0.125,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s005"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs charts, imagery, or side-by-side comparison.",
+        "Avoid when presenting more than one distinct content block."
+      ],
+      "description": "A conventional content slide pairs a prominent blue title band with one large, left-aligned bullet-list area.",
+      "digest": "title band over single bullet list",
+      "family_id": "family_2995f6528dd02904ea14",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for a straightforward topic explanation organized as several bullet points.",
+        "Choose when one bullet may require a longer supporting description."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.125,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the agenda needs descriptions, timings, or multiple hierarchy levels.",
+        "Avoid when a visual roadmap or highly designed section navigation is required."
+      ],
+      "description": "A clean agenda page places a prominent title in a colored header above a spacious numbered section list.",
+      "digest": "simple agenda with numbered topic list",
+      "family_id": "family_13e8033f485658336f1c",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "agenda-title_body",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use for a straightforward table of contents with a short list of sections.",
+        "Best for approximately four to six concise agenda items."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.125,\"y\":0.125}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    }
+  ],
+  "schema_version": "2.0"
+}

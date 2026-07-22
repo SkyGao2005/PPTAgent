@@ -1,0 +1,272 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8",
+    "asset_5cabde49ecf2b341df5e7dc9"
+  ],
+  "notes": null,
+  "page_number": 1,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [
+        "asset_aff11db7738f68006ecc4ba8"
+      ],
+      "bbox": {
+        "height": 738450,
+        "width": 4855029,
+        "x": 0,
+        "y": 12665
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 5",
+      "normalized_bbox": {
+        "height": 0.107677,
+        "width": 0.398214,
+        "x": 0.0,
+        "y": 0.001847
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0006",
+      "source_id": 6,
+      "text": null,
+      "visible": true,
+      "z_index": 5
+    },
+    {
+      "asset_ids": [
+        "asset_5cabde49ecf2b341df5e7dc9"
+      ],
+      "bbox": {
+        "height": 738450,
+        "width": 1616700,
+        "x": 10266459,
+        "y": 12665
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "Picture 2",
+      "normalized_bbox": {
+        "height": 0.107677,
+        "width": 0.132603,
+        "x": 0.842065,
+        "y": 0.001847
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0007",
+      "source_id": 8,
+      "text": null,
+      "visible": true,
+      "z_index": 6
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1610767,
+        "width": 12192001,
+        "x": 0,
+        "y": 1716629
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 1",
+      "normalized_bbox": {
+        "height": 0.234874,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.25031
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 48.0,
+                  "underline": null
+                },
+                "text": "PPTAgent: Beyond Text-to-Slides"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "SimHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 28.0,
+              "underline": null
+            },
+            "text": "PPTAgent: Beyond Text-to-Slides"
+          }
+        ],
+        "text": "PPTAgent: Beyond Text-to-Slides"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1491969,
+        "width": 12192001,
+        "x": -1,
+        "y": 3530605
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "text",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.217552,
+        "width": 1.0,
+        "x": -0.0,
+        "y": 0.514816
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0002",
+      "source_id": 5,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#194297",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "Hao Zheng (CAS), Xinyan Guan (CAS)"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#194297",
+              "font_family": "SimHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 33.0,
+              "underline": null
+            },
+            "text": "Hao Zheng (CAS), Xinyan Guan (CAS)"
+          }
+        ],
+        "text": "Hao Zheng (CAS), Xinyan Guan (CAS)"
+      },
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 972302,
+        "width": 12192001,
+        "x": 99390,
+        "y": 5150657
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "text",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.141776,
+        "width": 1.0,
+        "x": 0.008152,
+        "y": 0.751044
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0003",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#194297",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "2025-02-01"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#194297",
+              "font_family": "SimHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 33.0,
+              "underline": null
+            },
+            "text": "2025-02-01"
+          }
+        ],
+        "text": "2025-02-01"
+      },
+      "visible": true,
+      "z_index": 2
+    }
+  ],
+  "slide_id": "s001"
+}

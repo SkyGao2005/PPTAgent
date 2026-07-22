@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the visual must be an editable native chart.",
+    "Avoid when more than one supporting data visualization is needed.",
+    "Avoid for image-led storytelling or long-form narrative content."
+  ],
+  "description": "A top-titled evidence slide pairs concise comparison points on the left with a dominant performance chart on the right.",
+  "digest": "model comparison bullets with large chart",
+  "family_id": "family_0001c614342240e61a23",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "chart"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for a data-backed comparison supported by a short explanatory summary.",
+    "Use when one dominant chart should share the page with concise findings.",
+    "Use for model, product, or category performance comparisons."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "model comparison bullets with large chart",
+      "page_number": 7,
+      "region_roles": [
+        "bullet_group",
+        "chart",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A top-titled evidence slide pairs concise comparison points on the left with a dominant performance chart on the right."
+    }
+  ],
+  "stage": "content"
+}

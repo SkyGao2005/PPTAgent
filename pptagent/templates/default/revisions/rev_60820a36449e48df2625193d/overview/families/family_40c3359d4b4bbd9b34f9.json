@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the message needs imagery, data visualization, or side-by-side comparison.",
+    "Avoid when the content cannot be reduced to a compact set of readable bullets."
+  ],
+  "description": "A prominent two-line title leads into a dense, left-aligned bullet narrative, with decorative color bands framing the right edge.",
+  "digest": "large title over dense bullet narrative",
+  "family_id": "family_40c3359d4b4bbd9b34f9",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s013",
+  "selection_hints": [
+    "Use for a text-led explanatory page with one prominent heading and several detailed bullets.",
+    "Choose when the audience needs substantial narrative context without supporting visuals."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large title over dense bullet narrative",
+      "page_number": 13,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s013",
+      "summary": "A prominent two-line title leads into a dense, left-aligned bullet narrative, with decorative color bands framing the right edge."
+    }
+  ],
+  "stage": "content"
+}

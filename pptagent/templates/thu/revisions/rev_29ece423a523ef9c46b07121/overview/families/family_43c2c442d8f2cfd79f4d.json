@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy slides or detailed explanations.",
+    "Avoid when multiple visuals, charts, or comparison panels are required."
+  ],
+  "description": "A formal academic cover uses a broad purple title band and centered presenter details on a clean white field.",
+  "digest": "academic cover with title on color band",
+  "family_id": "family_43c2c442d8f2cfd79f4d",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for an academic or institutional presentation cover.",
+    "Choose when the title should dominate and author details remain secondary.",
+    "Suitable for a formal opening slide with generous whitespace."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "academic cover with title on color band",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal academic cover uses a broad purple title band and centered presenter details on a clean white field."
+    }
+  ],
+  "stage": "cover"
+}

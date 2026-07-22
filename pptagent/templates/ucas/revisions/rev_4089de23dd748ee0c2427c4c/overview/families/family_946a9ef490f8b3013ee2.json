@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid for regular content slides requiring detailed explanation, charts, or tables.",
+    "Avoid when the section opening needs a strong visual or full-bleed image.",
+    "Avoid for agendas, summaries, or closing contact pages."
+  ],
+  "description": "A restrained section divider uses a large blue heading, a gray supporting subtitle, and a minimal three-part footer on a white background.",
+  "digest": "minimal chapter divider with subtitle",
+  "family_id": "family_946a9ef490f8b3013ee2",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major section.",
+    "Choose when a concise section title and one-line subtitle are sufficient.",
+    "Suitable for formal academic or institutional presentations."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal chapter divider with subtitle",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A restrained section divider uses a large blue heading, a gray supporting subtitle, and a minimal three-part footer on a white background."
+    }
+  ],
+  "stage": "section"
+}

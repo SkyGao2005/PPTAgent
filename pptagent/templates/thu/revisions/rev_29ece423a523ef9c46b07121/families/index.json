@@ -1,0 +1,217 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid for content-heavy slides or detailed explanations.",
+        "Avoid when multiple visuals, charts, or comparison panels are required."
+      ],
+      "description": "A formal academic cover uses a broad purple title band and centered presenter details on a clean white field.",
+      "digest": "academic cover with title on color band",
+      "family_id": "family_43c2c442d8f2cfd79f4d",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use for an academic or institutional presentation cover.",
+        "Choose when the title should dominate and author details remain secondary.",
+        "Suitable for a formal opening slide with generous whitespace."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when detailed conclusions, next steps, or contact information must be presented.",
+        "Avoid for content-heavy or data-driven slides."
+      ],
+      "description": "A sparse institutional closing slide emphasizes one centered thank-you statement within a prominent purple band.",
+      "digest": "closing thank-you statement on color band",
+      "family_id": "family_95064992efdcead92207",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s010",
+      "selection_hints": [
+        "Use as the final slide of a formal presentation.",
+        "Choose when a single concise thank-you or closing message is sufficient."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s010"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid for detailed content, data, or multi-part explanations.",
+        "Avoid when the page needs imagery, charts, or multiple content columns.",
+        "Avoid for detailed analysis, charts, or dense content.",
+        "Avoid when multiple parallel content sections are required.",
+        "需要呈现详细论点、图表或多栏内容时不要选择此页。",
+        "标题和说明文字较长、无法保持简洁时不要选择此页。"
+      ],
+      "description": "A sparse chapter divider uses a large lower-page heading and concise introduction above a strong purple footer band.",
+      "digest": "chapter divider with title and short intro",
+      "family_id": "family_46a1d96fd896d8a30aa1",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "section-hero",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use to introduce a new chapter or major topic.",
+        "Choose when a prominent section title needs one short framing line.",
+        "Choose when a section needs a prominent heading with one short contextual line.",
+        "适合用作演示文稿中的章节分隔页。",
+        "适合以大标题和一行说明引入新的主题。",
+        "适合需要留白充足、视觉简洁的过渡页面。"
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.5},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625}],\"stage\":\"section\"}",
+      "slide_ids": [
+        "s003",
+        "s005",
+        "s008"
+      ],
+      "stage": "section"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content requires images, charts, tables, or metrics.",
+        "Avoid when more than two parallel sections are needed.",
+        "Avoid when one narrative needs the full slide width."
+      ],
+      "description": "A prominent header introduces two balanced text sections, each combining a subheading with a concise bullet list.",
+      "digest": "two-column text with section headings",
+      "family_id": "family_a4192aa6e401d4c669d3",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s009",
+      "selection_hints": [
+        "Use for comparing or pairing two text-based topics.",
+        "Use when each side needs its own heading and concise bullet list.",
+        "Use for balanced bilingual, pros-and-cons, or two-perspective content."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.5,\"kind\":\"group\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.0,\"y\":0.375},{\"h\":0.5,\"kind\":\"group\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.5,\"y\":0.375}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s009"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the visual is secondary or no supporting image is available.",
+        "Avoid for comparisons, multi-step processes, or data-heavy dashboards."
+      ],
+      "description": "A prominent banner title introduces a two-part explanation with narrative text on the left and a large supporting diagram on the right.",
+      "digest": "title with explanatory text and diagram",
+      "family_id": "family_62607a6e8865dd6f0bcb",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use for explaining a concept with substantial text beside one dominant visual.",
+        "Choose when a technical diagram or illustration needs direct narrative interpretation."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.625,\"kind\":\"text\",\"role\":\"body\",\"w\":0.375,\"x\":0.0,\"y\":0.25},{\"h\":0.625,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.5,\"x\":0.5,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the agenda needs detailed descriptions, timings, or more than a few sections.",
+        "Avoid when a conventional full-width title above the content is required.",
+        "Avoid for image-led or data-heavy content."
+      ],
+      "description": "A bold vertical sidebar presents the agenda heading while a spacious right panel lists the presentation chapters.",
+      "digest": "agenda with sidebar title and chapter list",
+      "family_id": "family_844c96dae7e2bb5f5ffa",
+      "layout_pattern": "split",
+      "modalities": [
+        "text"
+      ],
+      "name": "agenda-split",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Choose for an early presentation agenda with a short chapter list.",
+        "Use when a strong colored sidebar should separate the page label from the agenda items.",
+        "Best for three to five concise section titles."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.375,\"kind\":\"text\",\"role\":\"title\",\"w\":0.25,\"x\":0.0,\"y\":0.25},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the page needs multiple parallel content sections.",
+        "Avoid when the message depends on charts, tables, or detailed quantitative evidence.",
+        "Avoid when the image is secondary rather than the main focus."
+      ],
+      "description": "A large featured visual dominates the page, followed by a left-aligned heading and concise explanatory text.",
+      "digest": "large image above title and description",
+      "family_id": "family_74343179633b88d879a5",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s007",
+      "selection_hints": [
+        "Use for a content page led by one large image or screenshot.",
+        "Choose when a visual needs a clear heading and several lines of explanation.",
+        "Suitable for showcasing a product view, example, reference image, or design artifact."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.625,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.75},{\"h\":0.125,\"kind\":\"text\",\"role\":\"body\",\"w\":0.875,\"x\":0.0,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s007"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content requires visuals, data charts, or side-by-side comparison.",
+        "Avoid when there are many detailed points that need a denser structure."
+      ],
+      "description": "A branded purple title band introduces a spacious single-column list of explanatory or instructional points.",
+      "digest": "title band above instructional bullet list",
+      "family_id": "family_2481301742307bcc07f5",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for instructions, guidance, or explanatory points under one clear heading.",
+        "Choose when four to six concise bullets can communicate the message."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.125},{\"h\":0.5,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.0,\"y\":0.375}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    }
+  ],
+  "schema_version": "2.0"
+}

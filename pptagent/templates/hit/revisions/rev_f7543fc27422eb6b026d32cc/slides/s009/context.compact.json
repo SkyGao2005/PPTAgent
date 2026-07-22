@@ -1,0 +1,112 @@
+{
+  "family_ids": [
+    "family_3727a024d35e57c47518"
+  ],
+  "layout_css_path": "slides/s009/layout.css",
+  "overlay_image_path": "slides/s009/overlay.webp",
+  "page_number": 9,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "two-column text with section headings",
+    "layout_pattern": "split",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "group"
+    ],
+    "stage": "content",
+    "summary": "A prominent blue header introduces two evenly weighted text columns, each combining a section heading with a spacious bullet list.",
+    "title": "两栏排列的文本，难道这还不够好吗啊啊啊啊啊啊啊啊"
+  },
+  "reference_image_path": "slides/s009/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.148031,
+        "width": 0.885466,
+        "x": 0.022177,
+        "y": 0.012795
+      },
+      "capacity": {
+        "max_chars": 34,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 14,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.639043,
+        "width": 0.442347,
+        "x": 0.04767,
+        "y": 0.215587
+      },
+      "capacity": {
+        "max_chars": 97,
+        "max_items": 7,
+        "max_lines": 6,
+        "min_chars": 41,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "group",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "group.bullet_group"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.639043,
+        "width": 0.442347,
+        "x": 0.509983,
+        "y": 0.215587
+      },
+      "capacity": {
+        "max_chars": 176,
+        "max_items": 8,
+        "max_lines": 7,
+        "min_chars": 76,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "group",
+      "region_id": "r003",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "group.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_daf5beb781e3ef46abbb16c0"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s009",
+  "theme_tokens": {
+    "--template-accent1": "#660874",
+    "--template-accent2": "#660874",
+    "--template-accent3": "#E6C46D",
+    "--template-accent4": "#969FA7",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#5A8071",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#144189",
+    "--template-folHlink": "#43064C",
+    "--template-font-major": "Gill Sans MT",
+    "--template-font-minor": "Gill Sans MT",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

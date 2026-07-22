@@ -1,0 +1,33 @@
+/* Layout scaffold for s002 (agenda/title_body).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome: emit them as
+ * empty divs (or <img> for the ones naming an asset) before content.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+:root{
+  --template-accent1:#4F81BD;
+  --template-accent2:#C0504D;
+  --template-accent3:#9BBB59;
+  --template-accent4:#8064A2;
+  --template-accent5:#4BACC6;
+  --template-accent6:#F79646;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EEECE1;
+  --template-color-1:#194297;
+  --template-color-2:#003399;
+  --template-folHlink:#800080;
+  --template-font-1:微软雅黑;
+  --template-font-2:Microsoft YaHei;
+  --template-font-3:SimHei;
+  --template-font-major:Calibri;
+  --template-font-minor:Calibri;
+  --template-hlink:#0000FF;
+  --template-tx1:#000000;
+  --template-tx2:#1F497D;
+}
+.tpl-01{position:absolute;left:67.04%;top:2.661%;width:32.96%;height:8.912%;z-index:1;object-fit:contain} /* layout / 图片 11 -> assets/asset_aff11db7738f68006ecc4ba8 */
+.tpl-02{position:absolute;left:95.853%;top:94.766%;width:2.363%;height:4.201%;z-index:2;background:#1F497D} /* layout / 椭圆 13 */
+.r-r001{position:absolute;left:2.965%;top:2.138%;width:90%;height:11.293%;z-index:100;font-size:5.926vh;font-family:"Microsoft YaHei";color:#194297;font-weight:700;text-align:left} /* title / text */
+.r-r002{position:absolute;left:3.913%;top:20%;width:93.122%;height:71.736%;z-index:101;font-size:5.926vh;font-family:"Microsoft YaHei";color:#003399;font-weight:700;text-align:left} /* bullet_group / text */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

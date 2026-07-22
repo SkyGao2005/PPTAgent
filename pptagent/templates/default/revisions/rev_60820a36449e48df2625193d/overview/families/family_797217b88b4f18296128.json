@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "The page needs multiple images, data visualizations, or parallel content blocks.",
+    "The topic cannot be communicated with one wide landscape image and a substantial explanatory paragraph.",
+    "The slide requires a sparse, presentation-led message rather than detailed reading text."
+  ],
+  "description": "A large panoramic photograph introduces a single subject, followed by a centered title and a detailed explanatory text block.",
+  "digest": "wide image with title and description",
+  "family_id": "family_797217b88b4f18296128",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s008",
+  "selection_hints": [
+    "Use for a visual profile of a building, place, artifact, person, or case study.",
+    "Choose when one panoramic image should dominate above a descriptive narrative.",
+    "Suitable for educational or documentary content requiring several sentences of context."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "wide image with title and description",
+      "page_number": 8,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A large panoramic photograph introduces a single subject, followed by a centered title and a detailed explanatory text block."
+    }
+  ],
+  "stage": "content"
+}

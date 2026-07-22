@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the visual cannot communicate a detailed workflow clearly.",
+    "Avoid for simple statements, image galleries, or data-heavy dashboards."
+  ],
+  "description": "A top-titled split layout pairs concise workflow bullets on the left with a large, detailed process infographic on the right.",
+  "digest": "workflow bullets beside detailed process diagram",
+  "family_id": "family_314d72138c43cdb88346",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining a workflow with a concise textual overview and a detailed process visual.",
+    "Choose when the diagram is the primary evidence and the bullets provide context."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "workflow bullets beside detailed process diagram",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A top-titled split layout pairs concise workflow bullets on the left with a large, detailed process infographic on the right."
+    }
+  ],
+  "stage": "content"
+}

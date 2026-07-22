@@ -1,0 +1,442 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_f3abdfc778a95f868ca73d3a",
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "notes": null,
+  "page_number": 1,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2323425,
+        "width": 11435645,
+        "x": 378178,
+        "y": 1750294
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#660874",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.33879,
+        "width": 0.937963,
+        "x": 0.031019,
+        "y": 0.255219
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0001",
+      "source_id": 9,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 72000,
+        "width": 3431823,
+        "x": 8382000,
+        "y": 4155707
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#660874",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 8",
+      "normalized_bbox": {
+        "height": 0.010499,
+        "width": 0.281482,
+        "x": 0.6875,
+        "y": 0.605965
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0002",
+      "source_id": 10,
+      "text": null,
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 72000,
+        "width": 7918756,
+        "x": 378177,
+        "y": 4155707
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#969FA7",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 9",
+      "normalized_bbox": {
+        "height": 0.010499,
+        "width": 0.649504,
+        "x": 0.031018,
+        "y": 0.605965
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0003",
+      "source_id": 11,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [
+        "asset_f3abdfc778a95f868ca73d3a"
+      ],
+      "bbox": {
+        "height": 1137659,
+        "width": 2889452,
+        "x": 378177,
+        "y": 293654
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 2",
+      "normalized_bbox": {
+        "height": 0.165888,
+        "width": 0.236996,
+        "x": 0.031018,
+        "y": 0.042819
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0009",
+      "source_id": 3,
+      "text": null,
+      "visible": true,
+      "z_index": 8
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1961322,
+        "width": 10993549,
+        "x": 599226,
+        "y": 1921565
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.28599,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.280193
+      },
+      "placeholder_type": "center_title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "清华简约主题"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "模板"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "留边白底变体"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "16:9"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": false,
+              "color": "#FFFFFF",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 36.0,
+              "underline": null
+            },
+            "text": "清华简约主题PPT模板\u000b留边白底变体 16:9"
+          }
+        ],
+        "text": "清华简约主题PPT模板\u000b留边白底变体 16:9"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1340999,
+        "width": 10993546,
+        "x": 581194,
+        "y": 4352306
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "副标题 2",
+      "normalized_bbox": {
+        "height": 0.195538,
+        "width": 0.901702,
+        "x": 0.04767,
+        "y": 0.634632
+      },
+      "placeholder_type": "subtitle",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "陈伟浩"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#660874",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "陈伟浩"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "新雅书院"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#660874",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "新雅书院"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "2022"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "年"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "6"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "月"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "5"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "日"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#660874",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "2022年6月5日"
+          }
+        ],
+        "text": "陈伟浩\n新雅书院\n2022年6月5日"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s001"
+}

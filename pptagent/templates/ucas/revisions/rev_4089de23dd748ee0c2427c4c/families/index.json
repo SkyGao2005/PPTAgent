@@ -1,0 +1,221 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid for content-heavy presentations or detailed conclusions.",
+        "Avoid when the closing page needs contact information, next steps, or multiple calls to action."
+      ],
+      "description": "A formal institutional closing page centers a prominent thank-you message above presenter details, with administrative metadata along the bottom.",
+      "digest": "branded thank-you closing with presenter details",
+      "family_id": "family_16a0060d03cd303745ef",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s009",
+      "selection_hints": [
+        "Use as a formal final thank-you slide.",
+        "Choose when presenter attribution and a date should remain visible.",
+        "Suitable for an academic or institutional presentation with restrained branding."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s009"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the page needs detailed explanations, charts, or multiple content blocks.",
+        "Avoid when introducing the entire presentation rather than a new chapter.",
+        "Avoid for regular content slides that require tables, charts, or detailed explanation.",
+        "Avoid when the section heading needs supporting visuals or multiple content blocks."
+      ],
+      "description": "A restrained chapter divider uses a large blue heading, a gray supporting line, and minimal institutional footer details.",
+      "digest": "chapter divider with title and subtitle",
+      "family_id": "family_8cb363d7f972f4fb1a1a",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "section-hero",
+      "representative_slide_id": "s005",
+      "selection_hints": [
+        "Use to introduce a new chapter or major topic.",
+        "Choose when a prominent section title and one brief contextual subtitle are sufficient.",
+        "Works well for formal academic or institutional presentations.",
+        "Choose when a restrained academic section divider is appropriate.",
+        "Works best with a short section title and one-line descriptor."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.375},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.125,\"y\":0.625},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"section\"}",
+      "slide_ids": [
+        "s005",
+        "s007"
+      ],
+      "stage": "section"
+    },
+    {
+      "avoid_when": [
+        "Avoid for content-heavy presentations requiring charts, bullets, or multiple sections.",
+        "Avoid when the cover needs a full-bleed photograph or highly visual branding."
+      ],
+      "description": "A formal academic cover uses a large centered title on a blue band with author, affiliation, and date details beneath.",
+      "digest": "academic cover with title band and details",
+      "family_id": "family_43c2c442d8f2cfd79f4d",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use for a formal academic or institutional presentation cover.",
+        "Choose when the title should dominate and presenter details appear below.",
+        "Suitable for concise bilingual or Chinese-language university presentations."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.25},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.0,\"y\":0.625}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid for regular content slides requiring detailed explanation, charts, or tables.",
+        "Avoid when the section opening needs a strong visual or full-bleed image.",
+        "Avoid for agendas, summaries, or closing contact pages."
+      ],
+      "description": "A restrained section divider uses a large blue heading, a gray supporting subtitle, and a minimal three-part footer on a white background.",
+      "digest": "minimal chapter divider with subtitle",
+      "family_id": "family_946a9ef490f8b3013ee2",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "section-hero",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use to introduce a new chapter or major section.",
+        "Choose when a concise section title and one-line subtitle are sufficient.",
+        "Suitable for formal academic or institutional presentations."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.375},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.875,\"x\":0.125,\"y\":0.625},{\"h\":0.0,\"kind\":\"text\",\"role\":\"footer\",\"w\":0.25,\"x\":0.0,\"y\":0.875},{\"h\":0.0,\"kind\":\"text\",\"role\":\"footer\",\"w\":0.25,\"x\":0.375,\"y\":0.875},{\"h\":0.0,\"kind\":\"text\",\"role\":\"footer\",\"w\":0.375,\"x\":0.625,\"y\":0.875}],\"stage\":\"section\"}",
+      "slide_ids": [
+        "s003"
+      ],
+      "stage": "section"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic requires more than two main explanatory points.",
+        "Avoid when no supporting image or screenshot is available.",
+        "Avoid for data-heavy analysis requiring charts or tables."
+      ],
+      "description": "A formal content slide pairs a two-point explanation on the left with a large supporting screenshot on the right beneath a strong header.",
+      "digest": "two-column explanation with supporting screenshot",
+      "family_id": "family_fc19922fcae104e28eca",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image",
+        "group"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use for explaining a topic through text supported by a large screenshot or example image.",
+        "Choose when two concise points should occupy the left side and a visual demonstration the right.",
+        "Suitable for instructional, technical, or concept-explanation content."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"group\",\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.125,\"y\":0.0},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.375,\"x\":0.0,\"y\":0.25},{\"h\":0.625,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.5,\"x\":0.5,\"y\":0.25},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the presentation needs more than a short agenda.",
+        "Avoid when agenda items require descriptions, owners, or timing."
+      ],
+      "description": "A formal agenda slide pairs a prominent title panel on the left with a short section list on the right and restrained metadata along the bottom.",
+      "digest": "agenda with side title and three items",
+      "family_id": "family_c5363a8cb981dfe4e245",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "agenda-split",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use for a concise table of contents with roughly three major sections.",
+        "Choose when a formal academic or institutional presentation needs a clear agenda page."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.25,\"x\":0.125,\"y\":0.375},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.625,\"x\":0.375,\"y\":0.25},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content is primarily visual or image-led.",
+        "Avoid when only a few headline metrics need emphasis.",
+        "Avoid when the dataset cannot fit a wide multi-column table."
+      ],
+      "description": "A formal content slide places a wide data table beneath the heading and reserves a lower text area for evidence-based conclusions.",
+      "digest": "wide data table with takeaway bullets",
+      "family_id": "family_9a9cf60b0f2c455c4ee4",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "table",
+        "group"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s008",
+      "selection_hints": [
+        "Use for presenting a broad structured dataset with many columns.",
+        "Use when the table needs a dedicated area for explanatory conclusions.",
+        "Use for evidence-heavy academic or institutional presentations."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"group\",\"table\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.125,\"y\":0.0},{\"h\":0.5,\"kind\":\"table\",\"role\":\"table\",\"w\":0.875,\"x\":0.125,\"y\":0.125},{\"h\":0.25,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.125,\"y\":0.75},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s008"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content requires diagrams, charts, or prominent imagery.",
+        "Avoid for side-by-side comparisons or multiple independent content sections.",
+        "Avoid when instructions need more than a few moderately detailed steps."
+      ],
+      "description": "A formal title-and-body page presents a short numbered procedure beneath an institutional header, with date, page number, and organization metadata along the bottom.",
+      "digest": "title with numbered instructional text",
+      "family_id": "family_5d6dafc5fd3db701a4e2",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for concise how-to guidance presented as numbered steps.",
+        "Use when a single instructional topic needs one large text area.",
+        "Suitable for formal academic or institutional presentations with persistent footer metadata."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"group\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.125,\"y\":0.0},{\"h\":0.5,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":1.0,\"x\":0.0,\"y\":0.25},{\"h\":0.0,\"kind\":\"group\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.875}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    }
+  ],
+  "schema_version": "2.0"
+}

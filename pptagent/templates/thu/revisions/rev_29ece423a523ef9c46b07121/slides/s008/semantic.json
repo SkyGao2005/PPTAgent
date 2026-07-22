@@ -1,0 +1,100 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "需要呈现详细论点、图表或多栏内容时不要选择此页。",
+    "标题和说明文字较长、无法保持简洁时不要选择此页。"
+  ],
+  "page_number": 8,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "章节标题与简短说明",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text"
+    ],
+    "stage": "section",
+    "summary": "以大面积留白、醒目章节标题和简短说明构成简洁的章节过渡页。",
+    "title": "章节三. 我要去哪啊啊啊啊啊"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "用于标示新章节名称或核心主题的醒目大标题。",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s008-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.662207
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 71,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 31,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "用于补充章节范围、目标或导语的一行简短说明。",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s008-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "适合用作演示文稿中的章节分隔页。",
+    "适合以大标题和一行说明引入新的主题。",
+    "适合需要留白充足、视觉简洁的过渡页面。"
+  ],
+  "slide_id": "s008",
+  "warnings": []
+}

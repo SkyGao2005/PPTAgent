@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy presentations requiring charts, bullets, or multiple sections.",
+    "Avoid when the cover needs a full-bleed photograph or highly visual branding."
+  ],
+  "description": "A formal academic cover uses a large centered title on a blue band with author, affiliation, and date details beneath.",
+  "digest": "academic cover with title band and details",
+  "family_id": "family_43c2c442d8f2cfd79f4d",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for a formal academic or institutional presentation cover.",
+    "Choose when the title should dominate and presenter details appear below.",
+    "Suitable for concise bilingual or Chinese-language university presentations."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "academic cover with title band and details",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal academic cover uses a large centered title on a blue band with author, affiliation, and date details beneath."
+    }
+  ],
+  "stage": "cover"
+}

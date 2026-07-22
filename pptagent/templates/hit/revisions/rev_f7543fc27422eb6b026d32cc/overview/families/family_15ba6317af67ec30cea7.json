@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the visual must be full-bleed or photographic.",
+    "Avoid when presenting multiple metrics, comparisons, or sequential steps.",
+    "Avoid when the explanation requires several distinct content blocks."
+  ],
+  "description": "A strong header frames a two-column content area with explanatory text on the left and a dominant technical diagram on the right.",
+  "digest": "two-column explanation with technical diagram",
+  "family_id": "family_15ba6317af67ec30cea7",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining one concept with supporting technical artwork.",
+    "Choose when prose and a large diagram need balanced side-by-side emphasis.",
+    "Suitable for scientific, engineering, or instructional content."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column explanation with technical diagram",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A strong header frames a two-column content area with explanatory text on the left and a dominant technical diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

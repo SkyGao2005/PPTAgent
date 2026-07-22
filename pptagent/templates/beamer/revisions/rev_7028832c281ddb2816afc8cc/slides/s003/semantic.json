@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the content has no supporting visual.",
+    "Avoid when several parallel sections or data views are required.",
+    "Avoid when the visual and text need unequal emphasis."
+  ],
+  "page_number": 3,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "title with diagram and explanatory text",
+    "layout_pattern": "split",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A broad heading introduces a balanced two-column layout with a large explanatory visual on the left and descriptive prose on the right.",
+    "title": "个人经历"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.119823,
+        "width": 0.8625,
+        "x": 0.043295,
+        "y": 0.02
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 2,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Full-width heading for the page topic or section subject.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s003-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [
+        "asset_2c34104c23f8a6777430b2f0"
+      ],
+      "bbox": {
+        "height": 0.60186,
+        "width": 0.403068,
+        "x": 0.052387,
+        "y": 0.178407
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.6697039178546506
+      },
+      "confidence": 0.96,
+      "description": "Left-side supporting technical illustration, conceptual diagram, or other explanatory visual.",
+      "kind": "image",
+      "region_id": "r002",
+      "role": "diagram",
+      "source_shape_ids": [
+        "s003-sh0003"
+      ],
+      "style_ref": "image.diagram"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.56715,
+        "width": 0.443068,
+        "x": 0.520909,
+        "y": 0.167395
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 210,
+        "max_items": 3,
+        "max_lines": 2,
+        "min_chars": 90,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Right-side prose explaining or interpreting the adjacent visual.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s003-sh0002"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for explaining one concept with a supporting visual.",
+    "Use when an image or diagram and a moderate paragraph should receive balanced space.",
+    "Use for educational, technical, biographical, or case-study content with one main illustration."
+  ],
+  "slide_id": "s003",
+  "warnings": []
+}

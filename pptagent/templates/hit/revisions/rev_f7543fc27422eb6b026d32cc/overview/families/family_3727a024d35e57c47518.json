@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires more than two parallel sections.",
+    "Avoid for image-led storytelling, charts, or complex data displays.",
+    "Avoid when the two content blocks differ greatly in length."
+  ],
+  "description": "A prominent blue header introduces two evenly weighted text columns, each combining a section heading with a spacious bullet list.",
+  "digest": "two-column text with section headings",
+  "family_id": "family_3727a024d35e57c47518",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Choose for presenting two complementary sets of text under one heading.",
+    "Use when both sections need equal visual weight and similar content depth.",
+    "Suitable for paired themes, perspectives, categories, or related explanations."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column text with section headings",
+      "page_number": 9,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A prominent blue header introduces two evenly weighted text columns, each combining a section heading with a spacious bullet list."
+    }
+  ],
+  "stage": "content"
+}

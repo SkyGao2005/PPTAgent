@@ -1,0 +1,93 @@
+{
+  "family_ids": [
+    "family_b944674c4e179a723bb9"
+  ],
+  "layout_css_path": "slides/s005/layout.css",
+  "overlay_image_path": "slides/s005/overlay.webp",
+  "page_number": 5,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "title with two-level explanatory bullets",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A conventional content slide places a prominent heading above a spacious, left-aligned hierarchy of main bullets and supporting subpoints.",
+    "title": "Presentation Analysis"
+  },
+  "reference_image_path": "slides/s005/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "capacity": {
+        "max_chars": 29,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 13,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.789356,
+        "width": 0.9407,
+        "x": 0.02965,
+        "y": 0.153334
+      },
+      "capacity": {
+        "max_chars": 328,
+        "max_items": 8,
+        "max_lines": 7,
+        "min_chars": 140,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s005",
+  "theme_tokens": {
+    "--template-accent1": "#4F81BD",
+    "--template-accent2": "#C0504D",
+    "--template-accent3": "#9BBB59",
+    "--template-accent4": "#8064A2",
+    "--template-accent5": "#4BACC6",
+    "--template-accent6": "#F79646",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EEECE1",
+    "--template-color-1": "#194297",
+    "--template-color-2": "#003399",
+    "--template-folHlink": "#800080",
+    "--template-font-1": "微软雅黑",
+    "--template-font-2": "Microsoft YaHei",
+    "--template-font-3": "SimHei",
+    "--template-font-major": "Calibri",
+    "--template-font-minor": "Calibri",
+    "--template-hlink": "#0000FF",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#1F497D"
+  }
+}

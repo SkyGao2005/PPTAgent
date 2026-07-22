@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the slide needs explanatory text, multiple visuals, or quantitative comparison.",
+    "Avoid when the source image is too detailed to remain legible at this size."
+  ],
+  "description": "The page gives a single portrait-oriented reference diagram strong visual prominence against a decorative presentation background.",
+  "digest": "single large reference diagram on themed background",
+  "family_id": "family_5783208b3d1ac1894a55",
+  "layout_pattern": "hero",
+  "modalities": [
+    "diagram"
+  ],
+  "name": "content-hero",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for presenting one important diagram, map, plan, scan, or archival visual.",
+    "Choose when the image can communicate the point without a separate title or caption."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "single large reference diagram on themed background",
+      "page_number": 7,
+      "region_roles": [
+        "diagram"
+      ],
+      "slide_id": "s007",
+      "summary": "The page gives a single portrait-oriented reference diagram strong visual prominence against a decorative presentation background."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,100 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the message depends on charts, images, or multiple content sections.",
+    "Avoid when only a short statement or a few concise points are available."
+  ],
+  "page_number": 3,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "definition slide with extended bullet text",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A dense explanatory page places a prominent heading above a large text block, with a decorative color band along the right edge.",
+    "title": "What is Tourism?"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.022782
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Top-left heading that names the concept being defined or explained.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s003-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.699255,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.181667
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 1061,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 455,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Large text area for an introductory definition followed by several detailed explanatory points.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s003-sh0002"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a concept definition supported by several detailed points.",
+    "Choose when substantial explanatory text must fit beneath a clear heading.",
+    "Suitable for instructional or reference-heavy content."
+  ],
+  "slide_id": "s003",
+  "warnings": []
+}

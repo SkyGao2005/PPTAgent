@@ -1,0 +1,51 @@
+{
+  "avoid_when": [
+    "Avoid when the message depends on charts, images, or multiple content sections.",
+    "Avoid when only a short statement or a few concise points are available.",
+    "Avoid when the content requires images, charts, or data visualizations.",
+    "Avoid for short, high-impact messages that need substantial whitespace.",
+    "Avoid when several parallel topics need distinct columns or cards."
+  ],
+  "description": "A dense explanatory page places a prominent heading above a large text block, with a decorative color band along the right edge.",
+  "digest": "definition slide with extended bullet text",
+  "family_id": "family_136f14732691da648829",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for a concept definition supported by several detailed points.",
+    "Choose when substantial explanatory text must fit beneath a clear heading.",
+    "Suitable for instructional or reference-heavy content.",
+    "Use for a detailed topic overview organized as several long bullets.",
+    "Choose when one subject needs substantial text beneath a prominent heading.",
+    "Suitable for educational, historical, or contextual background content."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "definition slide with extended bullet text",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A dense explanatory page places a prominent heading above a large text block, with a decorative color band along the right edge."
+    },
+    {
+      "density": "dense",
+      "digest": "title with dense explanatory bullet list",
+      "page_number": 5,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A prominent top heading introduces a dense, left-aligned explanatory bullet block, framed by a dark field and decorative green side treatment."
+    }
+  ],
+  "stage": "content"
+}

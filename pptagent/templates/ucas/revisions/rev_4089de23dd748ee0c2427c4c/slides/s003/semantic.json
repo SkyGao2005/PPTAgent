@@ -1,0 +1,203 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid for regular content slides requiring detailed explanation, charts, or tables.",
+    "Avoid when the section opening needs a strong visual or full-bleed image.",
+    "Avoid for agendas, summaries, or closing contact pages."
+  ],
+  "page_number": 3,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "minimal chapter divider with subtitle",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text"
+    ],
+    "stage": "section",
+    "summary": "A restrained section divider uses a large blue heading, a gray supporting subtitle, and a minimal three-part footer on a white background.",
+    "title": "章节1. 本模版的使用方法"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003",
+    "r004",
+    "r005"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.363095
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 18,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large chapter or section heading positioned prominently in the lower-middle of the slide.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s003-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.136905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.65
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 21,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 9,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Short explanatory subtitle describing the scope or theme of the upcoming section.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s003-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.23622,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 5,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Presentation date shown at the bottom left.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "footer",
+      "source_shape_ids": [
+        "s003-sh0003"
+      ],
+      "style_ref": "text.footer"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.216535,
+        "x": 0.391732,
+        "y": 0.926852
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Slide number centered along the bottom edge.",
+      "kind": "text",
+      "region_id": "r004",
+      "role": "footer",
+      "source_shape_ids": [
+        "s003-sh0005"
+      ],
+      "style_ref": "text.footer"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.313641,
+        "x": 0.658929,
+        "y": 0.926852
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 4,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Organization or institution name shown at the bottom right.",
+      "kind": "text",
+      "region_id": "r005",
+      "role": "footer",
+      "source_shape_ids": [
+        "s003-sh0004"
+      ],
+      "style_ref": "text.footer"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use to introduce a new chapter or major section.",
+    "Choose when a concise section title and one-line subtitle are sufficient.",
+    "Suitable for formal academic or institutional presentations."
+  ],
+  "slide_id": "s003",
+  "warnings": []
+}

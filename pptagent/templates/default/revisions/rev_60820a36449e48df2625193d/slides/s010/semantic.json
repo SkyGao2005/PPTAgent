@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the topic needs multiple parallel sections or comparisons.",
+    "Avoid when detailed data visualization or dense analysis is required.",
+    "Avoid when no supporting image is available."
+  ],
+  "page_number": 10,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "historical explanation with centered supporting photo",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A prominent heading and concise explanatory text lead into a large centered documentary image for historical context.",
+    "title": "The Intangible – Indian Classical Dance\nODISSI of ODISHA"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.004699
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 78,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 34,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large two-line heading introducing the cultural subject or concept.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s010-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.257579,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.197292
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 461,
+        "max_items": 4,
+        "max_lines": 3,
+        "min_chars": 197,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Short explanatory passage providing historical or contextual background.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "body",
+      "source_shape_ids": [
+        "s010-sh0002"
+      ],
+      "style_ref": "text.body"
+    },
+    {
+      "asset_ids": [
+        "asset_95aa26778caf7f0c2f3dfc64"
+      ],
+      "bbox": {
+        "height": 0.527097,
+        "width": 0.445312,
+        "x": 0.20625,
+        "y": 0.454871
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.8448388057606094
+      },
+      "confidence": 0.99,
+      "description": "Centered documentary or contextual photograph supporting the explanation.",
+      "kind": "image",
+      "region_id": "r003",
+      "role": "photo",
+      "source_shape_ids": [
+        "s010-sh0003"
+      ],
+      "style_ref": "image.photo"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for introducing a cultural, historical, or educational topic.",
+    "Choose when a concise explanation should be supported by one prominent photograph.",
+    "Works well for a single concept with contextual evidence."
+  ],
+  "slide_id": "s010",
+  "warnings": []
+}

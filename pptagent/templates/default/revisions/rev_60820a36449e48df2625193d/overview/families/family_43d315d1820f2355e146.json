@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs multiple columns, imagery, charts, or distinct content cards.",
+    "Avoid for short, highly visual messages or minimal-text slides."
+  ],
+  "description": "A text-heavy explanatory slide places a prominent heading above one broad body block against a decorative dark background.",
+  "digest": "large title with dense explanatory text",
+  "family_id": "family_43d315d1820f2355e146",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Choose for a detailed conceptual explanation supported by several related points.",
+    "Use when substantial text should occupy one broad reading column."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large title with dense explanatory text",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A text-heavy explanatory slide places a prominent heading above one broad body block against a decorative dark background."
+    }
+  ],
+  "stage": "content"
+}

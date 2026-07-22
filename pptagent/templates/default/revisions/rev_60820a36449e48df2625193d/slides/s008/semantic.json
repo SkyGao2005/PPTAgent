@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "The page needs multiple images, data visualizations, or parallel content blocks.",
+    "The topic cannot be communicated with one wide landscape image and a substantial explanatory paragraph.",
+    "The slide requires a sparse, presentation-led message rather than detailed reading text."
+  ],
+  "page_number": 8,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "wide image with title and description",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "image",
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A large panoramic photograph introduces a single subject, followed by a centered title and a detailed explanatory text block.",
+    "title": "The Mukteswara Temple – Early Orissan style"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_45ad1fd790838be8557d7530"
+      ],
+      "bbox": {
+        "height": 0.560764,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.045926
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 1.257404184291431
+      },
+      "confidence": 0.99,
+      "description": "A dominant wide landscape photograph illustrating the featured subject or place.",
+      "kind": "image",
+      "region_id": "r001",
+      "role": "photo",
+      "source_shape_ids": [
+        "s008-sh0002"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.098283,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.617863
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 60,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 26,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Centered heading naming the featured subject and its defining category or theme.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "title",
+      "source_shape_ids": [
+        "s008-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.260938,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.716146
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 734,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 314,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Multi-paragraph explanatory copy providing description, context, and historical or technical details about the featured subject.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s008-sh0003"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a visual profile of a building, place, artifact, person, or case study.",
+    "Choose when one panoramic image should dominate above a descriptive narrative.",
+    "Suitable for educational or documentary content requiring several sentences of context."
+  ],
+  "slide_id": "s008",
+  "warnings": []
+}

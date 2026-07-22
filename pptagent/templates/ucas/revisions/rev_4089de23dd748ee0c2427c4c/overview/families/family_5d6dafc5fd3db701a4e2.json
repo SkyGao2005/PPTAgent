@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires diagrams, charts, or prominent imagery.",
+    "Avoid for side-by-side comparisons or multiple independent content sections.",
+    "Avoid when instructions need more than a few moderately detailed steps."
+  ],
+  "description": "A formal title-and-body page presents a short numbered procedure beneath an institutional header, with date, page number, and organization metadata along the bottom.",
+  "digest": "title with numbered instructional text",
+  "family_id": "family_5d6dafc5fd3db701a4e2",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for concise how-to guidance presented as numbered steps.",
+    "Use when a single instructional topic needs one large text area.",
+    "Suitable for formal academic or institutional presentations with persistent footer metadata."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with numbered instructional text",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A formal title-and-body page presents a short numbered procedure beneath an institutional header, with date, page number, and organization metadata along the bottom."
+    }
+  ],
+  "stage": "content"
+}

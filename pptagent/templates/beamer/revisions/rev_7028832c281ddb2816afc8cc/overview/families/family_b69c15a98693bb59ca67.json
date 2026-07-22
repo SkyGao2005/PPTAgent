@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the content has no supporting visual.",
+    "Avoid when several parallel sections or data views are required.",
+    "Avoid when the visual and text need unequal emphasis."
+  ],
+  "description": "A broad heading introduces a balanced two-column layout with a large explanatory visual on the left and descriptive prose on the right.",
+  "digest": "title with diagram and explanatory text",
+  "family_id": "family_b69c15a98693bb59ca67",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for explaining one concept with a supporting visual.",
+    "Use when an image or diagram and a moderate paragraph should receive balanced space.",
+    "Use for educational, technical, biographical, or case-study content with one main illustration."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with diagram and explanatory text",
+      "page_number": 3,
+      "region_roles": [
+        "body",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A broad heading introduces a balanced two-column layout with a large explanatory visual on the left and descriptive prose on the right."
+    }
+  ],
+  "stage": "content"
+}

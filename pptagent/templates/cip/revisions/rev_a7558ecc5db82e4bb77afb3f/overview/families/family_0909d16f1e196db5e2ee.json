@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs descriptions, timings, owners, or multiple columns.",
+    "Avoid when a visually rich roadmap or process diagram is required."
+  ],
+  "description": "A formal agenda slide places a compact heading above a spacious single-column list of presentation sections.",
+  "digest": "simple title and bulleted agenda",
+  "family_id": "family_0909d16f1e196db5e2ee",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise table of contents near the beginning of a presentation.",
+    "Best for roughly four to seven short section titles in one vertical list.",
+    "Choose when a formal, spacious academic or institutional style is appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple title and bulleted agenda",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A formal agenda slide places a compact heading above a spacious single-column list of presentation sections."
+    }
+  ],
+  "stage": "agenda"
+}

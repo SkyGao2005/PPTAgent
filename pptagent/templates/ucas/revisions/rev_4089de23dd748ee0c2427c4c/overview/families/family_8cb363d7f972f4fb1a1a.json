@@ -1,0 +1,52 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs detailed explanations, charts, or multiple content blocks.",
+    "Avoid when introducing the entire presentation rather than a new chapter.",
+    "Avoid for regular content slides that require tables, charts, or detailed explanation.",
+    "Avoid when the section heading needs supporting visuals or multiple content blocks."
+  ],
+  "description": "A restrained chapter divider uses a large blue heading, a gray supporting line, and minimal institutional footer details.",
+  "digest": "chapter divider with title and subtitle",
+  "family_id": "family_8cb363d7f972f4fb1a1a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s005",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a prominent section title and one brief contextual subtitle are sufficient.",
+    "Works well for formal academic or institutional presentations.",
+    "Choose when a restrained academic section divider is appropriate.",
+    "Works best with a short section title and one-line descriptor."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and subtitle",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A restrained chapter divider uses a large blue heading, a gray supporting line, and minimal institutional footer details."
+    },
+    {
+      "density": "sparse",
+      "digest": "minimal section divider with title and subtitle",
+      "page_number": 7,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A sparse academic section divider uses a large left-aligned chapter title, a brief subtitle, and understated footer metadata."
+    }
+  ],
+  "stage": "section"
+}

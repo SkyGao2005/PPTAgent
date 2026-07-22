@@ -1,0 +1,118 @@
+{
+  "family_ids": [
+    "family_314d72138c43cdb88346"
+  ],
+  "layout_css_path": "slides/s004/layout.css",
+  "overlay_image_path": "slides/s004/overlay.webp",
+  "page_number": 4,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "workflow bullets beside detailed process diagram",
+    "layout_pattern": "split",
+    "message_pattern": "process",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A top-titled split layout pairs concise workflow bullets on the left with a large, detailed process infographic on the right.",
+    "title": "PPTAgent Workflow"
+  },
+  "reference_image_path": "slides/s004/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "capacity": {
+        "max_chars": 24,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.702347,
+        "width": 0.422936,
+        "x": 0.02965,
+        "y": 0.18216
+      },
+      "capacity": {
+        "max_chars": 234,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 100,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    },
+    {
+      "asset_ids": [
+        "asset_7d5a8b9773cc867b4485ff68"
+      ],
+      "bbox": {
+        "height": 0.727564,
+        "width": 0.531034,
+        "x": 0.452586,
+        "y": 0.156943
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.7298794332869686
+      },
+      "kind": "image",
+      "region_id": "r003",
+      "required": false,
+      "role": "diagram",
+      "style_ref": "image.diagram"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s004",
+  "theme_tokens": {
+    "--template-accent1": "#4F81BD",
+    "--template-accent2": "#C0504D",
+    "--template-accent3": "#9BBB59",
+    "--template-accent4": "#8064A2",
+    "--template-accent5": "#4BACC6",
+    "--template-accent6": "#F79646",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EEECE1",
+    "--template-color-1": "#194297",
+    "--template-color-2": "#003399",
+    "--template-folHlink": "#800080",
+    "--template-font-1": "微软雅黑",
+    "--template-font-2": "Microsoft YaHei",
+    "--template-font-3": "SimHei",
+    "--template-font-major": "Calibri",
+    "--template-font-minor": "Calibri",
+    "--template-hlink": "#0000FF",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#1F497D"
+  }
+}

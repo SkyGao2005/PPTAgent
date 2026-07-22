@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the page needs multiple data views, a comparison, or several short content blocks.",
+    "Avoid when the narrative cannot fit comfortably beside a tall image.",
+    "Avoid when a prominent visible headline is essential."
+  ],
+  "page_number": 11,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "Tall photo beside dense explanatory text",
+    "layout_pattern": "split",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A tall image anchors the left side while a dense explanatory passage occupies the right, with an optional heading area across the top.",
+    "title": null
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.088889
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 0,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.78,
+      "description": "Optional top heading placeholder spanning much of the slide; it is empty in the rendered example.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s011-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [
+        "asset_a65e55ada78161b104f47404"
+      ],
+      "bbox": {
+        "height": 0.870833,
+        "width": 0.37718,
+        "x": 0.02868,
+        "y": 0.040278
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.4331255246413492
+      },
+      "confidence": 0.99,
+      "description": "Tall portrait-oriented feature image illustrating the subject.",
+      "kind": "image",
+      "region_id": "r002",
+      "role": "photo",
+      "source_shape_ids": [
+        "s011-sh0003"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.870833,
+        "width": 0.387413,
+        "x": 0.408109,
+        "y": 0.040278
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 1301,
+        "max_items": 4,
+        "max_lines": 3,
+        "min_chars": 557,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large explanatory narrative block intended for detailed background or contextual information.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s011-sh0002"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Choose for an image-led profile, cultural topic, case study, or historical explanation.",
+    "Use when a tall subject photo should sit beside one substantial narrative block.",
+    "Works best for detailed editorial content with strong visual support."
+  ],
+  "slide_id": "s011",
+  "warnings": []
+}

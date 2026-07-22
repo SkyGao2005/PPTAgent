@@ -1,0 +1,28 @@
+/* Layout scaffold for s010 (closing/hero).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome: emit them as
+ * empty divs (or <img> for the ones naming an asset) before content.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;}
+:root{
+  --template-accent1:#660874;
+  --template-accent2:#660874;
+  --template-accent3:#E6C46D;
+  --template-accent4:#969FA7;
+  --template-accent5:#A9C37C;
+  --template-accent6:#5A8071;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EBEBEB;
+  --template-color-1:#144189;
+  --template-folHlink:#43064C;
+  --template-font-major:Gill Sans MT;
+  --template-font-minor:Gill Sans MT;
+  --template-hlink:#007698;
+  --template-tx1:#000000;
+  --template-tx2:#3D3D3D;
+}
+.tpl-01{position:absolute;left:0%;top:22.058%;width:100%;height:37.343%;z-index:1;background:#144189} /* layout / Rectangle 6 */
+.tpl-02{position:absolute;left:4.767%;top:5.368%;width:24.745%;height:13.12%;z-index:2;object-fit:contain} /* layout / 图片 10 -> assets/asset_52dd78a0ac7ee92797303b71 */
+.r-r001{position:absolute;left:3.766%;top:25.152%;width:90.17%;height:30.958%;z-index:100;font-size:6.667vh;font-family:"Gill Sans MT";color:#FFFFFF;font-weight:400;text-align:center} /* title / text */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

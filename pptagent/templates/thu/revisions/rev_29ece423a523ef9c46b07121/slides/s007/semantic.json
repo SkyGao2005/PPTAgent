@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the page needs multiple parallel content sections.",
+    "Avoid when the message depends on charts, tables, or detailed quantitative evidence.",
+    "Avoid when the image is secondary rather than the main focus."
+  ],
+  "page_number": 7,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "large image above title and description",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "image",
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A large featured visual dominates the page, followed by a left-aligned heading and concise explanatory text.",
+    "title": "图片内容页"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_808f5857e34644a7f6a7baed"
+      ],
+      "bbox": {
+        "height": 0.597787,
+        "width": 0.890317,
+        "x": 0.04767,
+        "y": 0.08658
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 1.4893549040042693
+      },
+      "confidence": 0.99,
+      "description": "Large primary visual occupying most of the upper portion of the slide.",
+      "kind": "image",
+      "region_id": "r001",
+      "role": "photo",
+      "source_shape_ids": [
+        "s007-sh0002"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.082639,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.69822
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 3,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Heading that identifies or captions the featured visual content.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "title",
+      "source_shape_ids": [
+        "s007-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.159401,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.780859
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 125,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 53,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Short explanatory copy or caption providing context for the visual.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s007-sh0003"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a content page led by one large image or screenshot.",
+    "Choose when a visual needs a clear heading and several lines of explanation.",
+    "Suitable for showcasing a product view, example, reference image, or design artifact."
+  ],
+  "slide_id": "s007",
+  "warnings": []
+}

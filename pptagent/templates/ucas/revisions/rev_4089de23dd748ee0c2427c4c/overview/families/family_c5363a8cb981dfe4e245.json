@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the presentation needs more than a short agenda.",
+    "Avoid when agenda items require descriptions, owners, or timing."
+  ],
+  "description": "A formal agenda slide pairs a prominent title panel on the left with a short section list on the right and restrained metadata along the bottom.",
+  "digest": "agenda with side title and three items",
+  "family_id": "family_c5363a8cb981dfe4e245",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise table of contents with roughly three major sections.",
+    "Choose when a formal academic or institutional presentation needs a clear agenda page."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "agenda with side title and three items",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A formal agenda slide pairs a prominent title panel on the left with a short section list on the right and restrained metadata along the bottom."
+    }
+  ],
+  "stage": "agenda"
+}

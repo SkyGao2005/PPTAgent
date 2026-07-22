@@ -52,10 +52,18 @@ def _dominant_style(
     return best
 
 
+# Chrome is painted underneath content. Positioned elements with a positive
+# z-index always paint above ones with `z-index: auto`, so content needs an
+# explicit index or the template's colour blocks would hide it.
+_CHROME_Z_BASE = 1
+_CONTENT_Z_BASE = 100
+
+
 def _declarations(
     region: Region,
     style: TextStyle | None,
     canvas_height_inches: float,
+    z_index: int,
 ) -> list[str]:
     box = region.bbox
     declarations = [
@@ -64,6 +72,7 @@ def _declarations(
         f"top:{_percent(box.y)}",
         f"width:{_percent(box.width)}",
         f"height:{_percent(box.height)}",
+        f"z-index:{z_index}",
     ]
     if style is None:
         return declarations
@@ -105,7 +114,7 @@ def _chrome_rules(graph: SourceGraph) -> list[str]:
             f"top:{_percent(box.y)}",
             f"width:{_percent(box.width)}",
             f"height:{_percent(box.height)}",
-            f"z-index:{index}",
+            f"z-index:{_CHROME_Z_BASE + index - 1}",
         ]
         if shape.fill_color:
             declarations.append(f"background:{shape.fill_color}")
@@ -150,10 +159,12 @@ def build_layout_css(
         )
         lines.append("}")
     lines.extend(_chrome_rules(graph))
-    for region in semantic.regions:
+    for index, region in enumerate(semantic.regions):
         style = _dominant_style(region, shapes)
         selector = f".r-{region.region_id}"
-        declarations = ";".join(_declarations(region, style, height_inches))
+        declarations = ";".join(
+            _declarations(region, style, height_inches, _CONTENT_Z_BASE + index)
+        )
         lines.append(
             f"{selector}{{{declarations}}}"
             f" /* {region.role.value} / {region.kind.value} */"

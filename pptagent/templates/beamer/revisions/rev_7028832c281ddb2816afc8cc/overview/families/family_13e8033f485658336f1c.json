@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs descriptions, timings, or multiple hierarchy levels.",
+    "Avoid when a visual roadmap or highly designed section navigation is required."
+  ],
+  "description": "A clean agenda page places a prominent title in a colored header above a spacious numbered section list.",
+  "digest": "simple agenda with numbered topic list",
+  "family_id": "family_13e8033f485658336f1c",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a straightforward table of contents with a short list of sections.",
+    "Best for approximately four to six concise agenda items."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple agenda with numbered topic list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A clean agenda page places a prominent title in a colored header above a spacious numbered section list."
+    }
+  ],
+  "stage": "agenda"
+}
