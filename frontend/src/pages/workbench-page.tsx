@@ -163,7 +163,10 @@ function SlideThumb({
           </span>
         )}
         {slide.status === "failed" && (
-          <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-destructive/10 text-[10px] font-bold text-destructive">
+          // A 10% tint left the message competing with whatever the preview
+          // had already drawn. This state is the one asking to be clicked, so
+          // it scrims at least as hard as the editing spinner does.
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-card/90 text-[10px] font-bold text-destructive">
             <TriangleAlertIcon className="size-3.5" />
             生成失败 · 点击重试
           </span>

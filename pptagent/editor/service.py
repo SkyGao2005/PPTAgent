@@ -27,6 +27,7 @@ import inspect
 import json
 import tempfile
 import uuid
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -387,19 +388,39 @@ class SlideEditService:
     # ── low-level action runners ───────────────────────────────
 
     def _run_api_actions(self, actions: list[str]) -> tuple[bool, str | None]:
+        """Apply a batch of API calls, or leave the slide exactly as it was.
+
+        The calls mutate the slide one at a time, so a batch that fails
+        halfway leaves it half-edited -- the user sees a broken page and the
+        next retry compounds it. Generation avoids that by editing a copy;
+        this path now does the same and only publishes a slide that survived
+        every call.
+        """
+
         if not actions:
             return False, "未生成任何编辑操作"
+        draft = deepcopy(self.slide)
         try:
             executor = CodeExecutor(retry_times=1)
             text = "\n".join(actions)
-            res = executor.execute_actions(text, self.slide, self.doc, found_code=True)
+            res = executor.execute_actions(text, draft, self.doc, found_code=True)
             if res is not None:  # (api_lines, traceback)
                 return False, f"编辑执行失败: {res[1][:500]}"
-            return True, None
         except SlideEditError as e:
             return False, f"编辑执行失败: {e}"
         except Exception as e:  # noqa: BLE001
             return False, f"编辑执行异常: {e}"
+        self._commit(draft)
+        return True, None
+
+    def _commit(self, draft: SlidePage) -> None:
+        """Adopt a successfully edited draft in place of the live slide.
+
+        Every edit API works through ``slide.shapes``, so that is the whole of
+        what a successful batch produced.
+        """
+
+        self.slide.shapes = draft.shapes
 
     def _run_style(self, directive: str) -> tuple[bool, str | None]:
         try:
