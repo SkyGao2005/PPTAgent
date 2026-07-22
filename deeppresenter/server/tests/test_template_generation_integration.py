@@ -205,7 +205,9 @@ async def test_real_task_pins_revision_and_materializes_context(
     assert request.template_revision_id == revision_id
     assert request.template_context_path == str(context_dir)
     assert context_snapshot["revision_id"] == revision_id
-    assert (context_dir / "assets" / "brand_logo.png").read_bytes() == b"reusable-logo"
+    # Staging keeps the revision's filename because the compiled layout.css
+    # already points at it; renaming would break every chrome rule.
+    assert (context_dir / "assets" / "logo.png").read_bytes() == b"reusable-logo"
     assert not list(context_dir.rglob("*.pptx"))
     assert "template_context_provider" not in captured["loop_kwargs"]
 

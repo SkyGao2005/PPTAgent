@@ -92,13 +92,35 @@ def _apply_modifiers(color: str, node: etree._Element) -> str:
     modifiers = {
         etree.QName(child).localname: int(child.get("val", "0")) / 100_000
         for child in node
-        if etree.QName(child).localname in {"lumMod", "lumOff", "shade", "tint"}
+        if etree.QName(child).localname
+        in {"lumMod", "lumOff", "shade", "tint", "alpha"}
     }
     if not modifiers:
         return color
     channels = [int(color[index : index + 2], 16) for index in (1, 3, 5)]
     scaled = [_scale_channel(channel, modifiers) for channel in channels]
-    return "#{:02X}{:02X}{:02X}".format(*scaled)
+    result = "#{:02X}{:02X}{:02X}".format(*scaled)
+    # Transparency is what lets a tinted panel show the artwork underneath.
+    # CSS spells it as two more hex digits.
+    alpha = modifiers.get("alpha")
+    if alpha is not None and alpha < 1:
+        result += f"{max(0, min(255, round(alpha * 255))):02X}"
+    return result
+
+
+# The handful of preset colour names a template actually reaches for. The full
+# list is large and unused; an unknown name falls through to the next child
+# rather than resolving to something invented.
+_PRESET_COLORS = {
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "gray": "#808080",
+    "grey": "#808080",
+    "red": "#FF0000",
+    "green": "#008000",
+    "blue": "#0000FF",
+    "yellow": "#FFFF00",
+}
 
 
 def resolve_color(
@@ -117,6 +139,8 @@ def resolve_color(
             base = _hex(child.get("lastClr"))
         elif name == "schemeClr":
             base = palette.color(child.get("val", ""))
+        elif name == "prstClr":
+            base = _PRESET_COLORS.get(str(child.get("val", "")).lower())
         else:
             continue
         if base is not None:

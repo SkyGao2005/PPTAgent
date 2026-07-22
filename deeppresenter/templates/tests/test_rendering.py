@@ -9,6 +9,7 @@ from deeppresenter.templates.models import (
     ShapeKind,
     ShapeNode,
     ShapeScope,
+    ShapeText,
     SourceGraph,
 )
 from deeppresenter.templates.rendering import (
@@ -74,6 +75,9 @@ def _shape(shape_id: str, *, visible: bool = True, width: float = 0.4) -> ShapeN
         bbox=BoundingBox(x=0, y=0, width=100, height=50),
         normalized_bbox=NormalizedBox(x=0.1, y=0.1, width=width, height=0.2),
         visible=visible,
+        # Sample text is what makes a shape a content slot rather than
+        # decoration, so a labelled shape must have some.
+        text=ShapeText(text="sample"),
     )
 
 
@@ -119,3 +123,40 @@ def test_create_shape_overlay_writes_labeled_image(tmp_path: Path) -> None:
     assert result == output
     with Image.open(output) as image:
         assert image.size == (1600, 900)
+
+
+def test_slide_decoration_is_never_offered_to_the_annotator() -> None:
+    """A filled shape with no text is chrome, whatever scope it sits in.
+
+    Annotating it produces a region that carries geometry but none of the
+    paint that made it visible, so the decoration silently disappears and
+    generation fills the empty box with its own invention.
+    """
+
+    decoration = ShapeNode(
+        shape_id="deco",
+        name="Parallelogram 33",
+        scope=ShapeScope.SLIDE,
+        kind=ShapeKind.AUTO_SHAPE,
+        z_index=0,
+        bbox=BoundingBox(x=0, y=0, width=100, height=50),
+        normalized_bbox=NormalizedBox(x=0.0, y=0.0, width=0.5, height=1.0),
+        fill="linear-gradient(135deg, #0070C0 0%, #002060 100%)",
+    )
+    empty_placeholder = ShapeNode(
+        shape_id="slot",
+        name="Content Placeholder 2",
+        scope=ShapeScope.SLIDE,
+        kind=ShapeKind.PLACEHOLDER,
+        placeholder_type="body",
+        z_index=1,
+        bbox=BoundingBox(x=0, y=0, width=100, height=50),
+        normalized_bbox=NormalizedBox(x=0.5, y=0.1, width=0.4, height=0.2),
+    )
+
+    labels = overlay_labels(_graph([decoration, empty_placeholder, _shape("a")]))
+
+    assert decoration.is_chrome
+    # An empty placeholder is a content slot the deck fills, not decoration.
+    assert not empty_placeholder.is_chrome
+    assert [shape.shape_id for shape in labels.values()] == ["slot", "a"]

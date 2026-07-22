@@ -293,10 +293,18 @@ def test_search_scores_semantics_and_bounds_results(tmp_path: Path) -> None:
         max_chars=800,
     )
 
+    def _size(value: object) -> int:
+        # The bound is enforced against compact JSON, so measure it that way.
+        return len(json.dumps(value, ensure_ascii=False, separators=(",", ":")))
+
     assert [match["slide_id"] for match in matches] == ["s002", "s003"]
-    assert all(len(json.dumps(match, ensure_ascii=False)) <= 400 for match in matches)
-    assert len(json.dumps(reference, ensure_ascii=False)) <= 800
+    assert all(_size(match) <= 400 for match in matches)
+    assert _size(reference) <= 800
     assert reference["slide_id"] == "s002"
+    # Fitting the bound must not cost the fields that make a page
+    # reproducible: prose is dropped before regions and asset bindings.
+    assert reference["regions"]
+    assert reference["asset_refs"] == ["brand_logo"]
 
 
 def test_materialize_builds_fixed_context_pack_and_assets(tmp_path: Path) -> None:
@@ -383,3 +391,35 @@ def test_materialize_builds_fixed_context_pack_and_assets(tmp_path: Path) -> Non
             revision_id,
             [{"stage": "cover", "layout_pattern": "hero"}],
         )
+
+
+def test_task_pack_is_not_shaped_by_the_model_facing_bound(tmp_path: Path) -> None:
+    """Truncation decides what a model is shown, never what exists on disk.
+
+    Staging used to read the bounded projection, so on a real template -- where
+    every reference overflowed the budget -- the payload collapsed to its
+    identity keys, `reference_files` vanished with it, and not a single page
+    render was copied. The design agent then had no picture of any page and
+    substituted its own imagery.
+    """
+
+    ir_root = tmp_path / "ir"
+    _, template_id, revision_id = _make_ir(ir_root)
+    provider = TemplateContextProvider(TemplateStore([ir_root]))
+    # Small enough that every reference overflows it.
+    provider.reference_chars = 256
+
+    provider.materialize(template_id, tmp_path / "task", revision_id)
+
+    context = tmp_path / "task" / "template_context"
+    stored = json.loads((context / "refs" / "s002" / "context.compact.json").read_text())
+
+    assert not stored.get("truncated")
+    assert stored["regions"]
+    assert stored["asset_refs"] == ["brand_logo"]
+    assert (context / "refs" / "s002" / "style_reference.webp").is_file()
+
+    # The bound still applies to what the model is handed.
+    task_context = TaskTemplateContext.load(context)
+    served = task_context.get_reference("s002", max_chars=256)
+    assert len(json.dumps(served, ensure_ascii=False, separators=(",", ":"))) <= 256

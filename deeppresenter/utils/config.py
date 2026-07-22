@@ -160,7 +160,7 @@ class ContextBudgetConfig(BaseModel):
         description="Proactively fold history at this fraction of the input budget",
     )
     template_context_max_tokens: int = Field(
-        default=12_000,
+        default=24_000,
         gt=0,
         description="Maximum pinned template context in one request",
     )
@@ -169,17 +169,17 @@ class ContextBudgetConfig(BaseModel):
     # Keep them in tokens: they are compared against the same estimator that
     # guards every request.
     template_overview_max_tokens: int = Field(
-        default=3_000,
+        default=6_000,
         gt=0,
         description="Budget for the pinned template overview projection",
     )
     template_reference_max_tokens: int = Field(
-        default=3_000,
+        default=6_000,
         gt=0,
         description="Budget for one retrieved reference page projection",
     )
     template_search_result_max_tokens: int = Field(
-        default=1_500,
+        default=3_000,
         gt=0,
         description="Budget for a single search_template_references match",
     )

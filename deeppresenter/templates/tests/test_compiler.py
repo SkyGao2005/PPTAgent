@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -250,3 +251,168 @@ def test_vector_browser_variant_trims_libreoffice_page_canvas(tmp_path: Path) ->
     with Image.open(path) as trimmed:
         assert trimmed.width < 320
         assert trimmed.height < 320
+
+
+def test_compiler_version_tracks_the_output_producing_modules() -> None:
+    """Editing scaffold/overview output must invalidate existing revisions.
+
+    They decide the bytes a revision contains but are not otherwise part of
+    its identity, so a stale revision would be reused silently.
+    """
+
+    from deeppresenter.templates import compiler as compiler_module
+
+    assert compiler_module.COMPILER_VERSION.startswith("template-ir-compiler-")
+    fingerprint = compiler_module.COMPILER_VERSION.rsplit(".", 1)[-1]
+    assert len(fingerprint) == 8
+    assert fingerprint == compiler_module._output_fingerprint()  # noqa: SLF001
+
+
+def test_image_verdicts_only_settle_what_the_extractor_guessed() -> None:
+    """The annotator has seen the page; facts about the build still outrank it.
+
+    Scope, an alpha mask, a background and a logo say how the template is
+    assembled. A judgement made from looking at a render may correct a guess,
+    never one of those.
+    """
+
+    from deeppresenter.templates.compiler import TemplateCompiler
+    from deeppresenter.templates.extractor import ExtractedAsset
+    from deeppresenter.templates.models import (
+        Asset,
+        AssetOccurrence,
+        AssetRole,
+        Canvas,
+        Density,
+        LayoutPattern,
+        MessagePattern,
+        NormalizedBox,
+        PageSemantics,
+        PageStage,
+        ReusePolicy,
+        Semantic,
+        ShapeOutline,
+        ShapeScope,
+    )
+
+    def _asset(asset_id: str, **updates: object) -> ExtractedAsset:
+        base = Asset(
+            asset_id=asset_id,
+            sha256="0" * 64,
+            media_type="image/png",
+            extension="png",
+            path=f"assets/{asset_id}.png",
+            byte_size=8,
+            role=AssetRole.CONTENT_IMAGE,
+            reuse_policy=ReusePolicy.REFERENCE_ONLY,
+            occurrences=[
+                AssetOccurrence(
+                    slide_id="s001",
+                    page_number=1,
+                    scope=ShapeScope.SLIDE,
+                    bbox=NormalizedBox(x=0.1, y=0.1, width=0.3, height=0.3),
+                )
+            ],
+        )
+        return ExtractedAsset(asset=base.model_copy(update=updates), blob=b"x")
+
+    plain = _asset("plain")
+    kept = _asset("kept")
+    masked = _asset("masked", alpha_outline=ShapeOutline(polygon=[(0, 0), (1, 0), (0, 1)]))
+    logo = _asset("logo", role=AssetRole.LOGO, reuse_policy=ReusePolicy.ALWAYS)
+    extraction = SimpleNamespace(assets=[plain, kept, masked, logo])
+
+    semantic = Semantic(
+        slide_id="s001",
+        page_number=1,
+        page_semantics=PageSemantics(
+            stage=PageStage.COVER,
+            layout_pattern=LayoutPattern.HERO,
+            message_pattern=MessagePattern.STATEMENT,
+            density=Density.SPARSE,
+        ),
+        regions=[],
+        reading_order=[],
+        judged_asset_ids=["plain", "kept", "masked", "logo"],
+        # The annotator called only `plain` replaceable.
+        replaceable_asset_ids=["plain"],
+        annotator_id="vlm:test",
+    )
+
+    TemplateCompiler._apply_image_verdicts(extraction, [semantic])  # noqa: SLF001
+
+    assert plain.asset.role is AssetRole.CONTENT_IMAGE
+    # Judged and not listed: the template keeps it.
+    assert kept.asset.role is AssetRole.DECORATION
+    assert kept.asset.reuse_policy is ReusePolicy.TEMPLATE_ONLY
+    # Facts are untouched by the verdict.
+    assert masked.asset.role is AssetRole.CONTENT_IMAGE
+    assert logo.asset.role is AssetRole.LOGO
+
+
+def test_one_uncertain_page_keeps_the_template_artwork() -> None:
+    """An image shown twice is replaceable only if every page agreed."""
+
+    from deeppresenter.templates.compiler import TemplateCompiler
+    from deeppresenter.templates.extractor import ExtractedAsset
+    from deeppresenter.templates.models import (
+        Asset,
+        AssetOccurrence,
+        AssetRole,
+        Density,
+        LayoutPattern,
+        MessagePattern,
+        NormalizedBox,
+        PageSemantics,
+        PageStage,
+        ReusePolicy,
+        Semantic,
+        ShapeScope,
+    )
+
+    asset = ExtractedAsset(
+        asset=Asset(
+            asset_id="shared",
+            sha256="0" * 64,
+            media_type="image/png",
+            extension="png",
+            path="assets/shared.png",
+            byte_size=8,
+            role=AssetRole.CONTENT_IMAGE,
+            reuse_policy=ReusePolicy.REFERENCE_ONLY,
+            occurrences=[
+                AssetOccurrence(
+                    slide_id=f"s{page:03d}",
+                    page_number=page,
+                    scope=ShapeScope.SLIDE,
+                    bbox=NormalizedBox(x=0.1, y=0.1, width=0.3, height=0.3),
+                )
+                for page in (1, 2)
+            ],
+        ),
+        blob=b"x",
+    )
+
+    def _page(page: int, replaceable: list[str]) -> Semantic:
+        return Semantic(
+            slide_id=f"s{page:03d}",
+            page_number=page,
+            page_semantics=PageSemantics(
+                stage=PageStage.CONTENT,
+                layout_pattern=LayoutPattern.TITLE_BODY,
+                message_pattern=MessagePattern.STATEMENT,
+                density=Density.SPARSE,
+            ),
+            regions=[],
+            reading_order=[],
+            judged_asset_ids=["shared"],
+            replaceable_asset_ids=replaceable,
+            annotator_id="vlm:test",
+        )
+
+    TemplateCompiler._apply_image_verdicts(  # noqa: SLF001
+        SimpleNamespace(assets=[asset]),
+        [_page(1, ["shared"]), _page(2, [])],
+    )
+
+    assert asset.asset.role is AssetRole.DECORATION

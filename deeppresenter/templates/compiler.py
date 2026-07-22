@@ -25,7 +25,7 @@ from .annotation import (
     SlideAnnotationInput,
 )
 from .extractor import ExtractionResult, PptxExtractor
-from .ids import derive_revision_id, sha256_file
+from .ids import derive_revision_id, sha256_bytes, sha256_file
 from .models import (
     Asset,
     AssetIndex,
@@ -33,6 +33,7 @@ from .models import (
     CompactSlideContext,
     LayoutFamily,
     LayoutFamilyIndex,
+    AssetRole,
     RegionKind,
     ReusePolicy,
     Revision,
@@ -40,6 +41,7 @@ from .models import (
     SCHEMA_VERSION,
     Semantic,
     SUPPORTED_ASPECT_RATIOS,
+    ShapeScope,
     SlideIndexEntry,
     SourceGraph,
     TemplateManifest,
@@ -70,7 +72,24 @@ class TemplateCompilationError(RuntimeError):
     """Compilation failed before an immutable READY revision was produced."""
 
 
-COMPILER_VERSION = "template-ir-compiler-3"
+def _output_fingerprint() -> str:
+    """Fingerprint the modules that decide what a revision's files contain.
+
+    Revision identity must change whenever compiled output would, or a
+    recompile silently reuses stale artifacts. Deriving this instead of
+    hand-maintaining a number removes the chance of forgetting.
+    """
+
+    from . import annotation, overview, rendering, scaffold
+
+    sources = b"".join(
+        Path(module.__file__).read_bytes()
+        for module in (scaffold, overview, rendering, annotation)
+    )
+    return sha256_bytes(sources)[:8]
+
+
+COMPILER_VERSION = f"template-ir-compiler-4.{_output_fingerprint()}"
 
 
 class TemplateCompiler:
@@ -210,7 +229,6 @@ class TemplateCompiler:
                 "Template canvas must use a supported slide ratio (16:9 or 4:3); "
                 f"got {extraction.canvas.aspect_ratio}"
             )
-        self._persist_assets(staging_dir, extraction)
         dump_model(staging_dir / "theme" / "theme.json", extraction.theme)
         (staging_dir / "theme" / "theme.css").write_text(
             self._theme_css(extraction.theme),
@@ -236,6 +254,11 @@ class TemplateCompiler:
             cache_dir=annotation_cache_dir,
             revision_id=revision_id,
         )
+        # Assets are written after annotation because the annotator, which has
+        # actually looked at every page, gets the final say on which pictures
+        # are sample content.
+        self._apply_image_verdicts(extraction, semantics)
+        self._persist_assets(staging_dir, extraction)
         families, slide_family_ids = self._layout_families(semantics)
         dump_model(
             staging_dir / "families" / "index.json",
@@ -410,12 +433,14 @@ class TemplateCompiler:
         graph_by_id = {graph.slide_id: graph for graph in extraction.source_graphs}
         entries: list[SlideIndexEntry] = []
         for semantic in semantics:
+            graph = graph_by_id[semantic.slide_id]
             layout_css_path = f"slides/{semantic.slide_id}/layout.css"
             (staging_dir / layout_css_path).write_text(
                 build_layout_css(
                     semantic,
-                    graph_by_id[semantic.slide_id],
+                    graph,
                     extraction.theme,
+                    asset_by_id,
                 ),
                 encoding="utf-8",
             )
@@ -432,6 +457,16 @@ class TemplateCompiler:
                     asset.asset_id
                     for asset in asset_by_id.values()
                     if asset.reuse_policy is ReusePolicy.ALWAYS
+                }
+                # The scaffold's chrome rules point at these files, so the
+                # reference must declare them or a task pack would stage a
+                # layout that references images it did not copy.
+                | {
+                    asset_id
+                    for shape in graph.shapes
+                    if shape.scope is not ShapeScope.SLIDE
+                    for asset_id in shape.asset_ids
+                    if asset_id in asset_by_id
                 }
             )
             context = CompactSlideContext(
@@ -679,6 +714,58 @@ class TemplateCompiler:
                 ),
             },
         )
+
+    @staticmethod
+    def _apply_image_verdicts(
+        extraction: ExtractionResult,
+        semantics: list[Semantic],
+    ) -> None:
+        """Let the annotator settle which pictures a deck may replace.
+
+        Only where the extractor was guessing. Scope, an alpha mask, a
+        background or a logo are facts about how the template is built and
+        outrank a judgement made from looking at the page. An asset shown on
+        several pages is replaceable only if every page said so, so one
+        uncertain answer keeps the template's own artwork.
+        """
+
+        judged: set[str] = set()
+        verdicts: dict[str, bool] = {}
+        for semantic in semantics:
+            replaceable = set(semantic.replaceable_asset_ids)
+            for asset_id in semantic.judged_asset_ids:
+                judged.add(asset_id)
+                allowed = asset_id in replaceable
+                verdicts[asset_id] = verdicts.get(asset_id, True) and allowed
+
+        for value in extraction.assets:
+            asset = value.asset
+            if asset.asset_id not in judged:
+                continue
+            if asset.role in {AssetRole.BACKGROUND, AssetRole.LOGO}:
+                continue
+            if asset.alpha_outline is not None:
+                continue
+            if any(
+                occurrence.scope is not ShapeScope.SLIDE
+                for occurrence in asset.occurrences
+            ):
+                continue
+            replaceable = verdicts.get(asset.asset_id, False)
+            value.asset = asset.model_copy(
+                update={
+                    "role": (
+                        AssetRole.CONTENT_IMAGE
+                        if replaceable
+                        else AssetRole.DECORATION
+                    ),
+                    "reuse_policy": (
+                        ReusePolicy.REFERENCE_ONLY
+                        if replaceable
+                        else ReusePolicy.TEMPLATE_ONLY
+                    ),
+                }
+            )
 
     @classmethod
     def _persist_assets(cls, staging_dir: Path, extraction: ExtractionResult) -> None:

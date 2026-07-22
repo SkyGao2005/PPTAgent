@@ -109,16 +109,33 @@ def _bounded_object(
     payload: Mapping[str, Any],
     max_chars: int,
     identity_keys: tuple[str, ...],
+    drop_order: tuple[str, ...] = (),
 ) -> JsonObject:
+    """Fit a projection inside ``max_chars`` losing as little meaning as possible.
+
+    ``drop_order`` lists whole fields least-useful-first. Removing them is
+    tried before any clipping, because complete information about fewer things
+    beats truncated information about everything -- a region whose bbox has
+    been clipped to three numbers is worse than no region at all.
+    """
+
     if max_chars < 256:
         raise ValueError("max_chars must be at least 256")
     raw = dict(payload)
     if _serialized_chars(raw) <= max_chars:
         return raw
 
+    reduced = dict(raw)
+    for key in drop_order:
+        if reduced.pop(key, None) is None:
+            continue
+        reduced["truncated"] = True
+        if _serialized_chars(reduced) <= max_chars:
+            return reduced
+
     for string_limit, list_limit in ((256, 12), (160, 8), (96, 5), (48, 3)):
         clipped = _clip_value(
-            raw,
+            reduced,
             string_limit=string_limit,
             list_limit=list_limit,
         )
@@ -137,6 +154,18 @@ def _bounded_object(
     if _serialized_chars(fallback) > max_chars:
         raise ValueError("max_chars is too small for the payload identity")
     return fallback
+
+
+# Least useful first. Everything above these -- regions, asset bindings, the
+# scaffold path, and the reference images -- is what makes a page reproducible.
+REFERENCE_DROP_ORDER = (
+    "avoid_when",
+    "selection_hints",
+    "summary",
+    "is_representative",
+    "family_ids",
+    "page_semantics",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -649,7 +678,9 @@ class TemplateContextProvider:
                 "reusable_asset_ids",
                 compact.get("asset_refs", semantic.get("asset_refs", [])),
             ),
-            "theme_tokens": compact.get("theme_tokens", {}),
+            # Theme tokens are deliberately absent: theme.css carries them once
+            # and every layout.css repeats them in its own :root. Copying them
+            # per page spent a quarter of the budget on a third duplicate.
             "selection_hints": semantic.get("selection_hints", []),
             "avoid_when": semantic.get("avoid_when", []),
             "reference_files": image_paths,
@@ -667,6 +698,7 @@ class TemplateContextProvider:
                 "page_number",
                 "layout_css",
             ),
+            drop_order=REFERENCE_DROP_ORDER,
         )
 
     def materialize(

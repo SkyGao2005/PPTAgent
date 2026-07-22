@@ -39,6 +39,10 @@ class StrictModel(BaseModel):
 
 Identifier = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")]
 HexColor = Annotated[str, Field(pattern=r"^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$")]
+# A paint that CSS can apply directly. A solid colour is the common case, but
+# PowerPoint also fills shapes and page backgrounds with gradients, so the
+# recorded fact is the CSS value rather than a colour.
+CssPaint = Annotated[str, Field(min_length=4, max_length=2048)]
 
 
 class TemplateStatus(str, Enum):
@@ -61,6 +65,21 @@ class ShapeKind(str, Enum):
     TABLE = "table"
     TEXT = "text"
     UNKNOWN = "unknown"
+
+
+# Shapes that carry content by their medium alone. A table or a chart holds no
+# text frame and no image, so emptiness cannot be used to judge them.
+_CONTENT_KINDS = frozenset(
+    {
+        ShapeKind.CHART,
+        ShapeKind.DIAGRAM,
+        ShapeKind.MEDIA,
+        ShapeKind.OLE_OBJECT,
+        ShapeKind.PICTURE,
+        ShapeKind.PLACEHOLDER,
+        ShapeKind.TABLE,
+    }
+)
 
 
 class ShapeScope(str, Enum):
@@ -226,6 +245,36 @@ class PictureCrop(StrictModel):
     bottom: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
 
 
+class ShapeOutline(StrictModel):
+    """A shape's silhouette, normalized against its own bounding box.
+
+    Most template decoration is not rectangular. Recording the silhouette lets
+    the scaffold clip a plain box into the real shape, so a triangular colour
+    band stays triangular instead of degrading to a rectangle. Exactly one
+    field is set; each maps to a single CSS property.
+    """
+
+    # An ellipse inscribed in the box, which is not the same as a pill: its
+    # corners are not circular, so it cannot be expressed as a corner radius.
+    ellipse: bool = False
+    # Circular corners, as a fraction of the box's shorter side.
+    corner_radius: Annotated[float | None, Field(gt=0.0, le=0.5)] = None
+    polygon: list[tuple[float, float]] | None = None
+    # Contours cut out of the polygon, largest first. A capsule with a disc
+    # punched out of it is one shape, not two.
+    holes: list[list[tuple[float, float]]] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def polygon_is_a_closed_shape(self) -> "ShapeOutline":
+        if self.polygon is not None and len(self.polygon) < 3:
+            raise ValueError("a polygon outline needs at least three points")
+        if self.holes and self.polygon is None:
+            raise ValueError("holes need an outline to be cut from")
+        if any(len(hole) < 3 for hole in self.holes):
+            raise ValueError("a hole needs at least three points")
+        return self
+
+
 class ShapeNode(StrictModel):
     shape_id: Identifier
     source_id: int | None = None
@@ -242,8 +291,28 @@ class ShapeNode(StrictModel):
     asset_ids: list[Identifier] = Field(default_factory=list)
     child_shape_ids: list[Identifier] = Field(default_factory=list)
     crop: PictureCrop | None = None
-    fill_color: HexColor | None = None
+    fill: CssPaint | None = None
     line_color: HexColor | None = None
+    line_width_pt: Annotated[float | None, Field(gt=0)] = None
+    outline: ShapeOutline | None = None
+
+    @property
+    def is_chrome(self) -> bool:
+        """Whether this shape is template decoration, not a content slot.
+
+        Layout and master shapes are chrome by scope. A slide shape is chrome
+        when the manuscript has nowhere to go inside it: no text, no imagery,
+        and no medium of its own. Annotating those produces a region that
+        looks like a content slot but carries none of the paint that made the
+        shape visible, so the decoration disappears and generation fills the
+        empty box with something of its own invention.
+        """
+
+        if self.scope is not ShapeScope.SLIDE:
+            return True
+        if self.placeholder_type is not None or self.kind in _CONTENT_KINDS:
+            return False
+        return not (self.text and self.text.text.strip()) and not self.asset_ids
 
 
 class SourceGraph(StrictModel):
@@ -256,7 +325,7 @@ class SourceGraph(StrictModel):
     shapes: list[ShapeNode]
     background_asset_ids: list[Identifier] = Field(default_factory=list)
     inherited_asset_ids: list[Identifier] = Field(default_factory=list)
-    background_fill: HexColor | None = None
+    background_fill: CssPaint | None = None
     notes: str | None = None
 
     @model_validator(mode="after")
@@ -295,6 +364,10 @@ class Asset(StrictModel):
     pixel_height: Annotated[int | None, Field(gt=0)] = None
     role: AssetRole
     reuse_policy: ReusePolicy
+    # Template photo slots are often cut to shape in the image itself rather
+    # than by the shape holding it. Recording the mask lets a replacement be
+    # clipped the same way instead of filling the whole rectangle.
+    alpha_outline: ShapeOutline | None = None
     occurrences: list[AssetOccurrence] = Field(default_factory=list)
     alt_text: str | None = None
     tags: list[str] = Field(default_factory=list)
@@ -404,6 +477,12 @@ class Semantic(StrictModel):
     reading_order: list[Identifier] = Field(default_factory=list)
     selection_hints: list[str] = Field(default_factory=list)
     avoid_when: list[str] = Field(default_factory=list)
+    # Images the annotator was shown on this page, and the subset it judged to
+    # be sample content. Kept apart so "nothing is replaceable" stays
+    # distinguishable from "nobody looked" -- the deterministic annotator
+    # leaves both empty and the extractor's own reasoning stands.
+    judged_asset_ids: list[Identifier] = Field(default_factory=list)
+    replaceable_asset_ids: list[Identifier] = Field(default_factory=list)
     annotator_id: str
     warnings: list[str] = Field(default_factory=list)
 

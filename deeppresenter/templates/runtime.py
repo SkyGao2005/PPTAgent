@@ -10,7 +10,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
 
 from deeppresenter.templates.context import (
@@ -18,6 +18,7 @@ from deeppresenter.templates.context import (
     DEFAULT_REFERENCE_CHARS,
     DEFAULT_SEARCH_RESULT_CHARS,
     MAX_REFERENCE_RESULTS,
+    REFERENCE_DROP_ORDER,
     SlideNeed,
     TemplateContextProvider,
     _bounded_object,
@@ -50,6 +51,9 @@ _REUSABLE_ASSET_ROLES = {
     "texture",
     "watermark",
 }
+# A task snapshot is a file on disk, not a model response, so it is only
+# bounded by _read_local_json's own size guard.
+_UNBOUNDED_CHARS = 500_000
 _BLOCKED_REUSE_POLICIES = {
     "forbidden",
     "never",
@@ -95,11 +99,18 @@ def _copy_artifact(source: Path, destination: Path) -> None:
     shutil.copy2(source, destination)
 
 
-def _safe_filename(identifier: str, source: Path) -> str:
-    suffix = source.suffix.lower()
-    if not suffix or len(suffix) > 10:
-        suffix = ".bin"
-    return f"{identifier}{suffix}"
+def _staged_filename(asset: Mapping[str, Any]) -> str:
+    """Name a staged asset exactly as the layout scaffold references it.
+
+    The scaffold writes ``url(../../assets/<name>)`` into its chrome rules at
+    compile time, so staging cannot rename the file it points at.
+    """
+
+    source = str(asset.get("browser_path") or asset["path"])
+    name = PurePosixPath(source).name
+    if not name or "/" in name or name.startswith("."):
+        raise TemplateContextConflictError(f"Unusable asset filename: {source!r}")
+    return name
 
 
 def _asset_role(asset: Mapping[str, Any]) -> str:
@@ -217,11 +228,15 @@ def _materialize_reference(
     slide_id: str,
     destination: Path,
 ) -> tuple[JsonObject, set[str]]:
+    # The snapshot stores the reference whole; TaskTemplateContext.get_reference
+    # applies the model-facing bound when it is served. Bounding here instead
+    # let a clipped payload decide which files were copied at all, so a page
+    # whose reference_files got trimmed away silently lost its render.
     context = provider.get_reference(
         revision.template_id,
         slide_id,
         revision.revision_id,
-        max_chars=provider.reference_chars,
+        max_chars=_UNBOUNDED_CHARS,
     )
     slide_dir = destination / "refs" / slide_id
     context_path = slide_dir / "context.compact.json"
@@ -275,8 +290,7 @@ def _materialize_assets(
             continue
         browser_path = asset.get("browser_path") or asset["path"]
         source = revision.resolve_path(str(browser_path))
-        filename = _safe_filename(str(asset["asset_id"]), source)
-        target = destination / "assets" / filename
+        target = destination / "assets" / _staged_filename(asset)
         _copy_artifact(source, target)
         entry = {
             key: asset[key]
@@ -825,7 +839,14 @@ class TaskTemplateContext:
         return _bounded_object(
             reference,
             max_chars=max_chars or DEFAULT_REFERENCE_CHARS,
-            identity_keys=("template_id", "revision_id", "slide_id", "page_number"),
+            identity_keys=(
+                "template_id",
+                "revision_id",
+                "slide_id",
+                "page_number",
+                "layout_css",
+            ),
+            drop_order=REFERENCE_DROP_ORDER,
         )
 
     def reference_image_path(self, slide_id: str) -> Path | None:

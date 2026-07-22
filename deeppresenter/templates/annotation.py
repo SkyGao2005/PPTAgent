@@ -129,6 +129,7 @@ class SlideAnnotationResponse(StrictModel):
     regions: list[AnnotationRegion] = Field(min_length=1)
     selection_hints: list[str] = Field(default_factory=list)
     avoid_when: list[str] = Field(default_factory=list)
+    replaceable_images: list[ShapeLabel] = Field(default_factory=list)
 
 
 def union_bbox(shapes: Sequence[ShapeNode]) -> NormalizedBox:
@@ -150,6 +151,72 @@ def union_bbox(shapes: Sequence[ShapeNode]) -> NormalizedBox:
         width=round(x2 - x1, 6),
         height=round(y2 - y1, 6),
     )
+
+
+# How much of an obstacle must lie inside the gap for the gap to be its own.
+# A card outline or a backdrop crosses the gap too, but only a small part of
+# it is in there; an arrow drawn between two paragraphs is entirely in there.
+_OBSTACLE_CONTAINMENT = 0.6
+
+
+def _blocks_gap(
+    shape: ShapeNode,
+    left: float,
+    right: float,
+    top: float,
+    bottom: float,
+) -> bool:
+    """Whether ``shape`` sits inside the gap rather than merely crossing it."""
+
+    box = shape.normalized_bbox
+    if box.x >= right or box.x + box.width <= left:
+        return False
+    overlap = min(box.y + box.height, bottom) - max(box.y, top)
+    if overlap <= 0:
+        return False
+    return box.height <= 0 or overlap / box.height >= _OBSTACLE_CONTAINMENT
+
+
+def split_disjoint_bands(
+    shapes: Sequence[ShapeNode],
+    obstacles: Sequence[ShapeNode] = (),
+) -> list[list[ShapeNode]]:
+    """Split a grouping whose parts are separated by something drawn between.
+
+    A model reads a region as a box it fills from the top. When the annotator
+    groups a caption with the paragraph below the arrow that follows it, the
+    union box also covers that arrow -- so the page stacks both texts at the
+    top and drops the rest onto the artwork. Those are two slots, however much
+    they mean one thing.
+
+    The split follows the obstacle itself rather than the size of the gap.
+    Comparing a gap against the blocks around it was guesswork, and on a real
+    template it missed by three ten-thousandths.
+    """
+
+    ordered = sorted(shapes, key=lambda shape: shape.normalized_bbox.y)
+    members = {shape.shape_id for shape in ordered}
+    outside = [shape for shape in obstacles if shape.shape_id not in members]
+    bands: list[list[ShapeNode]] = [[ordered[0]]]
+    for shape in ordered[1:]:
+        box = shape.normalized_bbox
+        current = bands[-1]
+        bottom = max(
+            item.normalized_bbox.y + item.normalized_bbox.height for item in current
+        )
+        left = min(item.normalized_bbox.x for item in current + [shape])
+        right = max(
+            item.normalized_bbox.x + item.normalized_bbox.width
+            for item in current + [shape]
+        )
+        blocked = box.y > bottom and any(
+            _blocks_gap(other, left, right, bottom, box.y) for other in outside
+        )
+        if blocked:
+            bands.append([shape])
+        else:
+            current.append(shape)
+    return bands
 
 
 def derive_region(
@@ -279,6 +346,17 @@ Field guide:
 - summary: one sentence describing the page's design intent.
 - selection_hints: short sentences telling a generator when to pick this
   page. avoid_when: short sentences telling it when not to.
+- replaceable_images: labels of picture shapes whose image is sample content
+  a new deck is meant to swap for its own -- a stock photograph standing in
+  for the reader's subject.
+
+Judging replaceable_images, be deliberately conservative. Leaving a label out
+only means the template keeps its own picture, which is always safe; putting
+one in wrongly destroys artwork the template cannot get back. Never list a
+logo, an emblem, an icon, a texture, a background, a watermark, or any image
+cut to a shape that fits the layout around it. A picture that carries part of
+the page's design -- one the composition would look broken without -- is not
+replaceable. If you are unsure for any reason, leave the label out.
 
 Return only JSON for the provided response schema."""
 
@@ -350,7 +428,7 @@ class VLMAnnotator:
         response: SlideAnnotationResponse,
     ) -> Semantic:
         regions: list[Region] = []
-        for index, item in enumerate(response.regions):
+        for item in response.regions:
             shapes: list[ShapeNode] = []
             for label in item.shape_labels:
                 shape = labels.get(label)
@@ -361,16 +439,28 @@ class VLMAnnotator:
                     )
                 if shape not in shapes:
                     shapes.append(shape)
-            regions.append(
-                derive_region(
-                    f"r{index + 1:03d}",
-                    role=item.role,
-                    kind=item.kind,
-                    shapes=shapes,
-                    confidence=item.confidence,
-                    description=item.description,
+            for band in split_disjoint_bands(shapes, graph.shapes):
+                regions.append(
+                    derive_region(
+                        f"r{len(regions) + 1:03d}",
+                        role=item.role,
+                        kind=item.kind,
+                        shapes=band,
+                        confidence=item.confidence,
+                        description=item.description,
+                    )
                 )
-            )
+        judged = {
+            asset_id
+            for shape in labels.values()
+            for asset_id in shape.asset_ids
+        }
+        replaceable = {
+            asset_id
+            for label in response.replaceable_images
+            if label in labels
+            for asset_id in labels[label].asset_ids
+        }
         page_semantics = PageSemantics(
             stage=response.stage,
             layout_pattern=response.layout_pattern,
@@ -389,6 +479,8 @@ class VLMAnnotator:
             reading_order=[region.region_id for region in regions],
             selection_hints=response.selection_hints,
             avoid_when=response.avoid_when,
+            judged_asset_ids=sorted(judged),
+            replaceable_asset_ids=sorted(replaceable & judged),
             annotator_id=self.annotator_id,
         )
 
