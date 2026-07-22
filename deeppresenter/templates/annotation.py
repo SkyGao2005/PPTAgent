@@ -41,6 +41,7 @@ from .models import (
     Semantic,
     ShapeKind,
     ShapeNode,
+    ShapeScope,
     SourceGraph,
     StrictModel,
 )
@@ -482,7 +483,11 @@ class DeterministicAnnotator:
         candidates = [
             shape
             for shape in graph.shapes
-            if shape.visible and shape.shape_id not in child_ids
+            # Layout/master chrome is reproduced verbatim by the scaffold and
+            # must not become a content region.
+            if shape.scope is ShapeScope.SLIDE
+            and shape.visible
+            and shape.shape_id not in child_ids
         ]
         title_shape = self._title_shape(candidates)
         ordered = sorted(

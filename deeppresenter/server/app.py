@@ -84,6 +84,19 @@ def _build_template_induction_service(
     )
 
 
+def _design_context_budget(config_path: str | None):
+    """Read the design agent's context budget, falling back to the defaults."""
+
+    from deeppresenter.utils.config import ContextBudgetConfig, DeepPresenterConfig
+
+    try:
+        config = DeepPresenterConfig.load_from_file(config_path)
+    except (OSError, ValueError):
+        # Template listing must work before a model is configured.
+        return ContextBudgetConfig()
+    return config.design_agent
+
+
 def create_app(
     workspace_base: Path | None = None,
     *,
@@ -121,7 +134,12 @@ def create_app(
     template_store = TemplateStore(
         [app.state.template_registry.templates_dir, bundled_templates_root()]
     )
-    template_context_provider = TemplateContextProvider(template_store)
+    # Bound template projections by the model that will actually read them, so
+    # config.yaml budgets take effect instead of only the shared defaults.
+    template_context_provider = TemplateContextProvider(
+        template_store,
+        _design_context_budget(resolved_config_path),
+    )
     app.state.template_store = template_store
     app.state.template_context_provider = template_context_provider
 

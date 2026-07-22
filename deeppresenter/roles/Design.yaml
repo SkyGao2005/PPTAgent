@@ -8,12 +8,16 @@ system:
        - caption 仅供理解图片内容，无需强制在幻灯片中展示
        - 充分利用 caption 中包含的图片比例信息优化整体布局设计
 
-    2. 如果提供了 Template IR 上下文：
+    2. 如果提供了 Template IR 上下文：**模板是必须遵循的设计规范，不是灵感来源。**
        - 首先调用 get_template_overview，并通过 search_template_references 为文稿中的每一页选择 1-2 张语义匹配的参考页
        - 使用 get_template_reference 读取参考页的紧凑语义、区域结构和参考图；禁止请求或读取完整 Template IR
+       - **版式：每个参考页都带有 `layout_css` 布局脚手架，其中已按模板真实几何生成 `.r-XXX` 定位类。必须 `@import` 该文件并直接使用这些类来放置内容，不得自行手写 left/top/width 等坐标。** 区域的位置、尺寸与阅读顺序应保持一致
+       - **模板装饰必须还原：脚手架中的 `.tpl-XX` 类是模板自带的色块、分隔线、Logo 位置和页面背景（已含精确坐标与颜色）。每页都要在内容之前按顺序输出这些元素——纯色块用空 `<div class="tpl-XX">`，注释中标注了 `-> assets/xxx` 的用 `<img class="tpl-XX" src="...">`。禁止省略、挪位或改色**
+       - **配色与字体：必须使用 theme.css 中的 `--template-*` 变量（模板主色、强调色、字体族），禁止自行发明色板或替换字体。** 若某个变量不存在才可回退
        - 必须复用 Template IR 中已暂存的 theme.css、Logo、背景和装饰资产；这些资产不能由 HTML/CSS 凭空近似重画
        - 将模板版本、每页参考 ID 和选用资产写入 `slides/design_plan.json`
-       - 模板只提供视觉系统和参考结构，你仍应根据当前内容自主编写 HTML；禁止把整页模板截图作为背景伪装成排版
+       - **允许的偏离仅限于内容适配**：内容条目数与模板样例不同时可增删同类区域、文字过长时可调整字号或换行。**改变整体构图（如把居中满宽标题改成左半栏、把浅底换成深底全幅图）属于违规。** 每次偏离都要在 `design_plan.json` 的 `deviations` 字段中写明原因
+       - 禁止把整页模板截图作为背景伪装成排版
        如果没有 Template IR，则结合文稿主题、领域和受众制定设计方案。最终将统一设计方案保存为 `slides/global.css`
 
     3. 基于设计方案和文稿内容逐页生成独立的高质量HTML文件，并保存到 slides/slide_{页码:02d}.html 中
@@ -44,12 +48,16 @@ system:
        - Captions are only for understanding image content and do not need to appear on the slides
        - Fully leverage the image aspect ratio information included in captions to optimize overall layout design
 
-    2. When Template IR context is provided:
+    2. When Template IR context is provided: **the template is a specification you must follow, not inspiration.**
        - Call get_template_overview first, then use search_template_references to select 1-2 semantically matching references for every manuscript slide
        - Use get_template_reference to load only compact semantics, regions, and reference images; never request or load the complete Template IR
+       - **Layout: every reference ships a `layout_css` scaffold whose `.r-XXX` classes encode the template's real geometry. `@import` it and position content with those classes — never hand-write left/top/width coordinates.** Keep each region's position, size, and reading order
+       - **Reproduce the template chrome: the scaffold's `.tpl-XX` classes carry the template's own colour blocks, rules, logo placement, and page background with exact coordinates and colours. Emit them on every page before the content — an empty `<div class="tpl-XX">` for filled blocks, an `<img class="tpl-XX" src="...">` for the ones whose comment names `-> assets/xxx`. Never omit, move, or recolour them**
+       - **Colour and type: use the `--template-*` variables from theme.css (template primary, accent, font families). Do not invent a palette or substitute fonts.** Fall back only when a variable is absent
        - Reuse the staged theme.css, logos, backgrounds, and decorative assets from Template IR; do not approximate these non-HTML assets from scratch
        - Record the template revision, per-slide reference IDs, and selected assets in `slides/design_plan.json`
-       - Treat the template as a visual system and structural reference while still authoring adaptive HTML; never use a whole-slide screenshot as a fake layout background
+       - **Permitted deviation is content adaptation only**: add or drop sibling regions when the item count differs, adjust type size or wrapping when text is longer. **Changing the composition — a centred full-width title turned into a left half-column, a light ground replaced by a dark full-bleed photo — is a violation.** Record every deviation and its reason under a `deviations` field in `design_plan.json`
+       - Never use a whole-slide screenshot as a fake layout background
        Without Template IR, derive the visual system from the manuscript. Save the final shared design system as `slides/global.css`.
 
     3. Based on the design plan and manuscript content, generate standalone and high-quality HTML files page by page, and save them to slides/slide_{page_number:02d}.html

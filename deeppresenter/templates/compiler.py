@@ -50,6 +50,7 @@ from .models import (
     dump_model,
     utc_now,
 )
+from .scaffold import build_layout_css
 from .rendering import (
     LibreOfficeRenderer,
     RenderedSlide,
@@ -386,8 +387,18 @@ class TemplateCompiler:
         family_ids: dict[str, list[str]],
     ) -> list[SlideIndexEntry]:
         asset_by_id = {value.asset.asset_id: value.asset for value in extraction.assets}
+        graph_by_id = {graph.slide_id: graph for graph in extraction.source_graphs}
         entries: list[SlideIndexEntry] = []
         for semantic in semantics:
+            layout_css_path = f"slides/{semantic.slide_id}/layout.css"
+            (staging_dir / layout_css_path).write_text(
+                build_layout_css(
+                    semantic,
+                    graph_by_id[semantic.slide_id],
+                    extraction.theme,
+                ),
+                encoding="utf-8",
+            )
             reusable = sorted(
                 {
                     asset_id
@@ -423,6 +434,7 @@ class TemplateCompiler:
                 family_ids=family_ids[semantic.slide_id],
                 reference_image_path=artifacts[semantic.slide_id]["reference"],
                 overlay_image_path=artifacts[semantic.slide_id]["overlay"],
+                layout_css_path=layout_css_path,
                 reusable_asset_ids=reusable,
                 theme_tokens=extraction.theme.css_variables,
             )
@@ -437,6 +449,7 @@ class TemplateCompiler:
                     compact_context_path=compact_path,
                     reference_image_path=artifacts[semantic.slide_id]["reference"],
                     overlay_image_path=artifacts[semantic.slide_id]["overlay"],
+                    layout_css_path=layout_css_path,
                     family_ids=family_ids[semantic.slide_id],
                     stage=semantic.page_semantics.stage,
                     layout_pattern=semantic.page_semantics.layout_pattern,

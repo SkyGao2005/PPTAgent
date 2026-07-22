@@ -14,7 +14,7 @@ from typing import Protocol, runtime_checkable
 
 from PIL import Image, ImageDraw, ImageFont
 
-from .models import ShapeNode, SourceGraph
+from .models import ShapeNode, ShapeScope, SourceGraph
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,12 +206,16 @@ def overlay_labels(source_graph: SourceGraph) -> dict[str, ShapeNode]:
 
     The same mapping is shown to the annotating model, so the overlay drawing
     and the annotation prompt must both derive labels from this function.
+    Layout and master chrome is deliberately excluded: it is template
+    decoration reproduced verbatim by the scaffold, not a content slot the
+    annotator should turn into a region.
     """
 
     labels: dict[str, ShapeNode] = {}
     for shape in source_graph.shapes:
         if (
-            not shape.visible
+            shape.scope is not ShapeScope.SLIDE
+            or not shape.visible
             or shape.normalized_bbox.width <= 0
             or shape.normalized_bbox.height <= 0
         ):

@@ -13,13 +13,21 @@ from deeppresenter.templates.store import (
     JsonObject,
     TemplateStore,
 )
+from deeppresenter.utils.config import ContextBudgetConfig, chars_for_tokens
 
 
-# Keep limits local to the provider so model-facing responses cannot grow with
-# the size of a template revision.
-DEFAULT_OVERVIEW_CHARS = 1_800
-DEFAULT_SEARCH_RESULT_CHARS = 1_200
-DEFAULT_REFERENCE_CHARS = 6_000
+# Model-facing responses must not grow with the size of a template revision.
+# The token budgets in ContextBudgetConfig are authoritative; the character
+# bounds used while serializing are derived from them so the two can never
+# drift apart.
+_DEFAULT_BUDGET = ContextBudgetConfig()
+DEFAULT_OVERVIEW_CHARS = chars_for_tokens(_DEFAULT_BUDGET.template_overview_max_tokens)
+DEFAULT_SEARCH_RESULT_CHARS = chars_for_tokens(
+    _DEFAULT_BUDGET.template_search_result_max_tokens
+)
+DEFAULT_REFERENCE_CHARS = chars_for_tokens(
+    _DEFAULT_BUDGET.template_reference_max_tokens
+)
 MAX_REFERENCE_RESULTS = 2
 
 _WORD_RE = re.compile(r"[\w\u4e00-\u9fff]+", re.UNICODE)
@@ -345,18 +353,35 @@ def _score_reference(
 class TemplateContextProvider:
     """Retrieve and materialize small, revision-pinned model contexts."""
 
-    def __init__(self, store: TemplateStore):
+    def __init__(
+        self,
+        store: TemplateStore,
+        budget: ContextBudgetConfig | None = None,
+    ):
+        """``budget`` lets a caller honour the configured model's limits.
+
+        Without one the shared defaults apply, so every entry point stays
+        bounded by the same numbers.
+        """
+
         self.store = store
+        budget = budget or _DEFAULT_BUDGET
+        self.overview_chars = chars_for_tokens(budget.template_overview_max_tokens)
+        self.search_result_chars = chars_for_tokens(
+            budget.template_search_result_max_tokens
+        )
+        self.reference_chars = chars_for_tokens(budget.template_reference_max_tokens)
 
     def get_overview(
         self,
         template_id: str,
         revision_id: str | None = None,
         *,
-        max_chars: int = DEFAULT_OVERVIEW_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return a compact template overview bounded by serialized chars."""
 
+        max_chars = max_chars or self.overview_chars
         revision = self.store.resolve(template_id, revision_id)
         theme = revision.load_theme()
         families = revision.load_families()
@@ -418,10 +443,11 @@ class TemplateContextProvider:
         template_id: str,
         revision_id: str | None = None,
         *,
-        max_chars: int = DEFAULT_OVERVIEW_CHARS,
+        max_chars: int | None = None,
     ) -> str:
         """Render the bounded overview as model-readable Markdown."""
 
+        max_chars = max_chars or self.overview_chars
         overview = self.get_overview(
             template_id,
             revision_id,
@@ -465,12 +491,13 @@ class TemplateContextProvider:
         revision_id: str | None = None,
         *,
         limit: int = MAX_REFERENCE_RESULTS,
-        max_chars_per_result: int = DEFAULT_SEARCH_RESULT_CHARS,
+        max_chars_per_result: int | None = None,
     ) -> list[JsonObject]:
         """Score and return at most two template slides for one need."""
 
         if not 1 <= limit <= MAX_REFERENCE_RESULTS:
             raise ValueError(f"limit must be between 1 and {MAX_REFERENCE_RESULTS}")
+        max_chars_per_result = max_chars_per_result or self.search_result_chars
         normalized_need = SlideNeed.from_value(need)
         revision = self.store.resolve(template_id, revision_id)
         excluded = _string_set(normalized_need.exclude_slide_ids)
@@ -504,10 +531,11 @@ class TemplateContextProvider:
         slide_id: str,
         revision_id: str | None = None,
         *,
-        max_chars: int = DEFAULT_REFERENCE_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return one compact page context without embedding image bytes."""
 
+        max_chars = max_chars or self.reference_chars
         revision = self.store.resolve(template_id, revision_id)
         record = revision.slide_record(slide_id)
         compact = revision.load_slide_compact(slide_id)
@@ -545,6 +573,12 @@ class TemplateContextProvider:
                 revision.resolve_path(relative)
                 image_paths[kind] = relative
 
+        layout_css = compact.get("layout_css_path") or record.get("layout_css_path")
+        if isinstance(layout_css, str) and (revision.root / layout_css).exists():
+            revision.resolve_path(layout_css)
+        else:
+            layout_css = None
+
         payload: JsonObject = {
             "template_id": revision.template_id,
             "revision_id": revision.revision_id,
@@ -565,11 +599,20 @@ class TemplateContextProvider:
             "selection_hints": semantic.get("selection_hints", []),
             "avoid_when": semantic.get("avoid_when", []),
             "reference_files": image_paths,
+            "layout_css": layout_css,
         }
         return _bounded_object(
             payload,
             max_chars=max_chars,
-            identity_keys=("template_id", "revision_id", "slide_id", "page_number"),
+            # The scaffold path must survive clipping: without it the model
+            # falls back to hand-written coordinates.
+            identity_keys=(
+                "template_id",
+                "revision_id",
+                "slide_id",
+                "page_number",
+                "layout_css",
+            ),
         )
 
     def materialize(

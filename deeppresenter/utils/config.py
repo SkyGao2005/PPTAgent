@@ -11,7 +11,7 @@ import yaml
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 from openai.types.images_response import ImagesResponse
-from pydantic import BaseModel, Field, PrivateAttr, ValidationError
+from pydantic import BaseModel, Field, PrivateAttr, ValidationError, model_validator
 
 from deeppresenter.utils.constants import (
     CONTEXT_LENGTH_LIMIT,
@@ -32,6 +32,24 @@ def _estimate_text_tokens(text: str) -> int:
     ascii_chars = sum(ord(char) < 128 for char in text)
     non_ascii_chars = len(text) - ascii_chars
     return max(1, math.ceil(ascii_chars / 4 + non_ascii_chars * 1.25))
+
+
+# Worst case for :func:`_estimate_text_tokens` is all-CJK text at 1.25 tokens
+# per character. Sizing character bounds against that keeps a projection
+# inside its token budget for any language.
+_CHARS_PER_TOKEN = 1 / 1.25
+
+
+def chars_for_tokens(tokens: int) -> int:
+    """Convert a token budget into the character bound a projection may use.
+
+    Template projections are bounded while serializing JSON, which is measured
+    in characters. Deriving that bound here keeps one number -- the token
+    budget -- authoritative instead of pairing it with a second hardcoded
+    character limit that silently disagrees.
+    """
+
+    return max(256, int(tokens * _CHARS_PER_TOKEN))
 
 
 def _as_mapping(value: Any) -> dict[str, Any]:
@@ -146,8 +164,25 @@ class ContextBudgetConfig(BaseModel):
         gt=0,
         description="Maximum pinned template context in one request",
     )
-    template_overview_max_tokens: int = Field(default=1_800, gt=0)
-    template_reference_max_tokens: int = Field(default=1_200, gt=0)
+    # Template projections are produced as serialized JSON, so these token
+    # budgets are converted to character bounds with ``chars_for_tokens``.
+    # Keep them in tokens: they are compared against the same estimator that
+    # guards every request.
+    template_overview_max_tokens: int = Field(
+        default=3_000,
+        gt=0,
+        description="Budget for the pinned template overview projection",
+    )
+    template_reference_max_tokens: int = Field(
+        default=3_000,
+        gt=0,
+        description="Budget for one retrieved reference page projection",
+    )
+    template_search_result_max_tokens: int = Field(
+        default=1_500,
+        gt=0,
+        description="Budget for a single search_template_references match",
+    )
     max_template_reference_images: int = Field(default=2, ge=0)
     image_token_estimate: int = Field(
         default=1_200,
@@ -159,6 +194,39 @@ class ContextBudgetConfig(BaseModel):
         gt=0,
         description="Maximum history payload sent to a compaction request",
     )
+
+    @model_validator(mode="after")
+    def template_budgets_fit_the_aggregate(self) -> "ContextBudgetConfig":
+        """Shrink template sub-budgets so their worst case fits the aggregate.
+
+        The pinned overview and every live reference image share
+        ``template_context_max_tokens``. Treating that total as authoritative
+        and scaling the parts to fit makes an inconsistent configuration
+        impossible, instead of letting one surface as a failed generation.
+        """
+
+        images = self.max_template_reference_images * self.image_token_estimate
+        text = self.template_overview_max_tokens + (
+            self.max_template_reference_images * self.template_reference_max_tokens
+        )
+        if images + text <= self.template_context_max_tokens:
+            return self
+
+        available = max(0, self.template_context_max_tokens - images)
+        scale = available / text if text else 0.0
+        self.template_overview_max_tokens = max(
+            256, int(self.template_overview_max_tokens * scale)
+        )
+        self.template_reference_max_tokens = max(
+            256, int(self.template_reference_max_tokens * scale)
+        )
+        debug(
+            "Template sub-budgets scaled to fit "
+            f"template_context_max_tokens={self.template_context_max_tokens}: "
+            f"overview={self.template_overview_max_tokens}, "
+            f"reference={self.template_reference_max_tokens}"
+        )
+        return self
 
     @property
     def effective_reserved_output_tokens(self) -> int:

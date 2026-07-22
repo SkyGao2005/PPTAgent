@@ -220,7 +220,7 @@ def _materialize_reference(
         revision.template_id,
         slide_id,
         revision.revision_id,
-        max_chars=DEFAULT_REFERENCE_CHARS,
+        max_chars=provider.reference_chars,
     )
     slide_dir = destination / "refs" / slide_id
     context_path = slide_dir / "context.compact.json"
@@ -239,6 +239,15 @@ def _materialize_reference(
             _copy_artifact(source, target)
             materialized_images[kind] = target.relative_to(destination).as_posix()
             break
+
+    # The layout scaffold is the mechanism that makes the template grid the
+    # default, so it travels with every reference the model can retrieve.
+    layout_css = context.get("layout_css")
+    if isinstance(layout_css, str):
+        source = revision.resolve_path(layout_css)
+        target = slide_dir / "layout.css"
+        _copy_artifact(source, target)
+        context["layout_css"] = target.relative_to(destination).as_posix()
 
     # Paths exposed to generation are task-local.  Never retain a revision-root
     # path in a model-facing context pack, even though the source file was used
@@ -428,13 +437,13 @@ def materialize_context_pack(
         overview_payload = provider.get_overview(
             revision.template_id,
             revision.revision_id,
-            max_chars=DEFAULT_OVERVIEW_CHARS,
+            max_chars=provider.overview_chars,
         )
         _write_json(temporary / "overview.json", overview_payload)
         overview = provider.render_overview_markdown(
             revision.template_id,
             revision.revision_id,
-            max_chars=DEFAULT_OVERVIEW_CHARS,
+            max_chars=provider.overview_chars,
         )
         (temporary / "overview.md").write_text(overview, encoding="utf-8")
 
@@ -700,13 +709,13 @@ class TaskTemplateContext:
     def get_overview(
         self,
         *,
-        max_chars: int = DEFAULT_OVERVIEW_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return a bounded copy of the pinned task-local overview."""
 
         return _bounded_object(
             self.overview,
-            max_chars=max_chars,
+            max_chars=max_chars or DEFAULT_OVERVIEW_CHARS,
             identity_keys=("template_id", "revision_id", "schema_version"),
         )
 
@@ -715,12 +724,13 @@ class TaskTemplateContext:
         need: SlideNeed | Mapping[str, Any],
         *,
         limit: int = MAX_REFERENCE_RESULTS,
-        max_chars_per_result: int = DEFAULT_SEARCH_RESULT_CHARS,
+        max_chars_per_result: int | None = None,
     ) -> list[JsonObject]:
         """Search only the compact references captured in this task snapshot."""
 
         if not 1 <= limit <= MAX_REFERENCE_RESULTS:
             raise ValueError(f"limit must be between 1 and {MAX_REFERENCE_RESULTS}")
+        max_chars_per_result = max_chars_per_result or DEFAULT_SEARCH_RESULT_CHARS
         normalized_need = SlideNeed.from_value(need)
         excluded = _string_set(normalized_need.exclude_slide_ids)
         matches = []
@@ -767,7 +777,7 @@ class TaskTemplateContext:
         self,
         slide_id: str,
         *,
-        max_chars: int = DEFAULT_REFERENCE_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return one bounded reference captured in this task snapshot."""
 
@@ -777,7 +787,7 @@ class TaskTemplateContext:
             raise KeyError(f"Unknown task-local template slide: {slide_id}") from exc
         return _bounded_object(
             reference,
-            max_chars=max_chars,
+            max_chars=max_chars or DEFAULT_REFERENCE_CHARS,
             identity_keys=("template_id", "revision_id", "slide_id", "page_number"),
         )
 
@@ -813,7 +823,7 @@ class TemplateRuntime:
         template_id: str,
         revision_id: str | None = None,
         *,
-        max_chars: int = DEFAULT_OVERVIEW_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return the bounded template overview."""
 
@@ -846,7 +856,7 @@ class TemplateRuntime:
         slide_id: str,
         revision_id: str | None = None,
         *,
-        max_chars: int = DEFAULT_REFERENCE_CHARS,
+        max_chars: int | None = None,
     ) -> JsonObject:
         """Return one bounded slide context."""
 

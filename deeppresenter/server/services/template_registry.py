@@ -6,7 +6,6 @@
 - 服务重启后从 manifest 文件恢复
 """
 
-import json
 import logging
 import threading
 from pathlib import Path
@@ -118,7 +117,10 @@ class TemplateRegistry:
             if not manifest_path.exists():
                 continue
             try:
-                manifest = TemplateManifest(**json.loads(manifest_path.read_text(encoding="utf-8")))
+                # Parse as JSON, not as a Python dict: TemplateManifest is a
+                # strict model, so ISO timestamps and enum values only coerce
+                # through JSON-mode validation.
+                manifest = TemplateManifest.load(manifest_path)
                 self.register(manifest)
                 count += 1
             except Exception as e:

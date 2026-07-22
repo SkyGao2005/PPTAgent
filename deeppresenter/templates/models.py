@@ -256,6 +256,7 @@ class SourceGraph(StrictModel):
     shapes: list[ShapeNode]
     background_asset_ids: list[Identifier] = Field(default_factory=list)
     inherited_asset_ids: list[Identifier] = Field(default_factory=list)
+    background_fill: HexColor | None = None
     notes: str | None = None
 
     @model_validator(mode="after")
@@ -494,6 +495,7 @@ class CompactSlideContext(StrictModel):
     family_ids: list[Identifier] = Field(default_factory=list)
     reference_image_path: str | None = None
     overlay_image_path: str | None = None
+    layout_css_path: str | None = None
     reusable_asset_ids: list[Identifier] = Field(default_factory=list)
     theme_tokens: dict[str, str] = Field(default_factory=dict)
 
@@ -506,6 +508,7 @@ class SlideIndexEntry(StrictModel):
     compact_context_path: str
     reference_image_path: str | None = None
     overlay_image_path: str | None = None
+    layout_css_path: str | None = None
     family_ids: list[Identifier] = Field(default_factory=list)
     stage: PageStage
     layout_pattern: LayoutPattern

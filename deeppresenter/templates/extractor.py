@@ -19,6 +19,13 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.presentation import Presentation as PresentationType
 
 from .ids import asset_id, sha256_bytes
+from .styles import (
+    ResolvedTextStyle,
+    StyleResolver,
+    ThemePalette,
+    resolve_color,
+    theme_for_master,
+)
 from .models import (
     Asset,
     AssetOccurrence,
@@ -42,7 +49,9 @@ from .models import (
 )
 
 
-EXTRACTOR_VERSION = "pptx-ir-2"
+EXTRACTOR_VERSION = "pptx-ir-4"
+_DRAWING_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
+_PRESENTATION_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
 _EMU_PER_INCH = 914400
 _BACKGROUND_NAMES = re.compile(r"(^|[\s_-])(background|backdrop|bg)([\s_-]|$)", re.I)
 _LOGO_NAMES = re.compile(r"(^|[\s_-])(logo|brand|mark)([\s_-]|$)", re.I)
@@ -97,6 +106,13 @@ class PptxExtractor:
         source_graphs: list[SourceGraph] = []
         color_counts: Counter[str] = Counter()
         font_counts: Counter[str] = Counter()
+        # Fills and fonts resolve against the theme, so the palette is needed
+        # before any shape is read.
+        palette = (
+            theme_for_master(presentation.slide_masters[0])
+            if len(presentation.slide_masters)
+            else ThemePalette()
+        )
 
         for page_number, slide in enumerate(presentation.slides, start=1):
             slide_id = f"s{page_number:03d}"
@@ -108,24 +124,29 @@ class PptxExtractor:
                 asset_records,
                 color_counts,
                 font_counts,
+                palette,
             )
 
             background_asset_ids: list[str] = []
             inherited_asset_ids: list[str] = []
             for scope, owner in self._owners(slide):
                 if scope is not ShapeScope.SLIDE:
-                    inherited_asset_ids.extend(
-                        self._extract_inherited_shape_assets(
-                            owner,
-                            scope,
-                            slide_id,
-                            page_number,
-                            canvas,
-                            asset_records,
-                            color_counts,
-                            font_counts,
-                        )
+                    assets, chrome = self._extract_inherited_shapes(
+                        owner,
+                        scope,
+                        slide_id,
+                        page_number,
+                        canvas,
+                        asset_records,
+                        color_counts,
+                        font_counts,
+                        palette,
                     )
+                    inherited_asset_ids.extend(assets)
+                    # Template chrome (colour blocks, rules, logo placement)
+                    # lives on the layout and master; generation cannot honour
+                    # it unless the IR records its geometry.
+                    shapes = chrome + shapes
                 background_asset_ids.extend(
                     self._extract_background_assets(
                         owner,
@@ -152,11 +173,12 @@ class PptxExtractor:
                     shapes=shapes,
                     background_asset_ids=self._unique(background_asset_ids),
                     inherited_asset_ids=self._unique(inherited_asset_ids),
+                    background_fill=self._background_fill(slide, palette),
                 )
             )
 
         assets = self._finalize_assets(asset_records, len(source_graphs))
-        theme = self._theme(canvas, assets, color_counts, font_counts)
+        theme = self._theme(canvas, assets, color_counts, font_counts, palette)
         return ExtractionResult(
             canvas=canvas,
             source_graphs=source_graphs,
@@ -200,8 +222,10 @@ class PptxExtractor:
         records: dict[str, _AssetRecord],
         colors: Counter[str],
         fonts: Counter[str],
+        palette: ThemePalette | None = None,
     ) -> list[ShapeNode]:
         nodes: list[ShapeNode] = []
+        resolver = StyleResolver(slide)
         for z_index, shape in enumerate(slide.shapes):
             nodes.extend(
                 self._shape_nodes(
@@ -216,6 +240,8 @@ class PptxExtractor:
                     records=records,
                     colors=colors,
                     fonts=fonts,
+                    resolver=resolver,
+                    palette=palette,
                 )
             )
         return nodes
@@ -234,10 +260,12 @@ class PptxExtractor:
         records: dict[str, _AssetRecord],
         colors: Counter[str],
         fonts: Counter[str],
+        resolver: StyleResolver | None = None,
+        palette: ThemePalette | None = None,
     ) -> list[ShapeNode]:
         bbox = self._bbox(shape)
         normalized = self._normalize(bbox, canvas)
-        text = self._extract_text(shape, colors, fonts)
+        text = self._extract_text(shape, colors, fonts, resolver)
         shape_id = id_prefix
         asset_ids = self._extract_shape_assets(
             shape,
@@ -266,6 +294,8 @@ class PptxExtractor:
                     records=records,
                     colors=colors,
                     fonts=fonts,
+                    resolver=resolver,
+                    palette=palette,
                 )
                 child_ids.append(child_prefix)
                 children.extend(child_nodes)
@@ -278,8 +308,16 @@ class PptxExtractor:
                 right=max(0.0, min(float(shape.crop_right), 1.0)),
                 bottom=max(0.0, min(float(shape.crop_bottom), 1.0)),
             )
-        fill_color = self._shape_color(getattr(shape, "fill", None))
-        line_color = self._shape_line_color(shape)
+        fill_color = (
+            self._resolved_fill(shape, palette)
+            if palette is not None
+            else self._shape_color(getattr(shape, "fill", None))
+        )
+        line_color = (
+            self._resolved_line(shape, palette)
+            if palette is not None
+            else self._shape_line_color(shape)
+        )
         if fill_color:
             colors[fill_color] += 1
         if line_color:
@@ -306,7 +344,7 @@ class PptxExtractor:
         )
         return [node, *children]
 
-    def _extract_inherited_shape_assets(
+    def _extract_inherited_shapes(
         self,
         owner: Any,
         scope: ShapeScope,
@@ -316,25 +354,108 @@ class PptxExtractor:
         records: dict[str, _AssetRecord],
         colors: Counter[str],
         fonts: Counter[str],
-    ) -> list[str]:
+        palette: ThemePalette,
+    ) -> tuple[list[str], list[ShapeNode]]:
+        """Collect inherited assets and the decorative chrome behind a slide."""
+
         result: list[str] = []
+        chrome: list[ShapeNode] = []
         for index, shape in enumerate(owner.shapes):
             shape_id = f"{slide_id}-{scope.value}-sh{index + 1:04d}"
             normalized = self._normalize(self._bbox(shape), canvas)
             self._extract_text(shape, colors, fonts)
-            result.extend(
-                self._extract_shape_assets(
-                    shape,
-                    owner.part,
-                    shape_id,
-                    scope,
-                    slide_id,
-                    page_number,
-                    normalized,
-                    records,
-                )
+            asset_ids = self._extract_shape_assets(
+                shape,
+                owner.part,
+                shape_id,
+                scope,
+                slide_id,
+                page_number,
+                normalized,
+                records,
             )
-        return self._unique(result)
+            result.extend(asset_ids)
+            node = self._chrome_node(
+                shape, shape_id, scope, index, normalized, asset_ids, palette
+            )
+            if node is not None:
+                chrome.append(node)
+                if node.fill_color:
+                    colors[node.fill_color] += 1
+        return self._unique(result), chrome
+
+    def _chrome_node(
+        self,
+        shape: Any,
+        shape_id: str,
+        scope: ShapeScope,
+        z_index: int,
+        normalized: NormalizedBox,
+        asset_ids: list[str],
+        palette: ThemePalette,
+    ) -> ShapeNode | None:
+        """Build a node for a non-placeholder layout/master decoration.
+
+        Placeholders are content slots that the slide already contributes, so
+        only genuine decoration -- fills, rules, and staged imagery -- is kept.
+        """
+
+        if getattr(shape, "is_placeholder", False):
+            return None
+        fill_color = self._resolved_fill(shape, palette)
+        if fill_color is None and not asset_ids:
+            return None
+        if self._area(normalized) <= 0:
+            return None
+        return ShapeNode(
+            shape_id=shape_id,
+            source_id=self._int_or_none(getattr(shape, "shape_id", None)),
+            name=str(getattr(shape, "name", "")),
+            scope=scope,
+            kind=self._shape_kind(shape),
+            z_index=z_index,
+            bbox=self._bbox(shape),
+            normalized_bbox=normalized,
+            rotation=float(getattr(shape, "rotation", 0.0) or 0.0),
+            asset_ids=asset_ids,
+            fill_color=fill_color,
+            line_color=self._resolved_line(shape, palette),
+        )
+
+    @staticmethod
+    def _resolved_fill(shape: Any, palette: ThemePalette) -> str | None:
+        """Resolve a shape fill, including theme-scheme references."""
+
+        direct = PptxExtractor._shape_color(getattr(shape, "fill", None))
+        if direct is not None:
+            return direct
+        properties = shape.element.find(f".//{{{_DRAWING_NS}}}solidFill")
+        return resolve_color(properties, palette)
+
+    @staticmethod
+    def _resolved_line(shape: Any, palette: ThemePalette) -> str | None:
+        direct = PptxExtractor._shape_line_color(shape)
+        if direct is not None:
+            return direct
+        line = shape.element.find(f".//{{{_DRAWING_NS}}}ln")
+        if line is None:
+            return None
+        return resolve_color(line.find(f"{{{_DRAWING_NS}}}solidFill"), palette)
+
+    @staticmethod
+    def _background_fill(slide: Any, palette: ThemePalette) -> str | None:
+        """Resolve the effective page background from slide, layout, or master."""
+
+        for owner in (slide, slide.slide_layout, slide.slide_layout.slide_master):
+            background = owner.element.find(f".//{{{_PRESENTATION_NS}}}bg")
+            if background is None:
+                continue
+            color = resolve_color(
+                background.find(f".//{{{_DRAWING_NS}}}solidFill"), palette
+            )
+            if color is not None:
+                return color
+        return None
 
     def _extract_shape_assets(
         self,
@@ -559,24 +680,52 @@ class PptxExtractor:
         assets: list[ExtractedAsset],
         colors: Counter[str],
         fonts: Counter[str],
+        palette: ThemePalette | None = None,
     ) -> Theme:
+        # The presentation theme is the design system; usage counts only rank
+        # the extra colours a template applies on top of it.
+        palette = palette or ThemePalette()
         color_tokens = [
-            ThemeColor(
-                token=f"color_{index}",
-                value=value,
-                usage_count=count,
-            )
-            for index, (value, count) in enumerate(colors.most_common(12), start=1)
+            ThemeColor(token=token, value=value, roles=["theme"])
+            for token, value in palette.colors.items()
+            if token not in {"dk1", "dk2", "lt1", "lt2"}
         ]
+        known = {token.value for token in color_tokens}
+        color_tokens.extend(
+            ThemeColor(token=f"color_{index}", value=value, usage_count=count)
+            for index, (value, count) in enumerate(
+                ((value, count) for value, count in colors.most_common(12)
+                 if value not in known),
+                start=1,
+            )
+        )
         font_tokens = [
+            ThemeFont(
+                token=token,
+                family=family,
+                roles=["theme"],
+                fallback=["Arial", "sans-serif"],
+            )
+            for token, family in (
+                ("font_major", palette.major_latin),
+                ("font_minor", palette.minor_latin),
+            )
+            if family
+        ]
+        named = {token.family for token in font_tokens}
+        font_tokens.extend(
             ThemeFont(
                 token=f"font_{index}",
                 family=family,
                 usage_count=count,
                 fallback=["Arial", "sans-serif"],
             )
-            for index, (family, count) in enumerate(fonts.most_common(8), start=1)
-        ]
+            for index, (family, count) in enumerate(
+                ((family, count) for family, count in fonts.most_common(8)
+                 if family not in named),
+                start=1,
+            )
+        )
         css: dict[str, str] = {}
         for token in color_tokens:
             css[f"--template-{token.token.replace('_', '-')}"] = token.value
@@ -609,14 +758,23 @@ class PptxExtractor:
         shape: Any,
         colors: Counter[str],
         fonts: Counter[str],
+        resolver: StyleResolver | None = None,
     ) -> ShapeText | None:
         if not getattr(shape, "has_text_frame", False):
             return None
         paragraphs: list[TextParagraph] = []
         for paragraph in shape.text_frame.paragraphs:
+            level = int(paragraph.level)
+            # PowerPoint resolves unset run properties through the layout,
+            # master, and theme; record what a viewer actually sees.
+            inherited = (
+                resolver.inherited_style(shape, level + 1)
+                if resolver is not None
+                else None
+            )
             runs: list[TextRun] = []
             for run in paragraph.runs:
-                style = self._font_style(run.font)
+                style = self._merge_inherited(self._font_style(run.font), inherited)
                 if style.font_family:
                     fonts[style.font_family] += 1
                 if style.color:
@@ -625,16 +783,33 @@ class PptxExtractor:
             paragraphs.append(
                 TextParagraph(
                     text=paragraph.text,
-                    level=int(paragraph.level),
+                    level=level,
                     bullet=self._paragraph_has_bullet(paragraph),
-                    style=TextStyle(
-                        alignment=self._enum_name(paragraph.alignment),
+                    style=self._merge_inherited(
+                        TextStyle(alignment=self._enum_name(paragraph.alignment)),
+                        inherited,
                     ),
                     runs=runs,
                 )
             )
         text = str(shape.text or "")
         return ShapeText(text=text, paragraphs=paragraphs)
+
+    @staticmethod
+    def _merge_inherited(
+        style: TextStyle,
+        inherited: ResolvedTextStyle | None,
+    ) -> TextStyle:
+        """Fill unset run properties from the resolved inheritance chain."""
+
+        if inherited is None:
+            return style
+        updates = {
+            name: getattr(inherited, name)
+            for name in ("font_family", "size_pt", "bold", "italic", "underline", "color", "alignment")
+            if getattr(style, name) is None and getattr(inherited, name) is not None
+        }
+        return style.model_copy(update=updates) if updates else style
 
     @staticmethod
     def _font_style(font: Any) -> TextStyle:
