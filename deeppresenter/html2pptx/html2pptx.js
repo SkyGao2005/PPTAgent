@@ -227,16 +227,23 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       const el = document.createElement('div');
       el.id = id;
       el.style.position = 'fixed';
-      el.style.left = `${expandedLeft + shadowExtent.left}px`;
-      el.style.top = `${expandedTop + shadowExtent.top}px`;
-      el.style.width = `${widthPx}px`;
-      el.style.height = `${heightPx}px`;
+      const boxWidth = style.transform && style.layoutWidth ? style.layoutWidth : widthPx;
+      const boxHeight = style.transform && style.layoutHeight ? style.layoutHeight : heightPx;
+      // A rotated element keeps its layout size and turns about its centre, so
+      // the clone is centred inside the box that was measured for it.
+      el.style.left = `${expandedLeft + shadowExtent.left + (widthPx - boxWidth) / 2}px`;
+      el.style.top = `${expandedTop + shadowExtent.top + (heightPx - boxHeight) / 2}px`;
+      el.style.width = `${boxWidth}px`;
+      el.style.height = `${boxHeight}px`;
       if (style.backgroundColor) el.style.backgroundColor = style.backgroundColor;
       if (style.backgroundImage) el.style.backgroundImage = style.backgroundImage;
       el.style.backgroundRepeat = style.backgroundRepeat || 'no-repeat';
       el.style.backgroundSize = style.backgroundSize || 'auto';
       el.style.backgroundPosition = style.backgroundPosition || '0% 0%';
       if (style.borderRadius) el.style.borderRadius = style.borderRadius;
+      // A clip is the shape itself, not decoration: PowerPoint has no
+      // equivalent, so the element is rasterized with the clip applied.
+      if (style.clipPath && style.clipPath !== 'none') el.style.clipPath = style.clipPath;
       if (style.boxShadow && style.boxShadow !== 'none') el.style.boxShadow = style.boxShadow;
       if (style.transform && style.transform !== 'none') el.style.transform = style.transform;
       // Handle border styles (uniform or individual sides)
@@ -255,7 +262,9 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
     }, { id, widthPx, heightPx, expandedLeft, expandedTop, shadowExtent, style });
 
     const filePath = makePath();
-    if (hasSignificantShadow) {
+    // A rotated clone spills outside its own element box, so the page is
+    // clipped to the area the layout actually reserved for it.
+    if (hasSignificantShadow || (style.transform && style.transform !== 'none')) {
       await page.screenshot({
         path: filePath,
         omitBackground: true,
@@ -1864,6 +1873,7 @@ async function extractSlideData(page) {
 
         const bgImage = computed.backgroundImage;
         const hasBgImage = bgImage && bgImage !== 'none';
+        const hasClipPath = computed.clipPath && computed.clipPath !== 'none';
 
         const borderTop = computed.borderTopWidth;
         const borderRight = computed.borderRightWidth;
@@ -1936,7 +1946,7 @@ async function extractSlideData(page) {
           }
         }
 
-        if (hasBg || hasBorder || hasBgImage) {
+        if (hasBg || hasBorder || hasBgImage || hasClipPath) {
           const rect = el.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             const shadow = parseBoxShadow(computed.boxShadow);
@@ -1944,7 +1954,7 @@ async function extractSlideData(page) {
             const actualWidth = rect.width;
             const actualHeight = rect.height;
 
-            if (!hasBgImage && (hasBg || hasUniformBorder)) {
+            if (!hasBgImage && !hasClipPath && (hasBg || hasUniformBorder)) {
               elements.push({
                 type: 'shape',
                 text: '',  // Shape only - child text elements render on top
@@ -1982,7 +1992,7 @@ async function extractSlideData(page) {
               });
             }
 
-            if (hasBgImage) {
+            if (hasBgImage || hasClipPath) {
               elements.push({
                 type: 'bgImage',
                 position: {
@@ -1998,6 +2008,13 @@ async function extractSlideData(page) {
                   backgroundPosition: computed.backgroundPosition,
                   backgroundColor: computed.backgroundColor,
                   borderRadius: computed.borderRadius,
+                  clipPath: computed.clipPath,
+                  border: hasUniformBorder ? computed.border : undefined,
+                  // getBoundingClientRect reports the rotated bounding box, so
+                  // the untransformed size travels with the transform itself.
+                  transform: computed.transform !== 'none' ? computed.transform : undefined,
+                  layoutWidth: el.offsetWidth,
+                  layoutHeight: el.offsetHeight,
                   boxShadow: computed.boxShadow,
                   opacity: getEffectiveOpacity(el)
                 }
