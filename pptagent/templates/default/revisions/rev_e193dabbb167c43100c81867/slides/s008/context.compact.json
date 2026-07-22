@@ -1,0 +1,114 @@
+{
+  "family_ids": [
+    "family_797217b88b4f18296128"
+  ],
+  "layout_css_path": "slides/s008/layout.css",
+  "overlay_image_path": "slides/s008/overlay.webp",
+  "page_number": 8,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "large photo above title and description",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "image",
+      "text"
+    ],
+    "stage": "content",
+    "summary": "An image-led content page presents a large subject photograph above a centered heading and detailed explanatory paragraphs.",
+    "title": "The Mukteswara Temple – Early Orissan style"
+  },
+  "reference_image_path": "slides/s008/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_45ad1fd790838be8557d7530"
+      ],
+      "bbox": {
+        "height": 0.560764,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.045926
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 1.257404184291431
+      },
+      "kind": "image",
+      "region_id": "r001",
+      "required": false,
+      "role": "photo",
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.098283,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.617863
+      },
+      "capacity": {
+        "max_chars": 60,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 26,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.260938,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.716146
+      },
+      "capacity": {
+        "max_chars": 734,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 314,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r003",
+      "required": false,
+      "role": "body",
+      "style_ref": "text.body"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s008",
+  "theme_tokens": {
+    "--template-accent1": "#90C226",
+    "--template-accent2": "#54A021",
+    "--template-accent3": "#E6B91E",
+    "--template-accent4": "#E76618",
+    "--template-accent5": "#C42F1A",
+    "--template-accent6": "#918655",
+    "--template-bg1": "#000000",
+    "--template-bg2": "#2C3C43",
+    "--template-color-1": "#262626",
+    "--template-color-2": "#BCDA7D",
+    "--template-folHlink": "#B9D181",
+    "--template-font-1": "Arial Rounded MT Bold",
+    "--template-font-major": "Trebuchet MS",
+    "--template-font-minor": "Trebuchet MS",
+    "--template-hlink": "#99CA3C",
+    "--template-tx1": "#FFFFFF",
+    "--template-tx2": "#EBEBEB"
+  }
+}

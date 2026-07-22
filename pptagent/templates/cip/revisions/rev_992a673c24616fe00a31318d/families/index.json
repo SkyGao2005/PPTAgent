@@ -1,0 +1,213 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid when the closing slide needs contact details, next steps, or multiple calls to action.",
+        "Avoid for content-heavy conclusions or detailed summaries."
+      ],
+      "description": "A minimal closing page centers a large thank-you message within a strong horizontal color band.",
+      "digest": "closing thank-you statement on color band",
+      "family_id": "family_c31e9212edf0799ed162",
+      "layout_pattern": "hero",
+      "modalities": [
+        "group"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s009",
+      "selection_hints": [
+        "Use as a simple branded closing or thank-you slide.",
+        "Choose when the presentation should end with one prominent centered statement."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"group\"],\"regions\":[{\"h\":0.25,\"kind\":\"group\",\"role\":\"title\",\"w\":1.0,\"x\":0.0,\"y\":0.375}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s009"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid for content-heavy presentations or slides requiring supporting visuals.",
+        "Avoid when presenter details and a date are unavailable or unnecessary."
+      ],
+      "description": "A formal cover slide uses a full-width title band followed by centered presenter information and date.",
+      "digest": "cover with title band and presenter details",
+      "family_id": "family_d264abb9eb4a9822ee39",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use as an academic, research, or technical presentation cover.",
+        "Choose when a prominent title, presenter line, and date should be shown."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":1.0,\"x\":0.0,\"y\":0.25},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":1.0,\"x\":0.0,\"y\":0.5},{\"h\":0.125,\"kind\":\"text\",\"role\":\"footer\",\"w\":1.0,\"x\":0.0,\"y\":0.75}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the main content is qualitative rather than data-backed.",
+        "Avoid when the visual must remain editable as a native chart.",
+        "Avoid when more than one supporting visual or data view is required."
+      ],
+      "description": "A titled split layout pairs concise comparison notes on the left with a dominant evidence chart on the right.",
+      "digest": "model comparison notes with large chart",
+      "family_id": "family_0001c614342240e61a23",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "chart"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s007",
+      "selection_hints": [
+        "Use for a data-backed comparison supported by one dominant chart.",
+        "Use when a concise interpretation should sit beside the visual evidence.",
+        "Best for comparing several models, products, groups, or scenarios."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"chart\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.375,\"x\":0.0,\"y\":0.125},{\"h\":0.75,\"kind\":\"chart\",\"role\":\"chart\",\"w\":0.5,\"x\":0.375,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s007"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the visual cannot be represented clearly in one large image.",
+        "Avoid for text-only explanations or detailed quantitative comparisons."
+      ],
+      "description": "A broad title sits above a split layout pairing concise process bullets on the left with a dominant workflow diagram on the right.",
+      "digest": "workflow summary with large process diagram",
+      "family_id": "family_314d72138c43cdb88346",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for explaining a workflow with a short textual overview and a detailed process visual.",
+        "Choose when the diagram should carry most of the procedural detail."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.375,\"x\":0.0,\"y\":0.125},{\"h\":0.75,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic cannot be represented by one supporting visual.",
+        "Avoid when multiple detailed data views or long-form text are required."
+      ],
+      "description": "A top title introduces a balanced split layout with explanatory points on the left and a large supporting diagram on the right.",
+      "digest": "two-column explanation with supporting diagram",
+      "family_id": "family_8aaf9f4fd3632ead6014",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use for explaining a concept with concise points and one large supporting visual.",
+        "Use when text and an infographic should receive roughly equal emphasis."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.5,\"x\":0.0,\"y\":0.125},{\"h\":0.75,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s003"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the primary content is qualitative rather than data-backed.",
+        "Avoid when multiple charts or dashboard-style views are needed.",
+        "Avoid when the analysis requires extensive methodology or dense supporting text."
+      ],
+      "description": "A titled evidence slide centers a large correlation heatmap above a short set of explanatory bullets.",
+      "digest": "correlation heatmap with explanatory bullets",
+      "family_id": "family_5de389b72a4700d71b0d",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "chart"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s008",
+      "selection_hints": [
+        "Use for presenting a single prominent heatmap or analytical visualization.",
+        "Use when a chart needs a few concise interpretation bullets beneath it.",
+        "Use for evidence-driven findings with a clear page title."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"chart\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.5,\"kind\":\"chart\",\"role\":\"chart\",\"w\":0.75,\"x\":0.125,\"y\":0.125},{\"h\":0.25,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.125,\"y\":0.625}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s008"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "The agenda needs descriptions, timing, owners, or progress indicators.",
+        "The presentation requires a visual roadmap rather than a simple topic list."
+      ],
+      "description": "A restrained agenda slide places a compact heading above a large, left-aligned list of presentation sections.",
+      "digest": "simple agenda with large bullet list",
+      "family_id": "family_0909d16f1e196db5e2ee",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "agenda-title_body",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use for an early presentation agenda with a short list of major sections.",
+        "Choose when four to six concise topics should be highly legible."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.0,\"y\":0.25}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs visuals, charts, or data tables.",
+        "Avoid when presenting more than two distinct topic groups.",
+        "Avoid when a highly visual or image-led layout is preferred.",
+        "Avoid when the message depends on charts, images, or visual comparison.",
+        "Avoid when more than two main sections or extensive detail must fit."
+      ],
+      "description": "A conventional content slide places a prominent heading above a spacious hierarchical bullet list.",
+      "digest": "title with two-level bullet content",
+      "family_id": "family_b944674c4e179a723bb9",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s005",
+      "selection_hints": [
+        "Use for explaining a topic through a short hierarchical bullet list.",
+        "Choose when two related subtopics each need concise supporting details.",
+        "Suitable for straightforward academic or technical content.",
+        "Use for explaining a topic through a short hierarchical outline.",
+        "Choose when two main ideas each need one or two supporting points.",
+        "Works well for straightforward technical or academic content."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":1.0,\"x\":0.0,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s005",
+        "s006"
+      ],
+      "stage": "content"
+    }
+  ],
+  "schema_version": "2.0"
+}

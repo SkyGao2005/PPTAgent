@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the content needs multiple data views, a process flow, or several short points.",
+    "Avoid when the image is secondary or a wide landscape visual is required.",
+    "Avoid when the narrative must be brief and highly scannable."
+  ],
+  "page_number": 11,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "side photo with long explanatory text",
+    "layout_pattern": "split",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A dense split-layout content page pairs a tall documentary image with an extended explanatory text block on a dark decorative background.",
+    "title": null
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.088889
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 0,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.72,
+      "description": "Optional slide heading spanning the upper portion of the composition; the sample title placeholder is empty.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s011-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [
+        "asset_a65e55ada78161b104f47404"
+      ],
+      "bbox": {
+        "height": 0.870833,
+        "width": 0.37718,
+        "x": 0.02868,
+        "y": 0.040278
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.4331255246413492
+      },
+      "confidence": 0.99,
+      "description": "Large portrait-oriented contextual photograph occupying the left half.",
+      "kind": "image",
+      "region_id": "r002",
+      "role": "photo",
+      "source_shape_ids": [
+        "s011-sh0003"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.870833,
+        "width": 0.387413,
+        "x": 0.408109,
+        "y": 0.040278
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 1301,
+        "max_items": 4,
+        "max_lines": 3,
+        "min_chars": 557,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Long-form explanatory narrative occupying the right half, suitable for historical or contextual background.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s011-sh0002"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for an image-led profile, cultural topic, or historical explanation.",
+    "Choose when a strong portrait image should accompany a substantial narrative.",
+    "Works best with one continuous body-text passage rather than many separate items."
+  ],
+  "slide_id": "s011",
+  "warnings": []
+}

@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the visual cannot be represented clearly in one large image.",
+    "Avoid for text-only explanations or detailed quantitative comparisons."
+  ],
+  "description": "A broad title sits above a split layout pairing concise process bullets on the left with a dominant workflow diagram on the right.",
+  "digest": "workflow summary with large process diagram",
+  "family_id": "family_314d72138c43cdb88346",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining a workflow with a short textual overview and a detailed process visual.",
+    "Choose when the diagram should carry most of the procedural detail."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "workflow summary with large process diagram",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A broad title sits above a split layout pairing concise process bullets on the left with a dominant workflow diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

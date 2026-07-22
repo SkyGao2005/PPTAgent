@@ -1,0 +1,114 @@
+{
+  "family_ids": [
+    "family_c5363a8cb981dfe4e245"
+  ],
+  "layout_css_path": "slides/s002/layout.css",
+  "overlay_image_path": "slides/s002/overlay.webp",
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "agenda with blue side title panel",
+    "layout_pattern": "split",
+    "message_pattern": "summary",
+    "modalities": [
+      "text",
+      "group"
+    ],
+    "stage": "agenda",
+    "summary": "A clean agenda slide pairs a blue vertical title panel with a spacious numbered topic list and restrained footer metadata.",
+    "title": "目录"
+  },
+  "reference_image_path": "slides/s002/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.297643,
+        "width": 0.23622,
+        "x": 0.100973,
+        "y": 0.351179
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.665675,
+        "width": 0.591203,
+        "x": 0.381366,
+        "y": 0.200992
+      },
+      "capacity": {
+        "max_chars": 28,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 12,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.945139,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 10,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "group",
+      "region_id": "r003",
+      "required": false,
+      "role": "footer",
+      "style_ref": "group.footer"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s002",
+  "theme_tokens": {
+    "--template-accent1": "#174994",
+    "--template-accent2": "#AE1324",
+    "--template-accent3": "#AF5819",
+    "--template-accent4": "#5A8071",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#969FA7",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#2E2E2E",
+    "--template-folHlink": "#174994",
+    "--template-font-1": "+mj-ea",
+    "--template-font-2": "+mn-ea",
+    "--template-font-major": "Times New Roman",
+    "--template-font-minor": "Times New Roman",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

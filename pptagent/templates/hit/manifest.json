@@ -3,21 +3,21 @@
   "template_id": "hit",
   "name": "hit",
   "status": "ready",
-  "latest_revision_id": "rev_6edb92d30b163e91c8d050c9",
-  "active_revision_id": "rev_6edb92d30b163e91c8d050c9",
+  "latest_revision_id": "rev_d4065f336ef240bf5a197a97",
+  "active_revision_id": "rev_d4065f336ef240bf5a197a97",
   "revisions": [
     {
-      "revision_id": "rev_6edb92d30b163e91c8d050c9",
+      "revision_id": "rev_d4065f336ef240bf5a197a97",
       "source_hash": "4fb3e83bfd182efec78f32566590324917b62892438efc1c9b42478152908995",
       "slide_count": 10,
-      "created_at": "2026-07-21T08:09:03.249912Z"
+      "created_at": "2026-07-22T03:24:05.417769Z"
     }
   ],
   "source_hash": "4fb3e83bfd182efec78f32566590324917b62892438efc1c9b42478152908995",
   "slide_count": 10,
   "aspect_ratio": "16:9",
-  "thumbnail": "revisions/rev_6edb92d30b163e91c8d050c9/slides/s001/reference.webp",
+  "thumbnail": "revisions/rev_d4065f336ef240bf5a197a97/slides/s001/reference.webp",
   "error": null,
   "created_at": "2026-07-21T05:46:53.718796Z",
-  "updated_at": "2026-07-21T08:09:03.250723Z"
+  "updated_at": "2026-07-22T03:24:05.418685Z"
 }

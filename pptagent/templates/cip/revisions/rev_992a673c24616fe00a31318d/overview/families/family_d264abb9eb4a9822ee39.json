@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy presentations or slides requiring supporting visuals.",
+    "Avoid when presenter details and a date are unavailable or unnecessary."
+  ],
+  "description": "A formal cover slide uses a full-width title band followed by centered presenter information and date.",
+  "digest": "cover with title band and presenter details",
+  "family_id": "family_d264abb9eb4a9822ee39",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use as an academic, research, or technical presentation cover.",
+    "Choose when a prominent title, presenter line, and date should be shown."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "cover with title band and presenter details",
+      "page_number": 1,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal cover slide uses a full-width title band followed by centered presenter information and date."
+    }
+  ],
+  "stage": "cover"
+}

@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs descriptions, timing, or section owners.",
+    "Avoid when a visual roadmap or multi-column agenda is preferred."
+  ],
+  "description": "A restrained agenda slide uses a prominent blue title band above a spacious single-column numbered contents list.",
+  "digest": "simple numbered table of contents",
+  "family_id": "family_13e8033f485658336f1c",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use near the beginning to preview a short presentation structure.",
+    "Best for roughly three to six concise section titles."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple numbered table of contents",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A restrained agenda slide uses a prominent blue title band above a spacious single-column numbered contents list."
+    }
+  ],
+  "stage": "agenda"
+}

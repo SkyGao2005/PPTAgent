@@ -1,0 +1,48 @@
+{
+  "avoid_when": [
+    "The content requires charts, images, or multiple parallel sections.",
+    "The body cannot be condensed into a short introduction and a few supporting points.",
+    "Avoid when the content needs imagery, charts, or side-by-side comparison.",
+    "Avoid when only a brief headline or a few short points are available."
+  ],
+  "description": "A left-aligned topic heading sits above a broad explanatory text block, with decorative color panels framing the right edge.",
+  "digest": "title with explanatory bullet text",
+  "family_id": "family_136f14732691da648829",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for defining a concept or introducing a topic in prose.",
+    "Choose when one heading and a compact set of supporting points are sufficient.",
+    "Use for a text-heavy topic overview with several detailed supporting points.",
+    "Choose when one subject needs sustained explanation under a prominent heading."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with explanatory bullet text",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A left-aligned topic heading sits above a broad explanatory text block, with decorative color panels framing the right edge."
+    },
+    {
+      "density": "dense",
+      "digest": "Title over dense explanatory bullet list",
+      "page_number": 5,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A prominent top heading introduces a dense, left-aligned explanatory bullet block on a dark field with a decorative green side treatment."
+    }
+  ],
+  "stage": "content"
+}

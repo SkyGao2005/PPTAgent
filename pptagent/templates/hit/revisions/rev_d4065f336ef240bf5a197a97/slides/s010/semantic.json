@@ -1,0 +1,65 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the final slide needs contact details, next steps, or multiple closing messages.",
+    "Avoid when a content-heavy conclusion or recap is required."
+  ],
+  "page_number": 10,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "closing thank-you statement over blue band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "closing",
+    "summary": "A sparse institutional closing page centers one large thank-you statement within a strong blue horizontal band.",
+    "title": "感谢您的倾听！"
+  },
+  "reading_order": [
+    "r001"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.309584,
+        "width": 0.901702,
+        "x": 0.037664,
+        "y": 0.251522
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 4,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large centered closing or thank-you statement intended as the sole editable message.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s010-sh0001"
+      ],
+      "style_ref": "text.title"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use as a formal closing slide for an academic or institutional presentation.",
+    "Choose when a single prominent thank-you message is sufficient."
+  ],
+  "slide_id": "s010",
+  "warnings": []
+}

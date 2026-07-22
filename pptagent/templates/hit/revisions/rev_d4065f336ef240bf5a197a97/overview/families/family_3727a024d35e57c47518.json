@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs more than two parallel sections.",
+    "Avoid for image-led storytelling, charts, or complex data displays.",
+    "Avoid when the two sections require substantially different amounts of space."
+  ],
+  "description": "A strong blue title band introduces two evenly balanced text columns, each containing a subheading and supporting points.",
+  "digest": "Two-column text with section headings",
+  "family_id": "family_3727a024d35e57c47518",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use for presenting two related topics with equal visual weight.",
+    "Use when each section needs a short heading and several supporting points.",
+    "Suitable for parallel explanations, paired categories, or light comparison."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "Two-column text with section headings",
+      "page_number": 9,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A strong blue title band introduces two evenly balanced text columns, each containing a subheading and supporting points."
+    }
+  ],
+  "stage": "content"
+}

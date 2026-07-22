@@ -1,0 +1,152 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid when the opening page needs a prominent image, logo, or detailed agenda.",
+        "Avoid when multiple content sections or data visualizations must appear on the same slide."
+      ],
+      "description": "A sparse corporate cover centers the presentation title in a strong color band, followed by presenter details and a small date.",
+      "digest": "cover with title band and presenter details",
+      "family_id": "family_5c1c56f1a94aef5d93cf",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use for a formal presentation opening with a centered title and presenter credentials.",
+        "Choose when a restrained corporate cover with ample white space is appropriate."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.125,\"y\":0.25},{\"h\":0.125,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.75,\"x\":0.125,\"y\":0.375},{\"h\":0.0,\"kind\":\"text\",\"role\":\"footer\",\"w\":0.125,\"x\":0.5,\"y\":0.75}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when a detailed conclusion, action list, or contact information is needed.",
+        "Avoid when the closing page should feature imagery or branding."
+      ],
+      "description": "A minimalist closing page built around one large centered two-line statement with ample white space.",
+      "digest": "minimal centered closing statement",
+      "family_id": "family_b67fa6203f50e7791857",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "closing-hero",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use as a simple final slide for formally ending a presentation.",
+        "Choose when one prominent closing or thank-you message is sufficient."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.625,\"x\":0.125,\"y\":0.375}],\"stage\":\"closing\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "closing"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content does not need a supporting visual.",
+        "Avoid when presenting multiple parallel topics or data-heavy analysis."
+      ],
+      "description": "A clear two-column content slide pairs a large left-side visual with a detailed explanatory text block on the right.",
+      "digest": "title with diagram and explanatory text",
+      "family_id": "family_b69c15a98693bb59ca67",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use for explaining one concept with a prominent supporting image or diagram.",
+        "Choose when a visual and a substantial text explanation should receive balanced emphasis."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.0,\"y\":0.0},{\"h\":0.625,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.375,\"x\":0.0,\"y\":0.125},{\"h\":0.625,\"kind\":\"text\",\"role\":\"body\",\"w\":0.5,\"x\":0.5,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s003"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content cannot be organized into a structured matrix.",
+        "Avoid for image-led storytelling or a small set of simple bullets."
+      ],
+      "description": "A bold header introduces a large comparison table, followed by a rounded callout that emphasizes the principal takeaway.",
+      "digest": "comparison table with emphasized takeaway",
+      "family_id": "family_d94c95bc8b82a548f650",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "table"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s005",
+      "selection_hints": [
+        "Use for a detailed matrix-style comparison with multiple columns and rows.",
+        "Choose when a structured table needs a prominent concluding takeaway.",
+        "Suitable for presenting criteria, feature sets, schedules, or categorized evidence."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"table\",\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.5,\"kind\":\"table\",\"role\":\"table\",\"w\":0.875,\"x\":0.125,\"y\":0.125},{\"h\":0.125,\"kind\":\"text\",\"role\":\"body\",\"w\":0.875,\"x\":0.125,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s005"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs visuals, data charts, or side-by-side comparison.",
+        "Avoid when more than one major content section must be shown."
+      ],
+      "description": "A conventional content slide pairs a prominent colored title band with a large single-column bullet area.",
+      "digest": "title band over bulleted text",
+      "family_id": "family_2995f6528dd02904ea14",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for a straightforward topic explained through several bullet points.",
+        "Choose when one key point may require a longer description than the others."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.625,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.125,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the agenda needs descriptions, timing, or section owners.",
+        "Avoid when a visual roadmap or multi-column agenda is preferred."
+      ],
+      "description": "A restrained agenda slide uses a prominent blue title band above a spacious single-column numbered contents list.",
+      "digest": "simple numbered table of contents",
+      "family_id": "family_13e8033f485658336f1c",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "agenda-title_body",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use near the beginning to preview a short presentation structure.",
+        "Best for roughly three to six concise section titles."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.875,\"x\":0.125,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.875,\"x\":0.125,\"y\":0.125}],\"stage\":\"agenda\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "agenda"
+    }
+  ],
+  "schema_version": "2.0"
+}

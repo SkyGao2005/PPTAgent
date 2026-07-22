@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs more than a few sections or detailed descriptions.",
+    "Avoid when the page requires imagery, charts, or data-heavy content."
+  ],
+  "description": "A formal agenda page pairs a prominent title in a dark left sidebar with a spacious chapter list on the right.",
+  "digest": "agenda with side title and chapter list",
+  "family_id": "family_8b34332a8b664b6044bd",
+  "layout_pattern": "split",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise table of contents with about three major sections.",
+    "Choose when a strong colored sidebar should separate the agenda heading from the chapter list."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "agenda with side title and chapter list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A formal agenda page pairs a prominent title in a dark left sidebar with a spacious chapter list on the right."
+    }
+  ],
+  "stage": "agenda"
+}

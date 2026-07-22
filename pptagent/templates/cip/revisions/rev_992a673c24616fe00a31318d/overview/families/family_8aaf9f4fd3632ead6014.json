@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the topic cannot be represented by one supporting visual.",
+    "Avoid when multiple detailed data views or long-form text are required."
+  ],
+  "description": "A top title introduces a balanced split layout with explanatory points on the left and a large supporting diagram on the right.",
+  "digest": "two-column explanation with supporting diagram",
+  "family_id": "family_8aaf9f4fd3632ead6014",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for explaining a concept with concise points and one large supporting visual.",
+    "Use when text and an infographic should receive roughly equal emphasis."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column explanation with supporting diagram",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A top title introduces a balanced split layout with explanatory points on the left and a large supporting diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

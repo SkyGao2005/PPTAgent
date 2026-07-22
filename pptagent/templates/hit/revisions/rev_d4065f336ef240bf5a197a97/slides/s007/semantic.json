@@ -1,0 +1,136 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the slide needs multiple images or a comparison.",
+    "Avoid when detailed text, charts, or dense data must dominate."
+  ],
+  "page_number": 7,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "large image over title and description",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "image",
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A large landscape visual leads the page, followed by a concise heading and supporting descriptive copy.",
+    "title": "图片内容页"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_808f5857e34644a7f6a7baed"
+      ],
+      "bbox": {
+        "height": 0.594542,
+        "width": 0.934596,
+        "x": 0.04767,
+        "y": 0.042105
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 1.5719595924257663
+      },
+      "confidence": 0.99,
+      "description": "Dominant wide image used to illustrate the page topic.",
+      "kind": "image",
+      "region_id": "r001",
+      "role": "photo",
+      "source_shape_ids": [
+        "s007-sh0003"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.082639,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.67015
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 3,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Heading introducing the image and its subject.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "title",
+      "source_shape_ids": [
+        "s007-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.159401,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.75517
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 125,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 53,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Supporting explanatory text or caption beneath the heading.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s007-sh0002"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for presenting one dominant landscape image with supporting context.",
+    "Choose when the visual should occupy most of the slide and text serves as explanation."
+  ],
+  "slide_id": "s007",
+  "warnings": []
+}

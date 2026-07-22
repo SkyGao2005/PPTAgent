@@ -1,0 +1,356 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "notes": null,
+  "page_number": 6,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [
+        "asset_aff11db7738f68006ecc4ba8"
+      ],
+      "bbox": {
+        "height": 611217,
+        "width": 4018520,
+        "x": 8173481,
+        "y": 182522
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 11",
+      "normalized_bbox": {
+        "height": 0.089125,
+        "width": 0.329603,
+        "x": 0.670397,
+        "y": 0.026614
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s006-layout-sh0001",
+      "source_id": 12,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 288121,
+        "width": 288121,
+        "x": 11686448,
+        "y": 6499065
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#1F497D",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "椭圆 13",
+      "normalized_bbox": {
+        "height": 0.042012,
+        "width": 0.023632,
+        "x": 0.958534,
+        "y": 0.947662
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s006-layout-sh0004",
+      "source_id": 14,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 5413406,
+        "width": 11469016,
+        "x": 361492,
+        "y": 1051562
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "内容占位符 1",
+      "normalized_bbox": {
+        "height": 0.789356,
+        "width": 0.9407,
+        "x": 0.02965,
+        "y": 0.153334
+      },
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "LLM-driven Slide Creation"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 24.0,
+              "underline": null
+            },
+            "text": "LLM-driven Slide Creation"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "LLMs create a structured outline for the new presentation."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "LLMs create a structured outline for the new presentation."
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Specify reference slides and relevant document sections."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Specify reference slides and relevant document sections."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "Ensuring Engagement and Coherence"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 24.0,
+              "underline": null
+            },
+            "text": "Ensuring Engagement and Coherence"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Use five specialized APIs for precise slide editing."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Use five specialized APIs for precise slide editing."
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Convert slides to HTML for better interpretability and error correction."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Convert slides to HTML for better interpretability and error correction."
+          }
+        ],
+        "text": "LLM-driven Slide Creation\nLLMs create a structured outline for the new presentation.\nSpecify reference slides and relevant document sections.\nEnsuring Engagement and Coherence\nUse five specialized APIs for precise slide editing.\nConvert slides to HTML for better interpretability and error correction."
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 774447,
+        "width": 10972800,
+        "x": 361492,
+        "y": 146627
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "l",
+                  "bold": true,
+                  "color": "#194297",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 32.0,
+                  "underline": null
+                },
+                "text": "Presentation Generation"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": true,
+              "color": "#194297",
+              "font_family": "Microsoft YaHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 32.0,
+              "underline": null
+            },
+            "text": "Presentation Generation"
+          }
+        ],
+        "text": "Presentation Generation"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s006"
+}

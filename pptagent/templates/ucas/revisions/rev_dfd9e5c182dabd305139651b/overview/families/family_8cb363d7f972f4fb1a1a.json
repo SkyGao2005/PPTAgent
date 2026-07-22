@@ -1,0 +1,52 @@
+{
+  "avoid_when": [
+    "Avoid for detailed explanations, charts, or dense body content.",
+    "Avoid when the page must compare multiple topics or present a sequence.",
+    "Avoid for detailed content, data, or multi-column explanations.",
+    "Avoid when the page needs imagery or several independent content blocks."
+  ],
+  "description": "A minimalist section divider uses a large left-aligned chapter title, brief subtitle, and restrained footer metadata.",
+  "digest": "minimal chapter divider with subtitle",
+  "family_id": "family_8cb363d7f972f4fb1a1a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a section needs a prominent heading and one-line description.",
+    "Works well for formal academic or institutional presentations.",
+    "Choose when a short title and one-line subtitle should dominate a spacious page.",
+    "Suitable for a formal academic or institutional presentation."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal chapter divider with subtitle",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A minimalist section divider uses a large left-aligned chapter title, brief subtitle, and restrained footer metadata."
+    },
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and subtitle",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A minimalist section divider uses a large left-aligned chapter title, a concise subtitle, and restrained institutional metadata along the bottom."
+    }
+  ],
+  "stage": "section"
+}

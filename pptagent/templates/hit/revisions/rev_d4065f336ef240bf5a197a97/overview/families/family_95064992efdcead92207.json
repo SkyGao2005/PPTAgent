@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the final slide needs contact details, next steps, or multiple closing messages.",
+    "Avoid when a content-heavy conclusion or recap is required."
+  ],
+  "description": "A sparse institutional closing page centers one large thank-you statement within a strong blue horizontal band.",
+  "digest": "closing thank-you statement over blue band",
+  "family_id": "family_95064992efdcead92207",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use as a formal closing slide for an academic or institutional presentation.",
+    "Choose when a single prominent thank-you message is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "closing thank-you statement over blue band",
+      "page_number": 10,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A sparse institutional closing page centers one large thank-you statement within a strong blue horizontal band."
+    }
+  ],
+  "stage": "closing"
+}

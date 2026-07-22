@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when a detailed conclusion, action list, or contact information is needed.",
+    "Avoid when the closing page should feature imagery or branding."
+  ],
+  "description": "A minimalist closing page built around one large centered two-line statement with ample white space.",
+  "digest": "minimal centered closing statement",
+  "family_id": "family_b67fa6203f50e7791857",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use as a simple final slide for formally ending a presentation.",
+    "Choose when one prominent closing or thank-you message is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal centered closing statement",
+      "page_number": 6,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A minimalist closing page built around one large centered two-line statement with ample white space."
+    }
+  ],
+  "stage": "closing"
+}

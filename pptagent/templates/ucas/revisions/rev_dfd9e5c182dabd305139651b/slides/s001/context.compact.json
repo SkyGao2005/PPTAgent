@@ -1,0 +1,91 @@
+{
+  "family_ids": [
+    "family_43c2c442d8f2cfd79f4d"
+  ],
+  "layout_css_path": "slides/s001/layout.css",
+  "overlay_image_path": "slides/s001/overlay.webp",
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "academic cover with title on blue band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal academic cover emphasizes a large centered title on a blue band with presenter details arranged beneath it.",
+    "title": "果壳简约主题PPT模板4:3"
+  },
+  "reference_image_path": "slides/s001/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286089,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.28157
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.195801,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.62036
+      },
+      "capacity": {
+        "max_chars": 55,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 23,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "subtitle",
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s001",
+  "theme_tokens": {
+    "--template-accent1": "#174994",
+    "--template-accent2": "#AE1324",
+    "--template-accent3": "#AF5819",
+    "--template-accent4": "#5A8071",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#969FA7",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#2E2E2E",
+    "--template-folHlink": "#174994",
+    "--template-font-1": "+mj-ea",
+    "--template-font-2": "+mn-ea",
+    "--template-font-major": "Times New Roman",
+    "--template-font-minor": "Times New Roman",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

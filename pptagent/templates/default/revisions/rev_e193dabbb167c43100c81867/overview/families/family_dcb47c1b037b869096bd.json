@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the visual is secondary or unavailable.",
+    "Avoid when the content requires charts, metrics, or multiple independent sections.",
+    "Avoid for short, minimalist statements with little supporting detail."
+  ],
+  "description": "A dense explanatory slide pairs a tall reference diagram on the left with a prominent heading and extended supporting points on the right.",
+  "digest": "detailed text with large reference diagram",
+  "family_id": "family_dcb47c1b037b869096bd",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s012",
+  "selection_hints": [
+    "Use for a detailed explanation supported by one dominant reference image.",
+    "Choose when substantial text must sit beside a tall diagram, scan, or archival visual.",
+    "Works well for educational, historical, cultural, or conceptual material."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "detailed text with large reference diagram",
+      "page_number": 12,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s012",
+      "summary": "A dense explanatory slide pairs a tall reference diagram on the left with a prominent heading and extended supporting points on the right."
+    }
+  ],
+  "stage": "content"
+}

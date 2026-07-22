@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires multiple images, charts, or dense data tables.",
+    "Avoid when the visual and text must be presented as independent topics rather than one explanation."
+  ],
+  "description": "A full-width banner title introduces a two-part body with explanatory text on the left and a large supporting visual on the right.",
+  "digest": "title with explanatory text and diagram",
+  "family_id": "family_12c9fd4e6e46973656f4",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining one concept with a substantial supporting visual.",
+    "Use when a paragraph or short bullet should sit beside a diagram, figure, or photograph.",
+    "Best for technical, educational, or analytical content with a clear text-to-image relationship."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with explanatory text and diagram",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A full-width banner title introduces a two-part body with explanatory text on the left and a large supporting visual on the right."
+    }
+  ],
+  "stage": "content"
+}

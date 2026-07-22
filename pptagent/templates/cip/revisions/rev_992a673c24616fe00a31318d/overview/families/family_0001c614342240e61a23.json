@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the main content is qualitative rather than data-backed.",
+    "Avoid when the visual must remain editable as a native chart.",
+    "Avoid when more than one supporting visual or data view is required."
+  ],
+  "description": "A titled split layout pairs concise comparison notes on the left with a dominant evidence chart on the right.",
+  "digest": "model comparison notes with large chart",
+  "family_id": "family_0001c614342240e61a23",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "chart"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for a data-backed comparison supported by one dominant chart.",
+    "Use when a concise interpretation should sit beside the visual evidence.",
+    "Best for comparing several models, products, groups, or scenarios."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "model comparison notes with large chart",
+      "page_number": 7,
+      "region_roles": [
+        "bullet_group",
+        "chart",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A titled split layout pairs concise comparison notes on the left with a dominant evidence chart on the right."
+    }
+  ],
+  "stage": "content"
+}

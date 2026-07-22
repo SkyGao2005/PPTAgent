@@ -1,0 +1,394 @@
+{
+  "background_asset_ids": [],
+  "background_fill": null,
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_52dd78a0ac7ee92797303b71",
+    "asset_daf5beb781e3ef46abbb16c0"
+  ],
+  "notes": null,
+  "page_number": 1,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1189298,
+        "width": 12192000,
+        "x": 0,
+        "y": 0
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#144189",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.173418,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.0
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s001-master-sh0001",
+      "source_id": 16,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 245997,
+        "width": 12192000,
+        "x": 0,
+        "y": 6604001
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#144189",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.03587,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.962963
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s001-master-sh0004",
+      "source_id": 11,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [
+        "asset_daf5beb781e3ef46abbb16c0"
+      ],
+      "bbox": {
+        "height": 1295400,
+        "width": 1209675,
+        "x": 10940497,
+        "y": 0
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 11",
+      "normalized_bbox": {
+        "height": 0.188889,
+        "width": 0.099219,
+        "x": 0.89735,
+        "y": 0.0
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s001-master-sh0006",
+      "source_id": 12,
+      "text": null,
+      "visible": true,
+      "z_index": 5
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2561008,
+        "width": 12192000,
+        "x": 0,
+        "y": 1512712
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#144189",
+      "kind": "auto_shape",
+      "line_color": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.373434,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.220576
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0001",
+      "source_id": 7,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [
+        "asset_52dd78a0ac7ee92797303b71"
+      ],
+      "bbox": {
+        "height": 899776,
+        "width": 3016895,
+        "x": 581193,
+        "y": 368123
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "picture",
+      "line_color": null,
+      "name": "图片 10",
+      "normalized_bbox": {
+        "height": 0.131201,
+        "width": 0.247449,
+        "x": 0.04767,
+        "y": 0.053678
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0004",
+      "source_id": 11,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2123126,
+        "width": 10993549,
+        "x": 599225,
+        "y": 1695241
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": "#144189",
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.309584,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.247192
+      },
+      "placeholder_type": "center_title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "哈工大简约主题"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "模板"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": false,
+              "color": "#FFFFFF",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 36.0,
+              "underline": null
+            },
+            "text": "哈工大简约主题PPT模板"
+          }
+        ],
+        "text": "哈工大简约主题PPT模板"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1340999,
+        "width": 10993547,
+        "x": 581193,
+        "y": 4194262
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill_color": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "name": "副标题 2",
+      "normalized_bbox": {
+        "height": 0.195538,
+        "width": 0.901702,
+        "x": 0.04767,
+        "y": 0.611587
+      },
+      "placeholder_type": "subtitle",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#144189",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Name"
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#144189",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": ""
+              },
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#144189",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "of Author"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#144189",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Name of Author"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": "ctr",
+                  "bold": null,
+                  "color": "#144189",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Name of School"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#144189",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Name of School"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": "ctr",
+              "bold": null,
+              "color": "#144189",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "2025年5月30日 Friday"
+          }
+        ],
+        "text": "Name of Author\nName of School\n2025年5月30日 Friday"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s001"
+}

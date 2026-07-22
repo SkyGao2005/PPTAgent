@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the slide needs explanatory text, multiple visuals, or quantitative comparison.",
+    "Avoid when the image must fill the entire canvas."
+  ],
+  "description": "A sparse content slide gives a single large reference diagram prominence against a decorative template background.",
+  "digest": "single large reference diagram on patterned background",
+  "family_id": "family_f2463fe463a9ba528450",
+  "layout_pattern": "freeform",
+  "modalities": [
+    "image"
+  ],
+  "name": "content-freeform",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for presenting one detailed reference image as the sole content focus.",
+    "Choose when a diagram or scanned artifact should remain large and readable."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "single large reference diagram on patterned background",
+      "page_number": 7,
+      "region_roles": [
+        "diagram"
+      ],
+      "slide_id": "s007",
+      "summary": "A sparse content slide gives a single large reference diagram prominence against a decorative template background."
+    }
+  ],
+  "stage": "content"
+}

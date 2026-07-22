@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs charts, images, or rich media.",
+    "Avoid when more than two parallel categories must be presented.",
+    "Avoid when the two content blocks differ greatly in length."
+  ],
+  "description": "A strong banner title introduces two evenly weighted text columns, each combining a subheading with a concise bullet list.",
+  "digest": "two-column text comparison with bullet lists",
+  "family_id": "family_0d9b403a4bca4baf5fa9",
+  "layout_pattern": "comparison",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-comparison",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use for comparing two topics, options, or perspectives side by side.",
+    "Use for paired bilingual content or two parallel sets of key points.",
+    "Best when each column has a short heading and several concise bullets."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column text comparison with bullet lists",
+      "page_number": 9,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A strong banner title introduces two evenly weighted text columns, each combining a subheading with a concise bullet list."
+    }
+  ],
+  "stage": "content"
+}

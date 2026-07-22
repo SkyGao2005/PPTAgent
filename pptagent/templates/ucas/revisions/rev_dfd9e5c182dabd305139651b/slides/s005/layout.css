@@ -1,0 +1,35 @@
+/* Layout scaffold for s005 (section/hero).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome: emit them as
+ * empty divs (or <img> for the ones naming an asset) before content.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;}
+:root{
+  --template-accent1:#174994;
+  --template-accent2:#AE1324;
+  --template-accent3:#AF5819;
+  --template-accent4:#5A8071;
+  --template-accent5:#A9C37C;
+  --template-accent6:#969FA7;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EBEBEB;
+  --template-color-1:#2E2E2E;
+  --template-folHlink:#174994;
+  --template-font-1:+mj-ea;
+  --template-font-2:+mn-ea;
+  --template-font-major:Times New Roman;
+  --template-font-minor:Times New Roman;
+  --template-hlink:#007698;
+  --template-tx1:#000000;
+  --template-tx2:#3D3D3D;
+}
+.tpl-01{position:absolute;left:89.269%;top:2.42%;width:7.874%;height:10.499%;z-index:1;object-fit:contain} /* master / 图片 66 -> assets/asset_76133485b54c6190eaae6d06 */
+.tpl-02{position:absolute;left:0%;top:3.618%;width:3.958%;height:8.102%;z-index:2;background:#174994} /* master / 矩形 70 */
+.tpl-03{position:absolute;left:5.044%;top:3.618%;width:1.31%;height:8.102%;z-index:3;background:#174994} /* master / 矩形 71 */
+.tpl-04{position:absolute;left:0%;top:91.159%;width:78.74%;height:1.05%;z-index:4;background:#174994} /* master / Rectangle 8 */
+.tpl-05{position:absolute;left:-0.101%;top:12.019%;width:89.37%;height:1.05%;z-index:5;background:#174994} /* master / Rectangle 8 */
+.r-r001{position:absolute;left:7.483%;top:36.309%;width:86.615%;height:28.691%;font-size:7.407vh;font-family:"Times New Roman";color:#174994;font-weight:700;text-align:left} /* title / text */
+.r-r002{position:absolute;left:7.483%;top:65%;width:86.615%;height:13.691%;font-size:3.704vh;font-family:"+mj-ea";color:#2E2E2E;font-weight:700;text-align:left} /* subtitle / text */
+.r-r003{position:absolute;left:2.743%;top:92.685%;width:94.514%;height:5.324%;font-size:2.222vh;font-family:"Times New Roman";color:#969FA7;text-align:left} /* footer / group */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

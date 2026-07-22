@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid for dense multi-section content or multiple data visualizations.",
+    "Avoid when the image must dominate the entire slide."
+  ],
+  "description": "A prominent heading and explanatory paragraph introduce a topic above a large centered documentary photograph.",
+  "digest": "historical overview with supporting photo",
+  "family_id": "family_d96cdb936f19dfd9bab8",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use for a cultural, historical, or educational topic needing a concise explanation and one supporting image.",
+    "Choose when content follows a clear title, context paragraph, and documentary visual hierarchy."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "historical overview with supporting photo",
+      "page_number": 10,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A prominent heading and explanatory paragraph introduce a topic above a large centered documentary photograph."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the closing slide needs contact details, next steps, or multiple calls to action.",
+    "Avoid for content-heavy conclusions or detailed summaries."
+  ],
+  "description": "A minimal closing page centers a large thank-you message within a strong horizontal color band.",
+  "digest": "closing thank-you statement on color band",
+  "family_id": "family_c31e9212edf0799ed162",
+  "layout_pattern": "hero",
+  "modalities": [
+    "group"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use as a simple branded closing or thank-you slide.",
+    "Choose when the presentation should end with one prominent centered statement."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "closing thank-you statement on color band",
+      "page_number": 9,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A minimal closing page centers a large thank-you message within a strong horizontal color band."
+    }
+  ],
+  "stage": "closing"
+}

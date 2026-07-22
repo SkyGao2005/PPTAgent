@@ -1,0 +1,138 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.eac2b4e3",
+  "avoid_when": [
+    "Avoid when the main content is qualitative rather than data-backed.",
+    "Avoid when the visual must remain editable as a native chart.",
+    "Avoid when more than one supporting visual or data view is required."
+  ],
+  "page_number": 7,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "model comparison notes with large chart",
+    "layout_pattern": "split",
+    "message_pattern": "evidence",
+    "modalities": [
+      "text",
+      "chart"
+    ],
+    "stage": "content",
+    "summary": "A titled split layout pairs concise comparison notes on the left with a dominant evidence chart on the right.",
+    "title": "Success Rates"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 18,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Slide heading introducing the performance metric or evaluation topic.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s007-sh0002"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.702347,
+        "width": 0.385005,
+        "x": 0.02965,
+        "y": 0.18216
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 197,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 85,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.96,
+      "description": "Left-side summary bullets describing the compared subjects, evaluation dimensions, and key takeaway.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s007-sh0001"
+      ],
+      "style_ref": "text.bullet_group"
+    },
+    {
+      "asset_ids": [
+        "asset_7803e0ff3389640cf867b5e3"
+      ],
+      "bbox": {
+        "height": 0.791414,
+        "width": 0.555216,
+        "x": 0.414655,
+        "y": 0.156943
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Large right-side chart image presenting comparative performance results across models or categories.",
+      "kind": "chart",
+      "region_id": "r003",
+      "role": "chart",
+      "source_shape_ids": [
+        "s007-sh0003"
+      ],
+      "style_ref": "chart.chart"
+    }
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a data-backed comparison supported by one dominant chart.",
+    "Use when a concise interpretation should sit beside the visual evidence.",
+    "Best for comparing several models, products, groups, or scenarios."
+  ],
+  "slide_id": "s007",
+  "warnings": []
+}
