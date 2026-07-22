@@ -1,0 +1,142 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid when the content has no supporting visual or process diagram.",
+    "Avoid for dense quantitative analysis or multi-chart dashboards.",
+    "Avoid when the visual must be fully editable rather than supplied as a single image."
+  ],
+  "judged_asset_ids": [
+    "asset_b1d2319d8008515f75f45dcf"
+  ],
+  "page_number": 3,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "Split rationale with comparative process diagram",
+    "layout_pattern": "split",
+    "message_pattern": "comparison",
+    "modalities": [
+      "text",
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A strong top heading introduces a two-part content slide with explanatory points on the left and a large comparative process diagram on the right.",
+    "title": "Presentation Importance"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 32,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 14,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Slide heading spanning the top of the page.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s003-sh0002"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.702347,
+        "width": 0.448996,
+        "x": 0.02965,
+        "y": 0.18216
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 280,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 120,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Left-side rationale section with a lead point and supporting explanatory statements.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s003-sh0001"
+      ],
+      "style_ref": "text.bullet_group"
+    },
+    {
+      "asset_ids": [
+        "asset_b1d2319d8008515f75f45dcf"
+      ],
+      "bbox": {
+        "height": 0.727564,
+        "width": 0.472917,
+        "x": 0.495913,
+        "y": 0.156943
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.6500005497798131
+      },
+      "confidence": 0.98,
+      "description": "Right-side visual diagram comparing two presentation-generation approaches and their outcomes.",
+      "kind": "image",
+      "region_id": "r003",
+      "role": "diagram",
+      "source_shape_ids": [
+        "s003-sh0003"
+      ],
+      "style_ref": "image.diagram"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for explaining why a concept or solution matters alongside a supporting diagram.",
+    "Use when contrasting two approaches with concise rationale on the left and a visual comparison on the right.",
+    "Best for a moderate amount of explanatory text paired with one large composite visual."
+  ],
+  "slide_id": "s003",
+  "warnings": []
+}

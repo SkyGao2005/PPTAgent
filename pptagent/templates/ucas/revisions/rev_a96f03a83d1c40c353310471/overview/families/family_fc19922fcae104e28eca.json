@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic has no supporting visual or screenshot.",
+    "Avoid for dense data, multi-step processes, or more than two parallel content areas."
+  ],
+  "description": "A formal academic content slide pairs concise explanatory text with a large supporting visual in a balanced two-column layout.",
+  "digest": "two-column explanation with supporting screenshot",
+  "family_id": "family_fc19922fcae104e28eca",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining a topic with text on the left and one supporting visual on the right.",
+    "Works well for definitions, principles, features, or instructional commentary with a screenshot."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column explanation with supporting screenshot",
+      "page_number": 6,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A formal academic content slide pairs concise explanatory text with a large supporting visual in a balanced two-column layout."
+    }
+  ],
+  "stage": "content"
+}

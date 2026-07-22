@@ -1,0 +1,206 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "inherited_asset_ids": [],
+  "notes": null,
+  "page_number": 6,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319088,
+        "width": 2343150,
+        "x": 0,
+        "y": 6538912
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#191C56",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 3",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.25625,
+        "x": 0.0,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s006-master-sh0003",
+      "source_id": 4,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319087,
+        "width": 4457700,
+        "x": 2343150,
+        "y": 6538913
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#252A81",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 4",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.4875,
+        "x": 0.25625,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s006-master-sh0004",
+      "source_id": 5,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319088,
+        "width": 2343150,
+        "x": 6800850,
+        "y": 6538912
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#3138AC",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 5",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.25625,
+        "x": 0.74375,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s006-master-sh0005",
+      "source_id": 6,
+      "text": null,
+      "visible": true,
+      "z_index": 4
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1569660,
+        "width": 6181627,
+        "x": 1481186,
+        "y": 2190710
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 1",
+      "normalized_bbox": {
+        "height": 0.22888,
+        "width": 0.676031,
+        "x": 0.161984,
+        "y": 0.319439
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s006-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 48.0,
+                  "underline": null
+                },
+                "text": "本次报告到此结束"
+              }
+            ],
+            "style": {
+              "alignment": "center",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 13.5,
+              "underline": null
+            },
+            "text": "本次报告到此结束"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 48.0,
+                  "underline": null
+                },
+                "text": "欢迎批评指正！"
+              }
+            ],
+            "style": {
+              "alignment": "center",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 13.5,
+              "underline": null
+            },
+            "text": "欢迎批评指正！"
+          }
+        ],
+        "text": "本次报告到此结束\n欢迎批评指正！"
+      },
+      "visible": true,
+      "z_index": 0
+    }
+  ],
+  "slide_id": "s006"
+}

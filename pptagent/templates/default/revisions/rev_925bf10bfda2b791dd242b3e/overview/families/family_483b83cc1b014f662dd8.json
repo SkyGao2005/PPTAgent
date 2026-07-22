@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the message requires substantial explanatory text alongside the visual.",
+    "Avoid when multiple visuals must be compared on one page."
+  ],
+  "description": "A single large reference visual is positioned prominently against a dark decorative template background.",
+  "digest": "single large reference diagram on decorative background",
+  "family_id": "family_483b83cc1b014f662dd8",
+  "layout_pattern": "hero",
+  "modalities": [
+    "image"
+  ],
+  "name": "content-hero",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for presenting one detailed diagram, map, plan, or scanned reference image.",
+    "Choose when the visual should dominate without a separate title or caption."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "single large reference diagram on decorative background",
+      "page_number": 7,
+      "region_roles": [
+        "diagram"
+      ],
+      "slide_id": "s007",
+      "summary": "A single large reference visual is positioned prominently against a dark decorative template background."
+    }
+  ],
+  "stage": "content"
+}

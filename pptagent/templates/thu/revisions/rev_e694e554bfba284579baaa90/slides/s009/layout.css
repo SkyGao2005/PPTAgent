@@ -1,0 +1,40 @@
+/* Layout scaffold for s009 (content/split).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome. Each one paints
+ * itself, imagery included, so emit every one as an empty <div> before
+ * the content and add nothing to it.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide [class^="tpl-"]{box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#660874;
+  --template-accent2:#660874;
+  --template-accent3:#E6C46D;
+  --template-accent4:#969FA7;
+  --template-accent5:#A9C37C;
+  --template-accent6:#5A8071;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EBEBEB;
+  --template-folHlink:#43064C;
+  --template-font-major:Gill Sans MT;
+  --template-font-minor:Gill Sans MT;
+  --template-hlink:#007698;
+  --template-tx1:#000000;
+  --template-tx2:#3D3D3D;
+}
+.slide .tpl-01{position:absolute;left:3.194%;top:5.073%;width:93.611%;height:17.342%;z-index:1;background-color:#660874} /* master / Rectangle 6 */
+.slide .tpl-02{position:absolute;left:66.806%;top:23.216%;width:30%;height:1.05%;z-index:2;background-color:#660874} /* master / Rectangle 8 */
+.slide .tpl-03{position:absolute;left:3.194%;top:23.216%;width:63.056%;height:1.05%;z-index:3;background-color:#969FA7} /* master / Rectangle 9 */
+.slide .tpl-04{position:absolute;left:87.767%;top:6.31%;width:8.331%;height:14.867%;z-index:4;background-image:url(../../assets/asset_f7f312e5f990403a28feb57e.browser.png);background-size:100% 100%;background-repeat:no-repeat} /* master / 图片 7 */
+.slide .r-r001{position:absolute;left:4.767%;top:6.342%;width:83%;height:14.803%;z-index:9} /* title / text */
+.r-r001{font-size:5.185vh;font-family:"Gill Sans MT";font-weight:400;text-align:left}
+.slide .r-r001, .slide .r-r001 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#FFFFFF}
+.slide .r-r002{position:absolute;left:4.767%;top:32.821%;width:44.235%;height:52.642%;z-index:5} /* bullet_group / group */
+.r-r002{font-size:4.444vh;font-family:"Gill Sans MT";font-weight:400;text-align:left}
+.slide .r-r002, .slide .r-r002 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#660874}
+.slide .r-r003{position:absolute;left:50.998%;top:32.821%;width:44.235%;height:52.642%;z-index:7} /* bullet_group / group */
+.r-r003{font-size:4.444vh;font-family:"Gill Sans MT";font-weight:400;text-align:left}
+.slide .r-r003, .slide .r-r003 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#660874}
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

@@ -1,0 +1,61 @@
+{
+  "avoid_when": [
+    "Avoid for detailed content, charts, or multi-part explanations.",
+    "Avoid when the page needs multiple visual or data elements.",
+    "Avoid for detailed explanations, charts, or multi-part content.",
+    "Avoid when the page needs imagery or multiple parallel sections.",
+    "Avoid when the page needs more than a brief supporting sentence."
+  ],
+  "description": "A sparse chapter divider uses a large lower-page heading and concise supporting line above a branded color band.",
+  "digest": "chapter divider with title and brief context",
+  "family_id": "family_46a1d96fd896d8a30aa1",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Best when the section needs a strong heading plus one brief contextual sentence.",
+    "Use to introduce a new chapter or major section.",
+    "Best when a strong heading needs one short explanatory teaser.",
+    "Choose when a prominent section heading needs one short descriptive line."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and brief context",
+      "page_number": 3,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A sparse chapter divider uses a large lower-page heading and concise supporting line above a branded color band."
+    },
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and teaser",
+      "page_number": 5,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A sparse section divider uses a large lower-page heading and concise teaser above a branded purple band."
+    },
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and subtitle",
+      "page_number": 8,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A sparse chapter divider uses generous white space, a large purple heading, and a concise supporting subtitle above a branded color band."
+    }
+  ],
+  "stage": "section"
+}

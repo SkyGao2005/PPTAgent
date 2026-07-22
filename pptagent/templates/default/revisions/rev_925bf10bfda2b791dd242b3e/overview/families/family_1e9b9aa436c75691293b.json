@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic lacks a strong supporting photograph.",
+    "Avoid when the copy must be brief or highly scannable.",
+    "Avoid when multiple distinct data points or comparisons are required."
+  ],
+  "description": "A two-part content slide pairs a dominant vertical photograph with a dense explanatory text block against a decorative themed background.",
+  "digest": "Side photo with dense explanatory text",
+  "family_id": "family_1e9b9aa436c75691293b",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s011",
+  "selection_hints": [
+    "Use for an image-led profile, cultural topic, or historical explanation.",
+    "Choose when one portrait image should accompany a substantial narrative.",
+    "Suitable for a single-topic page with visually balanced text and photography."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "Side photo with dense explanatory text",
+      "page_number": 11,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s011",
+      "summary": "A two-part content slide pairs a dominant vertical photograph with a dense explanatory text block against a decorative themed background."
+    }
+  ],
+  "stage": "content"
+}

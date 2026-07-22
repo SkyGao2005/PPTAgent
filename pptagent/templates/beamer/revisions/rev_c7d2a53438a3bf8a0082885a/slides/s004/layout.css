@@ -1,0 +1,45 @@
+/* Layout scaffold for s004 (content/title_body).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome. Each one paints
+ * itself, imagery included, so emit every one as an empty <div> before
+ * the content and add nothing to it.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide [class^="tpl-"]{box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#2C2CAA;
+  --template-accent2:#A94F01;
+  --template-accent3:#A5A5A5;
+  --template-accent4:#FFC000;
+  --template-accent5:#5B9BD5;
+  --template-accent6:#70AD47;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#E7E6E6;
+  --template-color-1:#3138AC;
+  --template-color-2:#191C56;
+  --template-color-3:#252A81;
+  --template-color-4:#2C2DA9;
+  --template-color-5:#F6ECE2;
+  --template-folHlink:#954F72;
+  --template-font-1:Microsoft YaHei;
+  --template-font-2:Hiragino Sans GB W3;
+  --template-font-3:Adobe Heiti Std R;
+  --template-font-major:等线 Light;
+  --template-font-minor:等线;
+  --template-hlink:#0563C1;
+  --template-tx1:#000000;
+  --template-tx2:#44546A;
+}
+.slide .tpl-01{position:absolute;left:0%;top:95.347%;width:25.625%;height:4.653%;z-index:1;background-color:#191C56} /* master / 矩形 3 */
+.slide .tpl-02{position:absolute;left:25.625%;top:95.347%;width:48.75%;height:4.653%;z-index:2;background-color:#252A81} /* master / 矩形 4 */
+.slide .tpl-03{position:absolute;left:74.375%;top:95.347%;width:25.625%;height:4.653%;z-index:3;background-color:#3138AC} /* master / 矩形 5 */
+.slide .tpl-04{position:absolute;left:0%;top:0%;width:100%;height:13.737%;z-index:4;background-color:#2C2DA9} /* layout / 矩形 6 */
+.slide .r-r001{position:absolute;left:6.875%;top:0.707%;width:86.25%;height:12.323%;z-index:5} /* title / text */
+.r-r001{font-size:5.185vh;font-family:"Microsoft YaHei";text-align:left}
+.slide .r-r001, .slide .r-r001 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#FFFFFF}
+.slide .r-r002{position:absolute;left:6.875%;top:20.208%;width:86.25%;height:63.449%;z-index:6} /* bullet_group / text */
+.r-r002{font-size:4.444vh;font-family:"等线";text-align:left}
+.slide .r-r002, .slide .r-r002 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#000000}
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

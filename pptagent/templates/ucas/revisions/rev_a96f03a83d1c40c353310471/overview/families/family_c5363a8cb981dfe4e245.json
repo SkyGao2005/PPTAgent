@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs detailed descriptions or more than a few sections.",
+    "Avoid when a conventional top-heading layout or visual content is required."
+  ],
+  "description": "A restrained split-layout agenda places a bold section title in a blue left panel and a short numbered contents list on the right.",
+  "digest": "split agenda with bold side title",
+  "family_id": "family_c5363a8cb981dfe4e245",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Choose for a concise agenda with roughly three major sections.",
+    "Use when a strong vertical title panel should balance a simple topic list."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "split agenda with bold side title",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A restrained split-layout agenda places a bold section title in a blue left panel and a short numbered contents list on the right."
+    }
+  ],
+  "stage": "agenda"
+}

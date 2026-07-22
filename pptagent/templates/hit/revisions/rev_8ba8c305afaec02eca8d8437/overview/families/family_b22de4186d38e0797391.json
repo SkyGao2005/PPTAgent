@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs multiple independent visuals or data panels.",
+    "Avoid when the topic cannot be explained with one dominant image and a short text block.",
+    "Avoid for image-free, text-heavy narratives."
+  ],
+  "description": "A blue-header content slide pairs a substantial explanatory text block on the left with a large supporting visual on the right.",
+  "digest": "left explanation with large right visual",
+  "family_id": "family_b22de4186d38e0797391",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Choose for explaining one concept with supporting prose and a large visual.",
+    "Use when the image should carry roughly half of the page.",
+    "Works well for technical diagrams, product images, or instructional illustrations."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "left explanation with large right visual",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A blue-header content slide pairs a substantial explanatory text block on the left with a large supporting visual on the right."
+    }
+  ],
+  "stage": "content"
+}

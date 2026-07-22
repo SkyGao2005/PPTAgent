@@ -1,0 +1,67 @@
+{
+  "avoid_when": [
+    "Avoid when the slide needs detailed explanations, charts, or multiple content blocks.",
+    "Avoid for an opening cover where presentation-level branding should dominate.",
+    "Avoid for detailed explanations, data displays, or multi-part content.",
+    "Avoid when the page needs imagery, charts, or several parallel sections.",
+    "Avoid for regular content pages that need tables, charts, or detailed explanation.",
+    "Avoid when the section introduction requires imagery or multiple content blocks."
+  ],
+  "description": "A minimalist section divider centers attention on a large chapter heading with a concise subtitle and restrained footer metadata.",
+  "digest": "minimal chapter divider with subtitle",
+  "family_id": "family_8cb363d7f972f4fb1a1a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a prominent section title and one-line description are sufficient.",
+    "Works well for formal academic or institutional presentations.",
+    "Choose when a strong section title needs a brief explanatory subtitle.",
+    "Works well as a clean transition between content groups.",
+    "Choose when a clean, formal transition with a title and brief descriptor is needed."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal chapter divider with subtitle",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A minimalist section divider centers attention on a large chapter heading with a concise subtitle and restrained footer metadata."
+    },
+    {
+      "density": "sparse",
+      "digest": "section divider with title and subtitle",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A minimalist section divider centers attention on a large blue chapter title with a restrained gray subtitle and institutional footer."
+    },
+    {
+      "density": "sparse",
+      "digest": "minimal section divider with title and subtitle",
+      "page_number": 7,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A restrained section divider uses a large left-aligned chapter title, a short subtitle, and minimal footer metadata."
+    }
+  ],
+  "stage": "section"
+}

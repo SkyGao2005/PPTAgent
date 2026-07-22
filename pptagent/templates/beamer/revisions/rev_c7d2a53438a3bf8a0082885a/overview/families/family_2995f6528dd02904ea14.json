@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs charts, imagery, or multiple columns.",
+    "Avoid for highly visual storytelling or side-by-side comparisons."
+  ],
+  "description": "A conventional text-led content page pairs a prominent blue title band with a spacious single-column bullet area.",
+  "digest": "title band with large bullet list",
+  "family_id": "family_2995f6528dd02904ea14",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for a straightforward topic explanation organized as several key points.",
+    "Choose when one bullet may need a longer supporting description.",
+    "Suitable for text-led content with a strong colored title band."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title band with large bullet list",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A conventional text-led content page pairs a prominent blue title band with a spacious single-column bullet area."
+    }
+  ],
+  "stage": "content"
+}

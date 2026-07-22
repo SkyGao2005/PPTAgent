@@ -1,0 +1,114 @@
+{
+  "family_ids": [
+    "family_8cb363d7f972f4fb1a1a"
+  ],
+  "layout_css_path": "slides/s003/layout.css",
+  "overlay_image_path": "slides/s003/overlay.webp",
+  "page_number": 3,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "minimal chapter divider with subtitle",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text",
+      "group"
+    ],
+    "stage": "section",
+    "summary": "A minimalist section divider centers attention on a large chapter heading with a concise subtitle and restrained footer metadata.",
+    "title": "章节1. 本模版的使用方法"
+  },
+  "reference_image_path": "slides/s003/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.363095
+      },
+      "capacity": {
+        "max_chars": 18,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.136905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.65
+      },
+      "capacity": {
+        "max_chars": 21,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 9,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "subtitle",
+      "style_ref": "text.subtitle"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.945139,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 10,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "group",
+      "region_id": "r003",
+      "required": false,
+      "role": "footer",
+      "style_ref": "group.footer"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s003",
+  "theme_tokens": {
+    "--template-accent1": "#174994",
+    "--template-accent2": "#AE1324",
+    "--template-accent3": "#AF5819",
+    "--template-accent4": "#5A8071",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#969FA7",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#2E2E2E",
+    "--template-folHlink": "#174994",
+    "--template-font-1": "+mj-ea",
+    "--template-font-2": "+mn-ea",
+    "--template-font-major": "Times New Roman",
+    "--template-font-minor": "Times New Roman",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

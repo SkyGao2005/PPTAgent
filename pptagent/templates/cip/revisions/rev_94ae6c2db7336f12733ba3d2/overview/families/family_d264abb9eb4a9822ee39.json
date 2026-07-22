@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy slides or detailed explanations.",
+    "Avoid when the opening page needs a prominent photograph or illustration."
+  ],
+  "description": "A formal institutional cover uses a wide blue title band above centered presenter and date details.",
+  "digest": "cover with title band and author details",
+  "family_id": "family_d264abb9eb4a9822ee39",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for a formal academic, research, or institutional presentation cover.",
+    "Choose when the title, presenters, and date are the only editable cover details.",
+    "Works well with existing institutional branding in the header."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "cover with title band and author details",
+      "page_number": 1,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal institutional cover uses a wide blue title band above centered presenter and date details."
+    }
+  ],
+  "stage": "cover"
+}

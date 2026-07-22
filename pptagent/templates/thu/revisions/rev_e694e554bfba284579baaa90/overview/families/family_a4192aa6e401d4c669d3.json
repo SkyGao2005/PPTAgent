@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires images, charts, or data visualizations.",
+    "Avoid when more than two parallel content groups are needed.",
+    "Avoid when the two sections need strongly unequal space."
+  ],
+  "description": "A prominent banner title introduces two balanced text sections, each containing a subheading and concise bullets.",
+  "digest": "two-column text with separate subheadings",
+  "family_id": "family_a4192aa6e401d4c669d3",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use for presenting two related text topics side by side.",
+    "Choose when each section needs its own heading and concise bullet list.",
+    "Works well for complementary perspectives or paired categories."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column text with separate subheadings",
+      "page_number": 9,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A prominent banner title introduces two balanced text sections, each containing a subheading and concise bullets."
+    }
+  ],
+  "stage": "content"
+}

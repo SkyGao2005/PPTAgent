@@ -1,0 +1,45 @@
+/* Layout scaffold for s001 (cover/hero).
+ * Position content with these classes so the generated page keeps the
+ * template grid. Override a value only when the content demands it.
+ * .tpl-* classes reproduce the template's own chrome. Each one paints
+ * itself, imagery included, so emit every one as an empty <div> before
+ * the content and add nothing to it.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide [class^="tpl-"]{box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#4F81BD;
+  --template-accent2:#C0504D;
+  --template-accent3:#9BBB59;
+  --template-accent4:#8064A2;
+  --template-accent5:#4BACC6;
+  --template-accent6:#F79646;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EEECE1;
+  --template-color-1:#194297;
+  --template-color-2:#385AA4;
+  --template-color-3:#003399;
+  --template-color-4:#262626;
+  --template-folHlink:#800080;
+  --template-font-1:微软雅黑;
+  --template-font-2:Microsoft YaHei;
+  --template-font-3:SimHei;
+  --template-font-major:Calibri;
+  --template-font-minor:Calibri;
+  --template-hlink:#0000FF;
+  --template-tx1:#000000;
+  --template-tx2:#1F497D;
+}
+.slide .tpl-01{position:absolute;left:0%;top:0.185%;width:39.821%;height:10.768%;z-index:1;background-image:url(../../assets/asset_aff11db7738f68006ecc4ba8.png);background-size:100% 100%;background-repeat:no-repeat} /* layout / 图片 5 */
+.slide .tpl-02{position:absolute;left:84.206%;top:0.185%;width:13.26%;height:10.768%;z-index:2;background-image:url(../../assets/asset_5cabde49ecf2b341df5e7dc9.jpg);background-size:100% 100%;background-repeat:no-repeat} /* layout / Picture 2 */
+.slide .r-r001{position:absolute;left:0%;top:25.031%;width:100%;height:23.487%;z-index:3} /* title / text */
+.r-r001{font-size:8.889vh;font-family:"Microsoft YaHei";text-align:center}
+.slide .r-r001, .slide .r-r001 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#FFFFFF}
+.slide .r-r002{position:absolute;left:-0%;top:51.482%;width:100%;height:21.755%;z-index:4} /* subtitle / text */
+.r-r002{font-size:5.185vh;font-family:"Microsoft YaHei";font-weight:400;text-align:center}
+.slide .r-r002, .slide .r-r002 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#262626}
+.slide .r-r003{position:absolute;left:0.815%;top:75.104%;width:100%;height:14.178%;z-index:5} /* footer / text */
+.r-r003{font-size:5.185vh;font-family:"Microsoft YaHei";font-weight:400;text-align:center}
+.slide .r-r003, .slide .r-r003 :is(p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th){color:#262626}
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

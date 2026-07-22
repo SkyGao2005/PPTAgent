@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when a detailed recap or contact information is required.",
+    "Avoid when the closing page should feature a photo or multiple content blocks."
+  ],
+  "description": "A minimal branded closing page presents one large centered thank-you message across a bold horizontal color band.",
+  "digest": "closing thank-you statement on central band",
+  "family_id": "family_e20cc215c0d98d7f651a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use as a simple final thank-you slide.",
+    "Choose when a branded, minimal closing statement is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "closing thank-you statement on central band",
+      "page_number": 9,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A minimal branded closing page presents one large centered thank-you message across a bold horizontal color band."
+    }
+  ],
+  "stage": "closing"
+}

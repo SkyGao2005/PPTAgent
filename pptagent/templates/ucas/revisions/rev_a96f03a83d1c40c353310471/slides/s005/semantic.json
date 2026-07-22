@@ -1,0 +1,139 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid for detailed explanations, data displays, or multi-part content.",
+    "Avoid when the page needs imagery, charts, or several parallel sections."
+  ],
+  "judged_asset_ids": [],
+  "page_number": 5,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "section divider with title and subtitle",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text",
+      "group"
+    ],
+    "stage": "section",
+    "summary": "A minimalist section divider centers attention on a large blue chapter title with a restrained gray subtitle and institutional footer.",
+    "title": "章节2. 如何使用配图"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.363095
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 15,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 7,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large chapter heading identifying the next section or topic.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s005-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.136905,
+        "width": 0.866146,
+        "x": 0.074826,
+        "y": 0.65
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 27,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 11,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Short supporting line that clarifies the section scope or theme.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s005-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.945139,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 22,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 10,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Footer metadata containing the date, slide number, and organization name.",
+      "kind": "group",
+      "region_id": "r003",
+      "role": "footer",
+      "source_shape_ids": [
+        "s005-sh0003",
+        "s005-sh0005",
+        "s005-sh0004"
+      ],
+      "style_ref": "group.footer"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a strong section title needs a brief explanatory subtitle.",
+    "Works well as a clean transition between content groups."
+  ],
+  "slide_id": "s005",
+  "warnings": []
+}

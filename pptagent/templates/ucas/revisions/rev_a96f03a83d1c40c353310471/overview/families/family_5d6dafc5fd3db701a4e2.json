@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs multiple columns, charts, or image-led storytelling.",
+    "Avoid for a brief section divider or highly visual presentation."
+  ],
+  "description": "A formal institutional content slide presents a prominent heading above a wide numbered instruction block, with date, page number, and organization metadata in the footer.",
+  "digest": "Title with numbered instructional steps",
+  "family_id": "family_5d6dafc5fd3db701a4e2",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining a short procedure in three or more numbered steps.",
+    "Choose when a conventional heading-and-body instructional layout is appropriate.",
+    "Suitable for text-focused institutional or academic presentations."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "Title with numbered instructional steps",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A formal institutional content slide presents a prominent heading above a wide numbered instruction block, with date, page number, and organization metadata in the footer."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the message requires visuals, charts, or data tables.",
+    "Avoid when content must be compared across multiple columns.",
+    "Avoid for short, highly visual section dividers."
+  ],
+  "description": "A branded instructional content slide pairs a prominent banner title with a spacious single-column bullet area.",
+  "digest": "instructional title with wide bullet list",
+  "family_id": "family_2481301742307bcc07f5",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for instructions, guidance, policies, or explanatory notes.",
+    "Choose when one heading and a single wide list can communicate the message.",
+    "Suitable for approximately three to five medium-length points."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "instructional title with wide bullet list",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A branded instructional content slide pairs a prominent banner title with a spacious single-column bullet area."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,95 @@
+{
+  "family_ids": [
+    "family_0909d16f1e196db5e2ee"
+  ],
+  "layout_css_path": "slides/s002/layout.css",
+  "overlay_image_path": "slides/s002/overlay.webp",
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "simple title and bulleted agenda",
+    "layout_pattern": "title_body",
+    "message_pattern": "summary",
+    "modalities": [
+      "text"
+    ],
+    "stage": "agenda",
+    "summary": "A restrained agenda slide presents a prominent heading above a spacious single-column list of presentation sections.",
+    "title": "目录"
+  },
+  "reference_image_path": "slides/s002/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.717357,
+        "width": 0.93122,
+        "x": 0.03913,
+        "y": 0.2
+      },
+      "capacity": {
+        "max_chars": 48,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 20,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s002",
+  "theme_tokens": {
+    "--template-accent1": "#4F81BD",
+    "--template-accent2": "#C0504D",
+    "--template-accent3": "#9BBB59",
+    "--template-accent4": "#8064A2",
+    "--template-accent5": "#4BACC6",
+    "--template-accent6": "#F79646",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EEECE1",
+    "--template-color-1": "#194297",
+    "--template-color-2": "#385AA4",
+    "--template-color-3": "#003399",
+    "--template-color-4": "#262626",
+    "--template-folHlink": "#800080",
+    "--template-font-1": "微软雅黑",
+    "--template-font-2": "Microsoft YaHei",
+    "--template-font-3": "SimHei",
+    "--template-font-major": "Calibri",
+    "--template-font-minor": "Calibri",
+    "--template-hlink": "#0000FF",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#1F497D"
+  }
+}

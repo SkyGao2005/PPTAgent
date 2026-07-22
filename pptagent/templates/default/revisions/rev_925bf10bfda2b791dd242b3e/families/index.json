@@ -1,0 +1,317 @@
+{
+  "families": [
+    {
+      "avoid_when": [
+        "Avoid when the message requires substantial explanatory text alongside the visual.",
+        "Avoid when multiple visuals must be compared on one page."
+      ],
+      "description": "A single large reference visual is positioned prominently against a dark decorative template background.",
+      "digest": "single large reference diagram on decorative background",
+      "family_id": "family_483b83cc1b014f662dd8",
+      "layout_pattern": "hero",
+      "modalities": [
+        "image"
+      ],
+      "name": "content-hero",
+      "representative_slide_id": "s007",
+      "selection_hints": [
+        "Use for presenting one detailed diagram, map, plan, or scanned reference image.",
+        "Choose when the visual should dominate without a separate title or caption."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"image\"],\"regions\":[{\"h\":0.875,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.5,\"x\":0.125,\"y\":0.0}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s007"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the opening page needs a photograph, logo, or multiple metadata fields.",
+        "Avoid for content-heavy slides or detailed explanations."
+      ],
+      "description": "A sparse opening slide centers a large title above a descriptive subtitle and author credit on a dark geometric background.",
+      "digest": "cover with centered title and subtitle",
+      "family_id": "family_139ca32a054b772e54c2",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "name": "cover-hero",
+      "representative_slide_id": "s001",
+      "selection_hints": [
+        "Use for an opening cover with a prominent topic title.",
+        "Choose when a descriptive subtitle and author byline should appear beneath the title.",
+        "Works well for formal cultural, academic, or tourism presentations."
+      ],
+      "signature": "{\"layout\":\"hero\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.625,\"x\":0.125,\"y\":0.375},{\"h\":0.25,\"kind\":\"text\",\"role\":\"subtitle\",\"w\":0.625,\"x\":0.125,\"y\":0.625}],\"stage\":\"cover\"}",
+      "slide_ids": [
+        "s001"
+      ],
+      "stage": "cover"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic has no suitable tall supporting visual.",
+        "Avoid when the message needs charts, metrics, or a concise single takeaway.",
+        "Avoid when only a small amount of body copy is available."
+      ],
+      "description": "A dense split-layout content slide pairs a tall explanatory visual on the left with a large heading and extended multi-point narrative on the right.",
+      "digest": "Split explanation with tall reference image",
+      "family_id": "family_dcb47c1b037b869096bd",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s012",
+      "selection_hints": [
+        "Use for a detailed concept explanation supported by one dominant vertical image.",
+        "Choose when several related points need substantial text space beside a reference visual.",
+        "Works well for educational, cultural, historical, or technical topics."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.5,\"x\":0.375,\"y\":0.0},{\"h\":1.0,\"kind\":\"image\",\"role\":\"diagram\",\"w\":0.375,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.375,\"x\":0.5,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s012"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic lacks a strong supporting photograph.",
+        "Avoid when the copy must be brief or highly scannable.",
+        "Avoid when multiple distinct data points or comparisons are required."
+      ],
+      "description": "A two-part content slide pairs a dominant vertical photograph with a dense explanatory text block against a decorative themed background.",
+      "digest": "Side photo with dense explanatory text",
+      "family_id": "family_1e9b9aa436c75691293b",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-split",
+      "representative_slide_id": "s011",
+      "selection_hints": [
+        "Use for an image-led profile, cultural topic, or historical explanation.",
+        "Choose when one portrait image should accompany a substantial narrative.",
+        "Suitable for a single-topic page with visually balanced text and photography."
+      ],
+      "signature": "{\"layout\":\"split\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.125},{\"h\":0.875,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.375,\"x\":0.0,\"y\":0.0},{\"h\":0.875,\"kind\":\"text\",\"role\":\"body\",\"w\":0.375,\"x\":0.375,\"y\":0.0}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s011"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the slide needs multiple data views or comparisons.",
+        "Avoid when no supporting photograph is available.",
+        "Avoid for highly detailed or text-heavy explanations."
+      ],
+      "description": "A centered title and concise explanatory text lead into a large supporting photograph within a decorative themed frame.",
+      "digest": "heritage explanation with large supporting photo",
+      "family_id": "family_f58a5e55c32c99322b54",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s010",
+      "selection_hints": [
+        "Use for introducing a cultural, historical, or educational topic with brief context.",
+        "Choose when a large supporting photograph should reinforce a short explanation.",
+        "Suitable for one main idea presented in a clear top-to-bottom flow."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.25,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.0,\"y\":0.25},{\"h\":0.5,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.5,\"x\":0.25,\"y\":0.5}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s010"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic lacks a strong landscape-oriented image.",
+        "Avoid for comparisons, data-heavy analysis, or multiple parallel ideas.",
+        "Avoid when only a short statement or minimal caption is needed."
+      ],
+      "description": "A large landscape photograph leads into a centered subject heading and a substantial explanatory text block below.",
+      "digest": "Large photo above title and explanatory text",
+      "family_id": "family_797217b88b4f18296128",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s008",
+      "selection_hints": [
+        "Use for a visually led profile of a landmark, artifact, project, or case study.",
+        "Choose when one large image should be followed by a descriptive heading and moderate explanatory text.",
+        "Works well for educational, historical, architectural, or portfolio content."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.5,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.625},{\"h\":0.25,\"kind\":\"text\",\"role\":\"body\",\"w\":0.75,\"x\":0.0,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s008"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic has no meaningful supporting photograph.",
+        "Avoid for comparisons, multi-column content, or data-heavy analysis.",
+        "Avoid when the explanation must be brief or highly scannable."
+      ],
+      "description": "A large subject photograph anchors the page, followed by a descriptive heading and a detailed explanatory text block.",
+      "digest": "large photo with title and explanation",
+      "family_id": "family_c392fbf5146ad0f194c7",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s009",
+      "selection_hints": [
+        "Use for a visual case study of a place, artifact, building, or featured example.",
+        "Choose when one large photograph should lead into a detailed explanatory paragraph.",
+        "Suitable for educational, historical, cultural, or architectural content."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"image\",\"text\"],\"regions\":[{\"h\":0.625,\"kind\":\"image\",\"role\":\"photo\",\"w\":0.75,\"x\":0.0,\"y\":0.125},{\"h\":0.0,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.625},{\"h\":0.25,\"kind\":\"text\",\"role\":\"body\",\"w\":0.75,\"x\":0.0,\"y\":0.75}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s009"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs imagery, charts, or data visualization.",
+        "Avoid for brief statements or content that cannot be organized as detailed points.",
+        "Avoid when multiple independent content columns are required."
+      ],
+      "description": "A prominent question-style heading introduces a dense, left-aligned explanatory text block against a strongly branded geometric background.",
+      "digest": "title with dense explanatory bullet list",
+      "family_id": "family_7bcbcf643b6d342c9034",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s002",
+      "selection_hints": [
+        "Use for defining or explaining a concept in depth.",
+        "Choose when a heading is followed by an introduction and several substantial text points.",
+        "Works well for quotation-led educational or philosophical content."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.125,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.0,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s002"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the topic needs visuals, data, or multiple parallel content blocks.",
+        "Avoid when only a brief statement or a few short bullets are available.",
+        "Avoid when the topic needs charts, images, or multiple parallel content areas.",
+        "Avoid when the body copy must be brief or highly visual."
+      ],
+      "description": "A text-heavy content slide presents a concept heading above a broad definition and detailed supporting points, with decorative artwork reserved along the right edge.",
+      "digest": "definition slide with detailed bullet explanations",
+      "family_id": "family_136f14732691da648829",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s003",
+      "selection_hints": [
+        "Use for a concept definition supported by several detailed points.",
+        "Choose when substantial explanatory text must fit beneath a clear heading.",
+        "Use for a detailed overview of a single topic.",
+        "Choose when several substantial explanatory points must fit on one slide.",
+        "Works well for historical, cultural, or contextual background."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.0,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s003",
+        "s005"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs visuals, data charts, or side-by-side comparison.",
+        "Avoid for brief statements or highly image-led storytelling."
+      ],
+      "description": "A prominent lime-green heading leads into a dense explanatory bullet list on a dark field with decorative green geometry at the right.",
+      "digest": "title with dense explanatory bullet list",
+      "family_id": "family_40c3359d4b4bbd9b34f9",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s013",
+      "selection_hints": [
+        "Use for a text-heavy explanatory page with one prominent heading.",
+        "Choose when several detailed supporting points must appear together in a single content block."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.75,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.0,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s013"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs imagery, charts, or multiple parallel sections.",
+        "Avoid when the main explanation cannot be expressed as a dense text block."
+      ],
+      "description": "A prominent question heading sits above a dense explanatory text block, framed by the template's angular green side artwork.",
+      "digest": "Definition with detailed supporting points",
+      "family_id": "family_bb3ff0b93a5f77d1cb28",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s004",
+      "selection_hints": [
+        "Use for defining a concept and expanding it with detailed supporting points.",
+        "Choose when substantial text should remain the primary focus of the slide."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.0},{\"h\":0.875,\"kind\":\"text\",\"role\":\"bullet_group\",\"w\":0.75,\"x\":0.0,\"y\":0.125}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s004"
+      ],
+      "stage": "content"
+    },
+    {
+      "avoid_when": [
+        "Avoid when the content needs imagery, charts, or multiple parallel sections.",
+        "Avoid when the message must be highly concise or visually minimal."
+      ],
+      "description": "A large left-aligned title introduces a dense explanatory text block against a dark geometric theme.",
+      "digest": "Title with dense explanatory text block",
+      "family_id": "family_43d315d1820f2355e146",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "name": "content-title_body",
+      "representative_slide_id": "s006",
+      "selection_hints": [
+        "Use for a detailed conceptual or educational explanation.",
+        "Choose when one topic needs a substantial paragraph and supporting points."
+      ],
+      "signature": "{\"layout\":\"title_body\",\"modalities\":[\"text\"],\"regions\":[{\"h\":0.25,\"kind\":\"text\",\"role\":\"title\",\"w\":0.75,\"x\":0.0,\"y\":0.125},{\"h\":0.625,\"kind\":\"text\",\"role\":\"body\",\"w\":0.75,\"x\":0.0,\"y\":0.25}],\"stage\":\"content\"}",
+      "slide_ids": [
+        "s006"
+      ],
+      "stage": "content"
+    }
+  ],
+  "schema_version": "2.0"
+}

@@ -1,0 +1,379 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "inherited_asset_ids": [
+    "asset_4b91c15191cce45914d19b96",
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "notes": null,
+  "page_number": 1,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 2323425,
+        "width": 8576734,
+        "x": 283634,
+        "y": 1750295
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#174994",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.33879,
+        "width": 0.937963,
+        "x": 0.031019,
+        "y": 0.255219
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0002",
+      "source_id": 13,
+      "text": null,
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [
+        "asset_4b91c15191cce45914d19b96"
+      ],
+      "bbox": {
+        "height": 660433,
+        "width": 3149439,
+        "x": 283634,
+        "y": 660959
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "picture",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "图片 14",
+      "normalized_bbox": {
+        "height": 0.096301,
+        "width": 0.344427,
+        "x": 0.031019,
+        "y": 0.096378
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s001-layout-sh0004",
+      "source_id": 15,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1342800,
+        "width": 8244000,
+        "x": 435600,
+        "y": 4254432
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "副标题 1",
+      "normalized_bbox": {
+        "height": 0.195801,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.62036
+      },
+      "outline": null,
+      "placeholder_type": "subtitle",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Name of the Author"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#174994",
+              "font_family": "+mn-ea",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Name of the Author"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "沈阳自动化研究所"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#174994",
+              "font_family": "+mn-ea",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "沈阳自动化研究所"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "2024"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "年"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "11"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "月"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "21"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#174994",
+                  "font_family": "+mn-ea",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "日"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#174994",
+              "font_family": "+mn-ea",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "2024年11月21日"
+          }
+        ],
+        "text": "Name of the Author\n沈阳自动化研究所\n2024年11月21日"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1962000,
+        "width": 8244000,
+        "x": 435600,
+        "y": 1931007
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.286089,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.28157
+      },
+      "outline": null,
+      "placeholder_type": "center_title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s001-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#FFFFFF",
+                  "font_family": "Times New Roman",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 40.0,
+                  "underline": null
+                },
+                "text": "果壳简约主题"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#FFFFFF",
+                  "font_family": "Times New Roman",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 40.0,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#FFFFFF",
+                  "font_family": "Times New Roman",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 40.0,
+                  "underline": null
+                },
+                "text": "模板"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#FFFFFF",
+                  "font_family": "Times New Roman",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 40.0,
+                  "underline": null
+                },
+                "text": "4:3"
+              }
+            ],
+            "style": {
+              "alignment": "ctr",
+              "bold": true,
+              "color": "#FFFFFF",
+              "font_family": "Times New Roman",
+              "italic": null,
+              "language": null,
+              "size_pt": 40.0,
+              "underline": null
+            },
+            "text": "果壳简约主题PPT模板4:3"
+          }
+        ],
+        "text": "果壳简约主题PPT模板4:3"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s001"
+}

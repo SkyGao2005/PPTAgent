@@ -1,0 +1,101 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid for content-heavy slides with charts, tables, or detailed explanations.",
+    "Avoid when institutional branding is inappropriate for the presentation."
+  ],
+  "judged_asset_ids": [],
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "university cover with bold blue title band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal university-branded cover emphasizes the presentation title on a wide blue band with centered author, affiliation, and date details below.",
+    "title": "哈工大简约主题PPT模板"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.309584,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.247192
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 17,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 7,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large centered presentation title displayed in the dominant blue horizontal band.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s001-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.195538,
+        "width": 0.901702,
+        "x": 0.04767,
+        "y": 0.611587
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 66,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 28,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Centered presenter metadata block for author, school or affiliation, and presentation date.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s001-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for the opening cover of an academic or university presentation.",
+    "Choose when a formal institutional style and prominent centered title are desired."
+  ],
+  "slide_id": "s001",
+  "warnings": []
+}

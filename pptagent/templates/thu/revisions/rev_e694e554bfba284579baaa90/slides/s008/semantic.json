@@ -1,0 +1,101 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid for detailed explanations, charts, or multi-part content.",
+    "Avoid when the page needs more than a brief supporting sentence."
+  ],
+  "judged_asset_ids": [],
+  "page_number": 8,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "chapter divider with title and subtitle",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text"
+    ],
+    "stage": "section",
+    "summary": "A sparse chapter divider uses generous white space, a large purple heading, and a concise supporting subtitle above a branded color band.",
+    "title": "章节三. 我要去哪啊啊啊啊啊"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large chapter or section heading positioned prominently near the lower portion of the slide.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s008-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.662207
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 71,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 31,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Brief supporting line that previews the chapter topic or adds context to the heading.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s008-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a prominent section heading needs one short descriptive line."
+  ],
+  "slide_id": "s008",
+  "warnings": []
+}

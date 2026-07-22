@@ -1,0 +1,101 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid when the content needs imagery, charts, or multiple parallel sections.",
+    "Avoid when the main explanation cannot be expressed as a dense text block."
+  ],
+  "judged_asset_ids": [],
+  "page_number": 4,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "Definition with detailed supporting points",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A prominent question heading sits above a dense explanatory text block, framed by the template's angular green side artwork.",
+    "title": "What do we mean by Cultural Tourism?"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.192593,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.022782
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 50,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 22,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Question-style heading introducing the concept to be defined or explained.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s004-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.82,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.18
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 1404,
+        "max_items": 9,
+        "max_lines": 8,
+        "min_chars": 602,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.97,
+      "description": "Large explanatory text area for a definition followed by several supporting statements, examples, or quotations.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s004-sh0002"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for defining a concept and expanding it with detailed supporting points.",
+    "Choose when substantial text should remain the primary focus of the slide."
+  ],
+  "slide_id": "s004",
+  "warnings": []
+}

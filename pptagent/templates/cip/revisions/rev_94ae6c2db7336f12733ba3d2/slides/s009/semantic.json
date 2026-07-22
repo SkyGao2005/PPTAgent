@@ -1,0 +1,67 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.a04c3a8c",
+  "avoid_when": [
+    "Avoid when a detailed recap or contact information is required.",
+    "Avoid when the closing page should feature a photo or multiple content blocks."
+  ],
+  "judged_asset_ids": [],
+  "page_number": 9,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "closing thank-you statement on central band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "closing",
+    "summary": "A minimal branded closing page presents one large centered thank-you message across a bold horizontal color band.",
+    "title": "Thank you"
+  },
+  "reading_order": [
+    "r001"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.234874,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.353241
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 13,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 5,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large centered closing or thank-you statement placed within the full-width blue band.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s009-sh0001"
+      ],
+      "style_ref": "text.title"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use as a simple final thank-you slide.",
+    "Choose when a branded, minimal closing statement is sufficient."
+  ],
+  "slide_id": "s009",
+  "warnings": []
+}

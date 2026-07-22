@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when contact details, next steps, or a detailed recap are required.",
+    "Avoid for content-heavy conclusions or data summaries."
+  ],
+  "description": "A minimalist closing page centers one large farewell statement on an otherwise open canvas.",
+  "digest": "minimal closing with centered farewell message",
+  "family_id": "family_b67fa6203f50e7791857",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use as a simple final slide for a formal presentation.",
+    "Choose when the deck should end with a prominent farewell or feedback invitation."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal closing with centered farewell message",
+      "page_number": 6,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A minimalist closing page centers one large farewell statement on an otherwise open canvas."
+    }
+  ],
+  "stage": "closing"
+}

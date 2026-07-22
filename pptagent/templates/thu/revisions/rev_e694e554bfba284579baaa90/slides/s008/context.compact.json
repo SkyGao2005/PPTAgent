@@ -1,0 +1,88 @@
+{
+  "family_ids": [
+    "family_46a1d96fd896d8a30aa1"
+  ],
+  "layout_css_path": "slides/s008/layout.css",
+  "overlay_image_path": "slides/s008/overlay.webp",
+  "page_number": 8,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "chapter divider with title and subtitle",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text"
+    ],
+    "stage": "section",
+    "summary": "A sparse chapter divider uses generous white space, a large purple heading, and a concise supporting subtitle above a branded color band.",
+    "title": "章节三. 我要去哪啊啊啊啊啊"
+  },
+  "reference_image_path": "slides/s008/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.662207
+      },
+      "capacity": {
+        "max_chars": 71,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 31,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "subtitle",
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s008",
+  "theme_tokens": {
+    "--template-accent1": "#660874",
+    "--template-accent2": "#660874",
+    "--template-accent3": "#E6C46D",
+    "--template-accent4": "#969FA7",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#5A8071",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-folHlink": "#43064C",
+    "--template-font-major": "Gill Sans MT",
+    "--template-font-minor": "Gill Sans MT",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

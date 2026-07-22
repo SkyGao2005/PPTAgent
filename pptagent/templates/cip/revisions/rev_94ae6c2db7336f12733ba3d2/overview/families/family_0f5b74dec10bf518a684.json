@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic cannot be expressed as a workflow or structured system diagram.",
+    "Avoid when substantial prose or multiple independent data views are required.",
+    "Avoid when no suitable process visual is available for the right side."
+  ],
+  "description": "A titled split layout pairs concise workflow bullets on the left with a dominant process diagram on the right.",
+  "digest": "workflow bullets with large process diagram",
+  "family_id": "family_0f5b74dec10bf518a684",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "diagram"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining a workflow with a concise textual overview and a detailed process visual.",
+    "Choose when the diagram should carry most of the procedural detail.",
+    "Works well for technical, operational, or system architecture processes."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "workflow bullets with large process diagram",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A titled split layout pairs concise workflow bullets on the left with a dominant process diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

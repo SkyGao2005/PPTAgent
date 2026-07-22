@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs detailed descriptions, timings, or more than a few sections.",
+    "Avoid when a conventional full-width title above the agenda is required."
+  ],
+  "description": "A bold colored title panel on the left balances a spacious chapter list on the right for a concise agenda.",
+  "digest": "agenda with side title and chapter list",
+  "family_id": "family_844c96dae7e2bb5f5ffa",
+  "layout_pattern": "split",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise table of contents with about three major sections.",
+    "Choose when a strong colored sidebar should frame a simple chapter list."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "agenda with side title and chapter list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A bold colored title panel on the left balances a spacious chapter list on the right for a concise agenda."
+    }
+  ],
+  "stage": "agenda"
+}

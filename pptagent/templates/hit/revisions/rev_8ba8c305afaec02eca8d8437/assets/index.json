@@ -1,0 +1,715 @@
+{
+  "assets": [
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_2c34104c23f8a6777430b2f0",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "browser_pixel_height": 878,
+      "browser_pixel_width": 784,
+      "browser_sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "byte_size": 70564,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.67884,
+            "width": 0.497727,
+            "x": 0.480195,
+            "y": 0.20295
+          },
+          "page_number": 6,
+          "scope": "slide",
+          "shape_id": "s006-sh0003",
+          "slide_id": "s006",
+          "source_name": "图片 3"
+        }
+      ],
+      "path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "pixel_height": 878,
+      "pixel_width": 784,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": {
+        "corner_radius": null,
+        "ellipse": false,
+        "holes": [],
+        "polygon": [
+          [
+            0.1094,
+            0.0963
+          ],
+          [
+            0.0781,
+            0.1259
+          ],
+          [
+            0.0625,
+            0.1556
+          ],
+          [
+            0.0938,
+            0.1852
+          ],
+          [
+            0.0469,
+            0.2222
+          ],
+          [
+            0.0781,
+            0.2519
+          ],
+          [
+            0.0469,
+            0.2815
+          ],
+          [
+            0.0312,
+            0.3111
+          ],
+          [
+            0.0312,
+            0.3407
+          ],
+          [
+            0.125,
+            0.3778
+          ],
+          [
+            0.125,
+            0.4074
+          ],
+          [
+            0.0312,
+            0.437
+          ],
+          [
+            0.0312,
+            0.4667
+          ],
+          [
+            0.0,
+            0.5037
+          ],
+          [
+            0.0,
+            0.563
+          ],
+          [
+            0.0312,
+            0.5926
+          ],
+          [
+            0.125,
+            0.6222
+          ],
+          [
+            0.0469,
+            0.6593
+          ],
+          [
+            0.0625,
+            0.6889
+          ],
+          [
+            0.1562,
+            0.7185
+          ],
+          [
+            0.0469,
+            0.7481
+          ],
+          [
+            0.0469,
+            0.8148
+          ],
+          [
+            0.1094,
+            0.8444
+          ],
+          [
+            0.1562,
+            0.8444
+          ],
+          [
+            0.2188,
+            0.8148
+          ],
+          [
+            0.0469,
+            0.7778
+          ],
+          [
+            0.0625,
+            0.7481
+          ],
+          [
+            0.9219,
+            0.7185
+          ],
+          [
+            0.9062,
+            0.6889
+          ],
+          [
+            0.9531,
+            0.6593
+          ],
+          [
+            0.2188,
+            0.6222
+          ],
+          [
+            0.1562,
+            0.5926
+          ],
+          [
+            0.25,
+            0.563
+          ],
+          [
+            0.7031,
+            0.5333
+          ],
+          [
+            0.9375,
+            0.5037
+          ],
+          [
+            0.9375,
+            0.437
+          ],
+          [
+            0.9531,
+            0.4074
+          ],
+          [
+            0.9375,
+            0.3778
+          ],
+          [
+            0.9219,
+            0.3407
+          ],
+          [
+            0.9531,
+            0.3111
+          ],
+          [
+            0.9219,
+            0.2815
+          ],
+          [
+            0.9531,
+            0.2519
+          ],
+          [
+            0.9531,
+            0.1852
+          ],
+          [
+            0.2031,
+            0.1556
+          ],
+          [
+            0.1875,
+            0.1259
+          ],
+          [
+            0.1094,
+            0.0963
+          ]
+        ]
+      },
+      "alt_text": null,
+      "asset_id": "asset_52dd78a0ac7ee92797303b71",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_52dd78a0ac7ee92797303b71.png",
+      "browser_pixel_height": 136,
+      "browser_pixel_width": 456,
+      "browser_sha256": "52dd78a0ac7ee92797303b7130af2db4289cb292adf7885e73ead5918044611c",
+      "byte_size": 35238,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.131201,
+            "width": 0.247449,
+            "x": 0.04767,
+            "y": 0.053678
+          },
+          "page_number": 1,
+          "scope": "layout",
+          "shape_id": "s001-layout-sh0004",
+          "slide_id": "s001",
+          "source_name": "图片 10"
+        },
+        {
+          "bbox": {
+            "height": 0.131201,
+            "width": 0.247449,
+            "x": 0.04767,
+            "y": 0.053678
+          },
+          "page_number": 10,
+          "scope": "layout",
+          "shape_id": "s010-layout-sh0004",
+          "slide_id": "s010",
+          "source_name": "图片 10"
+        }
+      ],
+      "path": "assets/asset_52dd78a0ac7ee92797303b71.png",
+      "pixel_height": 136,
+      "pixel_width": 456,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "52dd78a0ac7ee92797303b7130af2db4289cb292adf7885e73ead5918044611c",
+      "tags": [
+        "decoration"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_808f5857e34644a7f6a7baed",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_808f5857e34644a7f6a7baed.png",
+      "browser_pixel_height": 456,
+      "browser_pixel_width": 974,
+      "browser_sha256": "808f5857e34644a7f6a7baed154be8d85e395f0a820a06ce9d1a23c655989fd6",
+      "byte_size": 196065,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.594542,
+            "width": 0.934596,
+            "x": 0.04767,
+            "y": 0.042105
+          },
+          "page_number": 7,
+          "scope": "slide",
+          "shape_id": "s007-sh0003",
+          "slide_id": "s007",
+          "source_name": "图片 2"
+        }
+      ],
+      "path": "assets/asset_808f5857e34644a7f6a7baed.png",
+      "pixel_height": 456,
+      "pixel_width": 974,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "808f5857e34644a7f6a7baed154be8d85e395f0a820a06ce9d1a23c655989fd6",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": {
+        "corner_radius": null,
+        "ellipse": false,
+        "holes": [],
+        "polygon": [
+          [
+            0.1094,
+            0.0963
+          ],
+          [
+            0.0781,
+            0.1259
+          ],
+          [
+            0.0625,
+            0.1556
+          ],
+          [
+            0.1094,
+            0.1852
+          ],
+          [
+            0.0469,
+            0.2222
+          ],
+          [
+            0.0781,
+            0.2519
+          ],
+          [
+            0.0469,
+            0.2815
+          ],
+          [
+            0.0312,
+            0.3111
+          ],
+          [
+            0.0312,
+            0.3407
+          ],
+          [
+            0.2344,
+            0.3778
+          ],
+          [
+            0.125,
+            0.4074
+          ],
+          [
+            0.0312,
+            0.437
+          ],
+          [
+            0.0938,
+            0.4667
+          ],
+          [
+            0.0312,
+            0.5037
+          ],
+          [
+            0.0938,
+            0.5333
+          ],
+          [
+            0.0312,
+            0.563
+          ],
+          [
+            0.125,
+            0.6222
+          ],
+          [
+            0.0469,
+            0.6593
+          ],
+          [
+            0.3438,
+            0.6889
+          ],
+          [
+            0.3281,
+            0.7185
+          ],
+          [
+            0.0469,
+            0.7481
+          ],
+          [
+            0.0469,
+            0.8148
+          ],
+          [
+            0.1094,
+            0.8444
+          ],
+          [
+            0.1562,
+            0.8444
+          ],
+          [
+            0.2188,
+            0.8148
+          ],
+          [
+            0.0469,
+            0.7778
+          ],
+          [
+            0.0625,
+            0.7481
+          ],
+          [
+            0.9219,
+            0.7185
+          ],
+          [
+            0.9062,
+            0.6889
+          ],
+          [
+            0.9531,
+            0.6593
+          ],
+          [
+            0.2188,
+            0.6222
+          ],
+          [
+            0.1719,
+            0.563
+          ],
+          [
+            0.7031,
+            0.5333
+          ],
+          [
+            0.9375,
+            0.5037
+          ],
+          [
+            0.9375,
+            0.437
+          ],
+          [
+            0.9531,
+            0.4074
+          ],
+          [
+            0.9375,
+            0.3778
+          ],
+          [
+            0.9219,
+            0.3407
+          ],
+          [
+            0.9531,
+            0.3111
+          ],
+          [
+            0.9219,
+            0.2815
+          ],
+          [
+            0.9062,
+            0.2519
+          ],
+          [
+            0.9531,
+            0.2222
+          ],
+          [
+            0.9531,
+            0.1852
+          ],
+          [
+            0.2031,
+            0.1556
+          ],
+          [
+            0.1875,
+            0.1259
+          ],
+          [
+            0.1094,
+            0.0963
+          ]
+        ]
+      },
+      "alt_text": null,
+      "asset_id": "asset_daf5beb781e3ef46abbb16c0",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_daf5beb781e3ef46abbb16c0.png",
+      "browser_pixel_height": 136,
+      "browser_pixel_width": 456,
+      "browser_sha256": "daf5beb781e3ef46abbb16c026b3e7042ccfff10a7de39fc389c2eaf9a028ada",
+      "byte_size": 17708,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 1,
+          "scope": "master",
+          "shape_id": "s001-master-sh0006",
+          "slide_id": "s001",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.010537,
+            "y": 0.0
+          },
+          "page_number": 2,
+          "scope": "layout",
+          "shape_id": "s002-layout-sh0004",
+          "slide_id": "s002",
+          "source_name": "图片 10"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 2,
+          "scope": "master",
+          "shape_id": "s002-master-sh0006",
+          "slide_id": "s002",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.168317,
+            "width": 0.088413,
+            "x": 0.906104,
+            "y": 0.755111
+          },
+          "page_number": 3,
+          "scope": "layout",
+          "shape_id": "s003-layout-sh0004",
+          "slide_id": "s003",
+          "source_name": "图片 12"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 3,
+          "scope": "master",
+          "shape_id": "s003-master-sh0006",
+          "slide_id": "s003",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 4,
+          "scope": "master",
+          "shape_id": "s004-master-sh0006",
+          "slide_id": "s004",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.168317,
+            "width": 0.088413,
+            "x": 0.906104,
+            "y": 0.755111
+          },
+          "page_number": 5,
+          "scope": "layout",
+          "shape_id": "s005-layout-sh0004",
+          "slide_id": "s005",
+          "source_name": "图片 12"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 5,
+          "scope": "master",
+          "shape_id": "s005-master-sh0006",
+          "slide_id": "s005",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 6,
+          "scope": "master",
+          "shape_id": "s006-master-sh0006",
+          "slide_id": "s006",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 7,
+          "scope": "master",
+          "shape_id": "s007-master-sh0006",
+          "slide_id": "s007",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.168317,
+            "width": 0.088413,
+            "x": 0.906104,
+            "y": 0.755111
+          },
+          "page_number": 8,
+          "scope": "layout",
+          "shape_id": "s008-layout-sh0004",
+          "slide_id": "s008",
+          "source_name": "图片 12"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 8,
+          "scope": "master",
+          "shape_id": "s008-master-sh0006",
+          "slide_id": "s008",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 9,
+          "scope": "master",
+          "shape_id": "s009-master-sh0006",
+          "slide_id": "s009",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.188889,
+            "width": 0.099219,
+            "x": 0.89735,
+            "y": 0.0
+          },
+          "page_number": 10,
+          "scope": "master",
+          "shape_id": "s010-master-sh0006",
+          "slide_id": "s010",
+          "source_name": "图片 11"
+        }
+      ],
+      "path": "assets/asset_daf5beb781e3ef46abbb16c0.png",
+      "pixel_height": 136,
+      "pixel_width": 456,
+      "reuse_policy": "always",
+      "role": "logo",
+      "sha256": "daf5beb781e3ef46abbb16c026b3e7042ccfff10a7de39fc389c2eaf9a028ada",
+      "tags": [
+        "logo"
+      ]
+    }
+  ],
+  "schema_version": "2.0"
+}

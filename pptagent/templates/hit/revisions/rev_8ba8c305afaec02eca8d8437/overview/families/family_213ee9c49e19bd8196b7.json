@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the message requires multiple equal content columns or a side-by-side comparison.",
+    "Avoid when detailed text, tables, or several data views must dominate the page."
+  ],
+  "description": "A dominant landscape visual fills the upper portion, with a clear title and concise explanatory text arranged beneath it.",
+  "digest": "large image above title and description",
+  "family_id": "family_213ee9c49e19bd8196b7",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for an image-led content page with a short heading and supporting explanation below.",
+    "Choose when one large screenshot, photograph, or visual example should receive most of the slide area."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "large image above title and description",
+      "page_number": 7,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A dominant landscape visual fills the upper portion, with a clear title and concise explanatory text arranged beneath it."
+    }
+  ],
+  "stage": "content"
+}

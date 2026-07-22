@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the slide needs multiple data views or comparisons.",
+    "Avoid when no supporting photograph is available.",
+    "Avoid for highly detailed or text-heavy explanations."
+  ],
+  "description": "A centered title and concise explanatory text lead into a large supporting photograph within a decorative themed frame.",
+  "digest": "heritage explanation with large supporting photo",
+  "family_id": "family_f58a5e55c32c99322b54",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use for introducing a cultural, historical, or educational topic with brief context.",
+    "Choose when a large supporting photograph should reinforce a short explanation.",
+    "Suitable for one main idea presented in a clear top-to-bottom flow."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "heritage explanation with large supporting photo",
+      "page_number": 10,
+      "region_roles": [
+        "bullet_group",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A centered title and concise explanatory text lead into a large supporting photograph within a decorative themed frame."
+    }
+  ],
+  "stage": "content"
+}

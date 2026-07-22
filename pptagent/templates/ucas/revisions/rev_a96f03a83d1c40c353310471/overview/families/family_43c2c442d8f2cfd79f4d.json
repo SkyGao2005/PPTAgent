@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy slides or presentations without institutional branding.",
+    "Avoid when a full-bleed image or highly visual opening is preferred."
+  ],
+  "description": "A formal 4:3 cover uses a large blue title band and centered presenter details beneath institutional branding.",
+  "digest": "institutional cover with bold blue title band",
+  "family_id": "family_43c2c442d8f2cfd79f4d",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Choose for a formal academic or institutional presentation cover.",
+    "Use when the opening needs a prominent title plus presenter, affiliation, and date."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "institutional cover with bold blue title band",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal 4:3 cover uses a large blue title band and centered presenter details beneath institutional branding."
+    }
+  ],
+  "stage": "cover"
+}

@@ -1,0 +1,49 @@
+{
+  "avoid_when": [
+    "Avoid when the topic needs visuals, data, or multiple parallel content blocks.",
+    "Avoid when only a brief statement or a few short bullets are available.",
+    "Avoid when the topic needs charts, images, or multiple parallel content areas.",
+    "Avoid when the body copy must be brief or highly visual."
+  ],
+  "description": "A text-heavy content slide presents a concept heading above a broad definition and detailed supporting points, with decorative artwork reserved along the right edge.",
+  "digest": "definition slide with detailed bullet explanations",
+  "family_id": "family_136f14732691da648829",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for a concept definition supported by several detailed points.",
+    "Choose when substantial explanatory text must fit beneath a clear heading.",
+    "Use for a detailed overview of a single topic.",
+    "Choose when several substantial explanatory points must fit on one slide.",
+    "Works well for historical, cultural, or contextual background."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "definition slide with detailed bullet explanations",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A text-heavy content slide presents a concept heading above a broad definition and detailed supporting points, with decorative artwork reserved along the right edge."
+    },
+    {
+      "density": "dense",
+      "digest": "title with dense explanatory bullet block",
+      "page_number": 5,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A prominent heading sits above a dense single-column explanatory text block, framed by angular green decorative artwork on the right."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,502 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "notes": null,
+  "page_number": 4,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1189298,
+        "width": 11413067,
+        "x": 389467,
+        "y": 347880
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#660874",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "Rectangle 6",
+      "normalized_bbox": {
+        "height": 0.173418,
+        "width": 0.936111,
+        "x": 0.031944,
+        "y": 0.050726
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0001",
+      "source_id": 10,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 72000,
+        "width": 3657601,
+        "x": 8144933,
+        "y": 1592181
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#660874",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "Rectangle 8",
+      "normalized_bbox": {
+        "height": 0.010499,
+        "width": 0.3,
+        "x": 0.668056,
+        "y": 0.232164
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0002",
+      "source_id": 12,
+      "text": null,
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 72000,
+        "width": 7687733,
+        "x": 389467,
+        "y": 1592181
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#969FA7",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "Rectangle 9",
+      "normalized_bbox": {
+        "height": 0.010499,
+        "width": 0.630556,
+        "x": 0.031944,
+        "y": 0.232164
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0003",
+      "source_id": 13,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [
+        "asset_f7f312e5f990403a28feb57e"
+      ],
+      "bbox": {
+        "height": 1019553,
+        "width": 1015763,
+        "x": 10700573,
+        "y": 432751
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "picture",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "图片 7",
+      "normalized_bbox": {
+        "height": 0.148666,
+        "width": 0.083314,
+        "x": 0.877672,
+        "y": 0.063102
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0008",
+      "source_id": 8,
+      "text": null,
+      "visible": true,
+      "z_index": 7
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 3678303,
+        "width": 11029615,
+        "x": 581194,
+        "y": 2180498
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "内容占位符 1",
+      "normalized_bbox": {
+        "height": 0.536352,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.31795
+      },
+      "outline": null,
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s004-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "在"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "PowerPoint"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "的新建幻灯片的选项卡里，可以自己选择合适的页面"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": "在PowerPoint的新建幻灯片的选项卡里，可以自己选择合适的页面"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "本清华主题模板实际上编辑了幻灯片母版，使图案和配色固定下来，使用时可类似于使用"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "office"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "自带模板一样不必为模板细节操心"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": "本清华主题模板实际上编辑了幻灯片母版，使图案和配色固定下来，使用时可类似于使用office自带模板一样不必为模板细节操心"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "如果需要定制，可自行编辑幻灯片母版"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": "如果需要定制，可自行编辑幻灯片母版"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "这个"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#3D3D3D",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 26.0,
+                  "underline": null
+                },
+                "text": "模板来自"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": "这个PPT模板来自"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": ""
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#3D3D3D",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": ""
+          }
+        ],
+        "text": "在PowerPoint的新建幻灯片的选项卡里，可以自己选择合适的页面\n本清华主题模板实际上编辑了幻灯片母版，使图案和配色固定下来，使用时可类似于使用office自带模板一样不必为模板细节操心\n如果需要定制，可自行编辑幻灯片母版\n这个PPT模板来自"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1015200,
+        "width": 10119381,
+        "x": 581192,
+        "y": 434928
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.148031,
+        "width": 0.830002,
+        "x": 0.04767,
+        "y": 0.063419
+      },
+      "outline": null,
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s004-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "本"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "PPT"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": "#FFFFFF",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "模版的使用方法说明"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": false,
+              "color": "#FFFFFF",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 28.0,
+              "underline": null
+            },
+            "text": "本PPT模版的使用方法说明"
+          }
+        ],
+        "text": "本PPT模版的使用方法说明"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s004"
+}

@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs descriptions, timings, or multiple columns.",
+    "Avoid when presenting detailed content rather than a section overview."
+  ],
+  "description": "A blue title band introduces a spacious, single-column numbered agenda on a white field.",
+  "digest": "simple agenda with numbered topic list",
+  "family_id": "family_13e8033f485658336f1c",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise agenda of roughly four major sections.",
+    "Choose when a clean, formal table of contents is needed."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple agenda with numbered topic list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A blue title band introduces a spacious, single-column numbered agenda on a white field."
+    }
+  ],
+  "stage": "agenda"
+}

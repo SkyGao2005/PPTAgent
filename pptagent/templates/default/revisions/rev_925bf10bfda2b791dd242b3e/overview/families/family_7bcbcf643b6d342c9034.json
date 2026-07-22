@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs imagery, charts, or data visualization.",
+    "Avoid for brief statements or content that cannot be organized as detailed points.",
+    "Avoid when multiple independent content columns are required."
+  ],
+  "description": "A prominent question-style heading introduces a dense, left-aligned explanatory text block against a strongly branded geometric background.",
+  "digest": "title with dense explanatory bullet list",
+  "family_id": "family_7bcbcf643b6d342c9034",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for defining or explaining a concept in depth.",
+    "Choose when a heading is followed by an introduction and several substantial text points.",
+    "Works well for quotation-led educational or philosophical content."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "title with dense explanatory bullet list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A prominent question-style heading introduces a dense, left-aligned explanatory text block against a strongly branded geometric background."
+    }
+  ],
+  "stage": "content"
+}

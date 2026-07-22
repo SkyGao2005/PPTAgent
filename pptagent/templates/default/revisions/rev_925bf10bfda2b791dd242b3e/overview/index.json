@@ -1,0 +1,177 @@
+{
+  "asset_roles": {
+    "content_image": 5,
+    "decoration": 1
+  },
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "detail_hint": "Each family lists only its digest. Call get_family_detail(family_id) for selection hints, avoid conditions, and member pages.",
+  "families": [
+    {
+      "digest": "single large reference diagram on decorative background",
+      "family_id": "family_483b83cc1b014f662dd8",
+      "layout_pattern": "hero",
+      "modalities": [
+        "image"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "cover with centered title and subtitle",
+      "family_id": "family_139ca32a054b772e54c2",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "cover"
+    },
+    {
+      "digest": "Split explanation with tall reference image",
+      "family_id": "family_dcb47c1b037b869096bd",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "Side photo with dense explanatory text",
+      "family_id": "family_1e9b9aa436c75691293b",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "heritage explanation with large supporting photo",
+      "family_id": "family_f58a5e55c32c99322b54",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "image"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "Large photo above title and explanatory text",
+      "family_id": "family_797217b88b4f18296128",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "large photo with title and explanation",
+      "family_id": "family_c392fbf5146ad0f194c7",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "title with dense explanatory bullet list",
+      "family_id": "family_7bcbcf643b6d342c9034",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "definition slide with detailed bullet explanations",
+      "family_id": "family_136f14732691da648829",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 2,
+      "stage": "content"
+    },
+    {
+      "digest": "title with dense explanatory bullet list",
+      "family_id": "family_40c3359d4b4bbd9b34f9",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "Definition with detailed supporting points",
+      "family_id": "family_bb3ff0b93a5f77d1cb28",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "Title with dense explanatory text block",
+      "family_id": "family_43d315d1820f2355e146",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    }
+  ],
+  "family_count": 12,
+  "name": "default",
+  "revision_id": "rev_925bf10bfda2b791dd242b3e",
+  "schema_version": "2.0",
+  "slide_count": 13,
+  "template_id": "default",
+  "theme": {
+    "colors": {
+      "accent1": "#90C226",
+      "accent2": "#54A021",
+      "accent3": "#E6B91E",
+      "accent4": "#E76618",
+      "accent5": "#C42F1A",
+      "accent6": "#918655",
+      "bg1": "#000000",
+      "bg2": "#2C3C43",
+      "color_1": "#BCDA7D",
+      "color_2": "#262626",
+      "color_3": "#3F7819",
+      "folHlink": "#B9D181",
+      "hlink": "#99CA3C",
+      "tx1": "#FFFFFF",
+      "tx2": "#EBEBEB"
+    },
+    "fonts": {
+      "font_1": "Arial Rounded MT Bold",
+      "font_major": "Trebuchet MS",
+      "font_minor": "Trebuchet MS"
+    },
+    "safe_area": {
+      "height": 0.92,
+      "width": 0.92,
+      "x": 0.04,
+      "y": 0.04
+    }
+  }
+}
