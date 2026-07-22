@@ -323,6 +323,7 @@ def test_template_local_tools_only_read_task_context_pack(
 
     assert set(registered) == {
         "get_template_overview",
+        "get_family_detail",
         "search_template_references",
         "get_template_reference",
     }

@@ -255,6 +255,12 @@ class AgentLoop:
             payload = template_context.get_overview()
             return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 
+        def get_family_detail(family_id: str) -> str:
+            """Expand one layout family listed in the template overview."""
+
+            payload = template_context.get_family_detail(family_id)
+            return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
         def search_template_references(
             stage: str | None = None,
             layout_pattern: str | None = None,
@@ -306,6 +312,7 @@ class AgentLoop:
             return CallToolResult(content=content, isError=False)
 
         agent_env.register_tool(get_template_overview)
+        agent_env.register_tool(get_family_detail)
         agent_env.register_tool(search_template_references)
         agent_env.register_tool(get_template_reference)
 

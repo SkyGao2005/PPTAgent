@@ -111,6 +111,7 @@ def _response(regions: list[dict[str, Any]]) -> dict[str, Any]:
         "message_pattern": "explanation",
         "density": "sparse",
         "title": "Template page",
+        "digest": "cover with centred title",
         "summary": "Heading over one body block",
         "regions": regions,
         "selection_hints": ["Use for content slides."],

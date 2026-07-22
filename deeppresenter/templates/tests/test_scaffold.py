@@ -12,6 +12,7 @@ from deeppresenter.templates.models import (
     BoundingBox,
     Canvas,
     Density,
+    LayoutFamily,
     LayoutPattern,
     MessagePattern,
     NormalizedBox,
@@ -180,3 +181,49 @@ def test_resolver_ignores_non_placeholder_shapes() -> None:
     for shape in presentation.slides[0].shapes:
         # Must not raise for ordinary (non-placeholder) shapes.
         assert resolver.inherited_style(shape) is not None
+
+
+def test_layered_overview_keeps_every_family_in_the_index() -> None:
+    """The index tier must scale with family count instead of truncating."""
+
+    from deeppresenter.templates.overview import build_family_detail, build_index
+
+    result = PptxExtractor().extract(BUNDLED / "thu" / "source.pptx")
+    families = [
+        LayoutFamily(
+            family_id=f"family_{index:02d}",
+            name=f"name-{index}",
+            signature=f"sig-{index}",
+            stage=PageStage.CONTENT,
+            layout_pattern=LayoutPattern.TITLE_BODY,
+            slide_ids=["s001"],
+            representative_slide_id="s001",
+            digest=f"digest {index}",
+            selection_hints=["long hint " * 20],
+            avoid_when=["long avoid " * 20],
+        )
+        for index in range(12)
+    ]
+
+    index = build_index(
+        template_id="thu",
+        revision_id="rev_test",
+        schema_version="2.0",
+        name="thu",
+        canvas=result.canvas,
+        theme=result.theme,
+        families=families,
+        slides=[],
+        assets=[value.asset for value in result.assets],
+    )
+
+    # Every family survives: the index carries digests, not prose.
+    assert len(index["families"]) == 12
+    assert all(entry["digest"] for entry in index["families"])
+    assert "selection_hints" not in index["families"][0]
+    assert "detail_hint" in index
+
+    detail = build_family_detail(families[0], {"s001": _semantic()})
+    assert detail["selection_hints"] == families[0].selection_hints
+    assert detail["avoid_when"] == families[0].avoid_when
+    assert detail["slides"][0]["slide_id"] == "s001"

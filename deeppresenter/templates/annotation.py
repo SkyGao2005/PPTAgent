@@ -124,6 +124,7 @@ class SlideAnnotationResponse(StrictModel):
     message_pattern: MessagePattern
     density: Density
     title: str | None = None
+    digest: Annotated[str, Field(max_length=80)]
     summary: str
     regions: list[AnnotationRegion] = Field(min_length=1)
     selection_hints: list[str] = Field(default_factory=list)
@@ -225,6 +226,7 @@ def empty_slide_semantic(graph: SourceGraph, annotator_id: str) -> Semantic:
             modalities=[],
             density=Density.SPARSE,
             summary="Blank page without annotatable shapes",
+            digest="blank page",
         ),
         regions=[],
         reading_order=[],
@@ -271,6 +273,9 @@ Field guide:
   decoration, background, other); kind describes medium (text, image, chart,
   table, diagram, metric, group, decoration, background, unknown).
 - title: the slide's visible heading text, or null.
+- digest: at most 8 words naming what this page is for, written so a planner
+  scanning a list of pages can pick between them ("cover with centred title
+  over colour band", "two-column text with side photo"). No trailing period.
 - summary: one sentence describing the page's design intent.
 - selection_hints: short sentences telling a generator when to pick this
   page. avoid_when: short sentences telling it when not to.
@@ -374,6 +379,7 @@ class VLMAnnotator:
             density=response.density,
             title=response.title,
             summary=response.summary,
+            digest=response.digest,
         )
         return Semantic(
             slide_id=graph.slide_id,
@@ -543,6 +549,7 @@ class DeterministicAnnotator:
             density=density,
             title=title or None,
             summary=f"{stage.value} slide using a {layout.value} composition",
+            digest=f"{stage.value} page, {layout.value} layout",
         )
         return Semantic(
             slide_id=graph.slide_id,

@@ -388,6 +388,9 @@ class PageSemantics(StrictModel):
     density: Density
     title: str | None = None
     summary: str = ""
+    # A short clause for the always-pinned overview index. ``summary`` is the
+    # full sentence shown only after a family is expanded.
+    digest: str = ""
 
 
 class Semantic(StrictModel):
@@ -460,6 +463,8 @@ class LayoutFamily(StrictModel):
     slide_ids: list[Identifier]
     representative_slide_id: Identifier
     description: str = ""
+    # Carried in the pinned index; the rest of this model is detail tier.
+    digest: str = ""
     selection_hints: list[str] = Field(default_factory=list)
     avoid_when: list[str] = Field(default_factory=list)
 
@@ -549,6 +554,7 @@ class Revision(StrictModel):
     asset_index_path: str
     family_index_path: str
     validation_report_path: str
+    overview_index_path: str | None = None
     file_hashes: dict[str, Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]] = Field(
         default_factory=dict
     )

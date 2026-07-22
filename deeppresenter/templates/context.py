@@ -13,6 +13,7 @@ from deeppresenter.templates.store import (
     JsonObject,
     TemplateStore,
 )
+from deeppresenter.templates.overview import OVERVIEW_INDEX_PATH, family_detail_path
 from deeppresenter.utils.config import ContextBudgetConfig, chars_for_tokens
 
 
@@ -383,6 +384,15 @@ class TemplateContextProvider:
 
         max_chars = max_chars or self.overview_chars
         revision = self.store.resolve(template_id, revision_id)
+        compiled = self._compiled_overview_index(revision)
+        if compiled is not None:
+            # The index tier is sized by template structure, not prose, so it
+            # normally passes through untouched.
+            return _bounded_object(
+                compiled,
+                max_chars=max_chars,
+                identity_keys=("template_id", "revision_id", "schema_version"),
+            )
         theme = revision.load_theme()
         families = revision.load_families()
         slides = revision.load_slide_index()
@@ -436,6 +446,50 @@ class TemplateContextProvider:
             payload,
             max_chars=max_chars,
             identity_keys=("template_id", "revision_id", "schema_version"),
+        )
+
+    @staticmethod
+    def _compiled_overview_index(revision: Any) -> JsonObject | None:
+        """Load the compile-time index tier, if this revision has one.
+
+        Revisions built before the layered overview fall back to projecting
+        it at read time.
+        """
+
+        relative = revision.metadata.get("overview_index_path") or OVERVIEW_INDEX_PATH
+        if not (revision.root / relative).is_file():
+            return None
+        return json.loads(revision.resolve_path(relative).read_text(encoding="utf-8"))
+
+    def get_family_detail(
+        self,
+        template_id: str,
+        family_id: str,
+        revision_id: str | None = None,
+        *,
+        max_chars: int | None = None,
+    ) -> JsonObject:
+        """Expand one family: selection hints, avoid conditions, member pages."""
+
+        max_chars = max_chars or self.reference_chars
+        revision = self.store.resolve(template_id, revision_id)
+        relative = family_detail_path(family_id)
+        if not (revision.root / relative).is_file():
+            known = [
+                str(family.get("family_id"))
+                for family in revision.load_families()
+                if family.get("family_id")
+            ]
+            raise KeyError(
+                f"Unknown family {family_id!r}; available families: {known}"
+            )
+        payload = json.loads(
+            revision.resolve_path(relative).read_text(encoding="utf-8")
+        )
+        return _bounded_object(
+            payload,
+            max_chars=max_chars,
+            identity_keys=("family_id", "stage", "layout_pattern"),
         )
 
     def render_overview_markdown(

@@ -24,6 +24,7 @@ from deeppresenter.templates.context import (
     _score_reference,
     _string_set,
 )
+from deeppresenter.templates.overview import family_detail_path
 from deeppresenter.templates.store import (
     JsonObject,
     TemplateRevision,
@@ -446,6 +447,16 @@ def materialize_context_pack(
             max_chars=provider.overview_chars,
         )
         (temporary / "overview.md").write_text(overview, encoding="utf-8")
+        # Copy the compiled detail tier so progressive disclosure stays
+        # task-local; the sandbox never reaches back into the revision.
+        for family in revision.load_families():
+            family_id = str(family.get("family_id") or "")
+            relative = family_detail_path(family_id) if family_id else ""
+            if relative and (revision.root / relative).is_file():
+                _copy_artifact(
+                    revision.resolve_path(relative),
+                    temporary / "overview" / "families" / f"{family_id}.json",
+                )
 
         references: list[JsonObject] = []
         referenced_asset_ids: set[str] = set()
@@ -717,6 +728,32 @@ class TaskTemplateContext:
             self.overview,
             max_chars=max_chars or DEFAULT_OVERVIEW_CHARS,
             identity_keys=("template_id", "revision_id", "schema_version"),
+        )
+
+    def get_family_detail(
+        self,
+        family_id: str,
+        *,
+        max_chars: int | None = None,
+    ) -> JsonObject:
+        """Expand one family from the task-local copy of the detail tier."""
+
+        relative = f"overview/families/{family_id}.json"
+        if not (self.root / relative).is_file():
+            known = [
+                str(item.get("family_id"))
+                for item in self.overview.get("families", [])
+                if isinstance(item, Mapping) and item.get("family_id")
+            ]
+            raise KeyError(
+                f"Unknown family {family_id!r}; available families: {known}"
+            )
+        # resolve_path re-checks the snapshot hash before the file is read.
+        path = self.resolve_path(relative)
+        return _bounded_object(
+            json.loads(path.read_text(encoding="utf-8")),
+            max_chars=max_chars or DEFAULT_REFERENCE_CHARS,
+            identity_keys=("family_id", "stage", "layout_pattern"),
         )
 
     def search_references(

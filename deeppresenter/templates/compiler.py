@@ -37,6 +37,7 @@ from .models import (
     ReusePolicy,
     Revision,
     RevisionRef,
+    SCHEMA_VERSION,
     Semantic,
     SUPPORTED_ASPECT_RATIOS,
     SlideIndexEntry,
@@ -49,6 +50,12 @@ from .models import (
     ValidationSeverity,
     dump_model,
     utc_now,
+)
+from .overview import (
+    OVERVIEW_INDEX_PATH,
+    build_family_detail,
+    build_index,
+    family_detail_path,
 )
 from .scaffold import build_layout_css
 from .rendering import (
@@ -239,6 +246,15 @@ class TemplateCompiler:
             slide_artifacts,
             slide_family_ids,
         )
+        self._persist_overview(
+            staging_dir,
+            template_id=template_id,
+            revision_id=revision_id,
+            extraction=extraction,
+            families=families,
+            semantics=semantics,
+            entries=entries,
+        )
         report = self._validate(
             extraction,
             semantics,
@@ -268,6 +284,7 @@ class TemplateCompiler:
             asset_index_path="assets/index.json",
             family_index_path="families/index.json",
             validation_report_path="validation/report.json",
+            overview_index_path=OVERVIEW_INDEX_PATH,
             file_hashes=file_hashes,
         )
         dump_model(staging_dir / "revision.json", revision)
@@ -470,6 +487,38 @@ class TemplateCompiler:
         return entries
 
     @staticmethod
+    def _persist_overview(
+        staging_dir: Path,
+        *,
+        template_id: str,
+        revision_id: str,
+        extraction: ExtractionResult,
+        families: list[LayoutFamily],
+        semantics: list[Semantic],
+        entries: list[SlideIndexEntry],
+    ) -> None:
+        """Compile both overview tiers so generation never re-projects them."""
+
+        index = build_index(
+            template_id=template_id,
+            revision_id=revision_id,
+            schema_version=SCHEMA_VERSION,
+            name=template_id,
+            canvas=extraction.canvas,
+            theme=extraction.theme,
+            families=families,
+            slides=entries,
+            assets=[value.asset for value in extraction.assets],
+        )
+        dump_model(staging_dir / OVERVIEW_INDEX_PATH, index)
+        by_slide = {semantic.slide_id: semantic for semantic in semantics}
+        for family in families:
+            dump_model(
+                staging_dir / family_detail_path(family.family_id),
+                build_family_detail(family, by_slide),
+            )
+
+    @staticmethod
     def _layout_families(
         semantics: list[Semantic],
     ) -> tuple[list[LayoutFamily], dict[str, list[str]]]:
@@ -497,6 +546,7 @@ class TemplateCompiler:
                 slide_ids=[member.slide_id for member in members],
                 representative_slide_id=first.slide_id,
                 description=first.page_semantics.summary,
+                digest=first.page_semantics.digest,
                 selection_hints=list(
                     dict.fromkeys(
                         hint for member in members for hint in member.selection_hints
