@@ -186,5 +186,11 @@ export interface AttachmentReceipt {
 }
 
 export interface ExportReceipt {
-  export_id: string
+  task_id: string
+  format: "pptx" | "pdf"
+  artifact_path: string
+  artifact_url: string
+  download_url: string
+  filename: string
+  status: "completed"
 }

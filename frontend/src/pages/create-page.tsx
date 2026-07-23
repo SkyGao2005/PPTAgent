@@ -41,13 +41,6 @@ import {
 } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
 
-const suggestions = [
-  "2026 半年度经营分析汇报",
-  "新产品发布方案介绍",
-  "团队季度 OKR 复盘",
-  "行业趋势研究分享",
-]
-
 // Setting chips inside the prompt card, per the liquid-glass design
 // ("Template: Meridian ▾", "12 slides ▾").
 const chipClass =
@@ -520,19 +513,6 @@ export function CreatePage() {
             上传并等待解析完成。
           </div>
         ) : null}
-
-        <div className={cn("flex flex-wrap justify-center gap-2", templatesLoadError || (templatesLoaded && readyTemplates.length === 0) ? "mt-4" : "mt-5")}>
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              className="glass-chip rounded-full px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground"
-              onClick={() => setTopic(suggestion)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
 
         <TaskHistory />
       </main>

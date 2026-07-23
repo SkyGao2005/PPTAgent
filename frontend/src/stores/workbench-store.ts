@@ -450,6 +450,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
   // Guards hydrate() against out-of-order responses when the user switches
   // tasks quickly: only the most recent call may write to the store.
   let hydrateGeneration = 0
+  let activeExportRequest: { taskId: string } | null = null
 
   return {
     taskId: null,
@@ -470,6 +471,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
 
     async hydrate(taskId, fallbackTotal = 0) {
       const generation = ++hydrateGeneration
+      activeExportRequest = null
       const persisted = readPersistedWorkbench(taskId)
       revisionEpochs = new Map()
       statusEpochs = new Map()
@@ -953,28 +955,23 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           set({ exporting: true })
           break
         case "export.completed": {
-          set({ exporting: false })
-          const filename = (event.payload.filename as string) ?? "presentation.pptx"
-          const url = safeDownloadUrl(event.artifact_url)
-          toast.success("导出完成", {
-            description: filename,
-            action: url
-              ? {
-                  label: "下载",
-                  onClick: () => {
-                    void downloadArtifact(url, filename).catch(() => {
-                      toast.error("下载失败，请检查后端资源跨域配置")
-                    })
-                  },
-                }
-              : undefined,
-          })
+          // A button-triggered export owns its lifecycle through the REST
+          // response, which carries the final download URL. SSE remains the
+          // state fallback for exports started elsewhere or replayed later.
+          if (activeExportRequest?.taskId !== event.task_id) {
+            set({ exporting: false })
+          }
           break
         }
-        case "export.failed":
+        case "export.failed": {
+          const isActiveRequest = activeExportRequest?.taskId === event.task_id
+          if (isActiveRequest) {
+            activeExportRequest = null
+          }
           set({ exporting: false })
           toast.error("导出失败", { description: event.message })
           break
+        }
         default:
           break
       }
@@ -1043,12 +1040,36 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
         toast.info("请等待所有页面完成后再导出")
         return
       }
+      const request = { taskId }
+      activeExportRequest = request
       set({ exporting: true })
       try {
-        await api.exportTask(taskId, format)
+        const receipt = await api.exportTask(taskId, format)
+        if (activeExportRequest !== request) {
+          return
+        }
+        const url = safeDownloadUrl(receipt.download_url || receipt.artifact_url)
+        if (!url) {
+          toast.error("导出完成，但下载地址无效")
+          return
+        }
+        try {
+          await downloadArtifact(url, receipt.filename || `presentation.${format}`)
+          toast.success("导出完成，下载已开始", {
+            description: receipt.filename,
+          })
+        } catch {
+          toast.error("导出完成，但自动下载失败")
+        }
       } catch {
-        set({ exporting: false })
-        toast.error("导出请求失败")
+        if (activeExportRequest === request) {
+          toast.error("导出请求失败")
+        }
+      } finally {
+        if (activeExportRequest === request) {
+          activeExportRequest = null
+          set({ exporting: false })
+        }
       }
     },
 

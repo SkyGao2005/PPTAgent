@@ -60,13 +60,6 @@ import { useWorkbenchStore } from "@/stores/workbench-store"
 import type { SlideView, WorkChatMessage } from "@/stores/workbench-store"
 import type { TaskStage, TaskStatus } from "@/types/api"
 
-const QUICK_CHIPS = ["换个配色", "精简文案", "换个版式", "换张配图"]
-const STARTER_CHIPS = [
-  "把这一页的文案精简一点",
-  "换一组配色试试",
-  "改成左文右图的版式",
-]
-
 const STAGE_TEXT: Partial<Record<TaskStage, string>> = {
   template: "准备模板中…",
   research: "解析资料中…",
@@ -798,19 +791,7 @@ function ChatPanel({ slide }: { slide: SlideView | null }) {
             <div className="mt-1.5 text-xs leading-relaxed text-hint">
               只修改当前选中的页面，
               <br />
-              不会影响整份演示。试试说：
-            </div>
-            <div className="mt-4 flex w-full flex-col gap-1.5">
-              {STARTER_CHIPS.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  className="rounded-full border border-border bg-white/50 px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-white/80 hover:text-foreground"
-                  onClick={() => send(chip)}
-                >
-                  「{chip}」
-                </button>
-              ))}
+              不会影响整份演示。直接描述你想如何调整。
             </div>
           </div>
         ) : (
@@ -823,19 +804,6 @@ function ChatPanel({ slide }: { slide: SlideView | null }) {
       </div>
 
       <div className="border-t border-border/70 px-4 pt-3 pb-4">
-        <div className="mb-2.5 flex flex-wrap gap-1.5">
-          {QUICK_CHIPS.map((chip) => (
-            <button
-              key={chip}
-              type="button"
-              className="rounded-full border border-border bg-white/50 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-white/80 hover:text-foreground disabled:opacity-50"
-              disabled={!slide || busy}
-              onClick={() => send(chip)}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
         {notReady && (
           <div className="mb-2 text-[11px] text-hint">
             {slide?.status === "failed"

@@ -559,7 +559,7 @@ function snapshotOf(task: MockTask): TaskSnapshot {
     status: task.status,
     stage: task.stage,
     progress: task.totalSlides ? Math.round((done / task.totalSlides) * 100) : 0,
-    template_id: task.templateId,
+    template_id: task.templateId ?? "",
     ratio: task.ratio,
     manuscript_approved: task.reviewedManuscript,
     total_slides: task.totalSlides,
@@ -581,7 +581,7 @@ function historyOf(task: MockTask): TaskHistoryItem {
     status: task.status,
     stage: task.stage,
     progress: snapshot.progress,
-    template_id: task.templateId,
+    template_id: task.templateId ?? "",
     ratio: task.ratio,
     total_slides: task.totalSlides,
     completed_slides: task.slides.filter(
@@ -1017,28 +1017,36 @@ export function mockApplyRevision(taskId: string, slideId: string, revision: num
 
 export function mockExportTask(taskId: string, format: "pptx" | "pdf"): ExportReceipt {
   const task = requireTask(taskId)
-  const exportId = `exp-${Date.now().toString(36)}`
+  const filename = `${task.topic.slice(0, 20) || "presentation"}.${format}`
+  const blob = new Blob([`PPTAgent mock export: ${task.topic}`], {
+    type: "application/octet-stream",
+  })
+  const downloadUrl = URL.createObjectURL(blob)
   emit(task, {
     type: "export.started",
     stage: "export",
     message: `正在导出 ${format.toUpperCase()}`,
-    payload: { format, export_id: exportId },
+    payload: { format },
   })
   later(task, () => {
-    const filename = `${task.topic.slice(0, 20) || "presentation"}.${format}`
-    const blob = new Blob([`PPTAgent mock export: ${task.topic}`], {
-      type: "application/octet-stream",
-    })
     emit(task, {
       type: "export.completed",
       stage: "export",
       status: "succeeded",
-      artifact_url: URL.createObjectURL(blob),
+      artifact_url: downloadUrl,
       message: `${format.toUpperCase()} 导出完成`,
-      payload: { format, filename, export_id: exportId },
+      payload: { format, filename },
     })
   }, jitter(1500, 600))
-  return { export_id: exportId }
+  return {
+    task_id: taskId,
+    format,
+    artifact_path: filename,
+    artifact_url: downloadUrl,
+    download_url: downloadUrl,
+    filename,
+    status: "completed",
+  }
 }
 
 export function mockSubscribeTask(
