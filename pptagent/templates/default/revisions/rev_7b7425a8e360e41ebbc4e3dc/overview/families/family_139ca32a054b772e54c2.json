@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy slides, detailed agendas, or data presentations.",
+    "Avoid when the opening requires a prominent photograph or logo."
+  ],
+  "description": "A bold cover slide places a centered title and supporting attribution over a dark field framed by layered green geometric artwork.",
+  "digest": "cover with centered title and subtitle",
+  "family_id": "family_139ca32a054b772e54c2",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for an opening cover with a concise title, explanatory subtitle, and author credit.",
+    "Choose when a bold abstract geometric background suits the presentation theme."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "cover with centered title and subtitle",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A bold cover slide places a centered title and supporting attribution over a dark field framed by layered green geometric artwork."
+    }
+  ],
+  "stage": "cover"
+}

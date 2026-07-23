@@ -1,0 +1,344 @@
+{
+  "assets": [
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_5cabde49ecf2b341df5e7dc9",
+      "browser_media_type": "image/jpeg",
+      "browser_path": "assets/asset_5cabde49ecf2b341df5e7dc9.jpg",
+      "browser_pixel_height": 515,
+      "browser_pixel_width": 1128,
+      "browser_sha256": "5cabde49ecf2b341df5e7dc97507c10754aa708efab5d217b264fb08c90415d7",
+      "byte_size": 51231,
+      "extension": "jpg",
+      "media_type": "image/jpeg",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.107677,
+            "width": 0.132603,
+            "x": 0.842065,
+            "y": 0.001847
+          },
+          "page_number": 1,
+          "scope": "layout",
+          "shape_id": "s001-layout-sh0007",
+          "slide_id": "s001",
+          "source_name": "Picture 2"
+        },
+        {
+          "bbox": {
+            "height": 0.107677,
+            "width": 0.132603,
+            "x": 0.842065,
+            "y": 0.001847
+          },
+          "page_number": 9,
+          "scope": "layout",
+          "shape_id": "s009-layout-sh0005",
+          "slide_id": "s009",
+          "source_name": "Picture 2"
+        }
+      ],
+      "path": "assets/asset_5cabde49ecf2b341df5e7dc9.jpg",
+      "pixel_height": 515,
+      "pixel_width": 1128,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "5cabde49ecf2b341df5e7dc97507c10754aa708efab5d217b264fb08c90415d7",
+      "tags": [
+        "decoration"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_7803e0ff3389640cf867b5e3",
+      "browser_media_type": "image/jpeg",
+      "browser_path": "assets/asset_7803e0ff3389640cf867b5e3.jpg",
+      "browser_pixel_height": 341,
+      "browser_pixel_width": 587,
+      "browser_sha256": "7803e0ff3389640cf867b5e3511e611dcf182ad94d9216591661bb58b8046b7f",
+      "byte_size": 21648,
+      "extension": "jpg",
+      "media_type": "image/jpeg",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.791414,
+            "width": 0.555216,
+            "x": 0.414655,
+            "y": 0.156943
+          },
+          "page_number": 7,
+          "scope": "slide",
+          "shape_id": "s007-sh0003",
+          "slide_id": "s007",
+          "source_name": "图片 4"
+        }
+      ],
+      "path": "assets/asset_7803e0ff3389640cf867b5e3.jpg",
+      "pixel_height": 341,
+      "pixel_width": 587,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "7803e0ff3389640cf867b5e3511e611dcf182ad94d9216591661bb58b8046b7f",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_7d5a8b9773cc867b4485ff68",
+      "browser_media_type": "image/jpeg",
+      "browser_path": "assets/asset_7d5a8b9773cc867b4485ff68.jpg",
+      "browser_pixel_height": 548,
+      "browser_pixel_width": 1197,
+      "browser_sha256": "7d5a8b9773cc867b4485ff68cb3e706ca3af7ff4ce245b9f68663a05da668466",
+      "byte_size": 113878,
+      "extension": "jpg",
+      "media_type": "image/jpeg",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.727564,
+            "width": 0.531034,
+            "x": 0.452586,
+            "y": 0.156943
+          },
+          "page_number": 4,
+          "scope": "slide",
+          "shape_id": "s004-sh0003",
+          "slide_id": "s004",
+          "source_name": "图片 4"
+        }
+      ],
+      "path": "assets/asset_7d5a8b9773cc867b4485ff68.jpg",
+      "pixel_height": 548,
+      "pixel_width": 1197,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "7d5a8b9773cc867b4485ff68cb3e706ca3af7ff4ce245b9f68663a05da668466",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_aff11db7738f68006ecc4ba8",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_aff11db7738f68006ecc4ba8.png",
+      "browser_pixel_height": 669,
+      "browser_pixel_width": 4400,
+      "browser_sha256": "aff11db7738f68006ecc4ba8be950a8c8756c6919cb5fec9ee8f5889cf897303",
+      "byte_size": 266459,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.107677,
+            "width": 0.398214,
+            "x": 0.0,
+            "y": 0.001847
+          },
+          "page_number": 1,
+          "scope": "layout",
+          "shape_id": "s001-layout-sh0006",
+          "slide_id": "s001",
+          "source_name": "图片 5"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 2,
+          "scope": "layout",
+          "shape_id": "s002-layout-sh0001",
+          "slide_id": "s002",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 3,
+          "scope": "layout",
+          "shape_id": "s003-layout-sh0001",
+          "slide_id": "s003",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 4,
+          "scope": "layout",
+          "shape_id": "s004-layout-sh0001",
+          "slide_id": "s004",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 5,
+          "scope": "layout",
+          "shape_id": "s005-layout-sh0001",
+          "slide_id": "s005",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 6,
+          "scope": "layout",
+          "shape_id": "s006-layout-sh0001",
+          "slide_id": "s006",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 7,
+          "scope": "layout",
+          "shape_id": "s007-layout-sh0001",
+          "slide_id": "s007",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.089125,
+            "width": 0.329603,
+            "x": 0.670397,
+            "y": 0.026614
+          },
+          "page_number": 8,
+          "scope": "layout",
+          "shape_id": "s008-layout-sh0001",
+          "slide_id": "s008",
+          "source_name": "图片 11"
+        },
+        {
+          "bbox": {
+            "height": 0.107677,
+            "width": 0.398214,
+            "x": 0.0,
+            "y": 0.001847
+          },
+          "page_number": 9,
+          "scope": "layout",
+          "shape_id": "s009-layout-sh0004",
+          "slide_id": "s009",
+          "source_name": "图片 5"
+        }
+      ],
+      "path": "assets/asset_aff11db7738f68006ecc4ba8.png",
+      "pixel_height": 669,
+      "pixel_width": 4400,
+      "reuse_policy": "always",
+      "role": "logo",
+      "sha256": "aff11db7738f68006ecc4ba8be950a8c8756c6919cb5fec9ee8f5889cf897303",
+      "tags": [
+        "logo"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_b1d2319d8008515f75f45dcf",
+      "browser_media_type": "image/jpeg",
+      "browser_path": "assets/asset_b1d2319d8008515f75f45dcf.jpg",
+      "browser_pixel_height": 453,
+      "browser_pixel_width": 583,
+      "browser_sha256": "b1d2319d8008515f75f45dcfe730050c2c8e06d621ff0bf547ceb0e17c040620",
+      "byte_size": 53474,
+      "extension": "jpg",
+      "media_type": "image/jpeg",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.727564,
+            "width": 0.472917,
+            "x": 0.495913,
+            "y": 0.156943
+          },
+          "page_number": 3,
+          "scope": "slide",
+          "shape_id": "s003-sh0003",
+          "slide_id": "s003",
+          "source_name": "图片 4"
+        }
+      ],
+      "path": "assets/asset_b1d2319d8008515f75f45dcf.jpg",
+      "pixel_height": 453,
+      "pixel_width": 583,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "b1d2319d8008515f75f45dcfe730050c2c8e06d621ff0bf547ceb0e17c040620",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_b3642a78187cdf1ccb5b3ca8",
+      "browser_media_type": "image/jpeg",
+      "browser_path": "assets/asset_b3642a78187cdf1ccb5b3ca8.jpg",
+      "browser_pixel_height": 499,
+      "browser_pixel_width": 582,
+      "browser_sha256": "b3642a78187cdf1ccb5b3ca8ede58a09fd33104d4fdf99635d661bd50c826426",
+      "byte_size": 27991,
+      "extension": "jpg",
+      "media_type": "image/jpeg",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.507922,
+            "width": 0.755082,
+            "x": 0.122459,
+            "y": 0.156943
+          },
+          "page_number": 8,
+          "scope": "slide",
+          "shape_id": "s008-sh0002",
+          "slide_id": "s008",
+          "source_name": "表格 13"
+        }
+      ],
+      "path": "assets/asset_b3642a78187cdf1ccb5b3ca8.jpg",
+      "pixel_height": 499,
+      "pixel_width": 582,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "b3642a78187cdf1ccb5b3ca8ede58a09fd33104d4fdf99635d661bd50c826426",
+      "tags": [
+        "content_image"
+      ]
+    }
+  ],
+  "schema_version": "2.0"
+}

@@ -1,0 +1,132 @@
+{
+  "asset_roles": {
+    "content_image": 2,
+    "decoration": 1,
+    "logo": 1
+  },
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "detail_hint": "Each family lists only its digest. Call get_family_detail(family_id) for selection hints, avoid conditions, and member pages.",
+  "families": [
+    {
+      "digest": "cover with title on purple band",
+      "family_id": "family_43c2c442d8f2cfd79f4d",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "cover"
+    },
+    {
+      "digest": "branded closing with centered thank-you message",
+      "family_id": "family_95064992efdcead92207",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "closing"
+    },
+    {
+      "digest": "section divider above branded colour band",
+      "family_id": "family_46a1d96fd896d8a30aa1",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 3,
+      "stage": "section"
+    },
+    {
+      "digest": "title with explanatory text and technical diagram",
+      "family_id": "family_7ac372e1cc07cee93126",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "diagram"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "two-column text with section headings",
+      "family_id": "family_a4192aa6e401d4c669d3",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "agenda with sidebar title and section list",
+      "family_id": "family_844c96dae7e2bb5f5ffa",
+      "layout_pattern": "split",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "agenda"
+    },
+    {
+      "digest": "large image above title and description",
+      "family_id": "family_74343179633b88d879a5",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "image",
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "branded title with instructional bullet list",
+      "family_id": "family_2481301742307bcc07f5",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    }
+  ],
+  "family_count": 8,
+  "name": "thu",
+  "revision_id": "rev_8ddcfe81c16c87a6304b8cf8",
+  "schema_version": "2.0",
+  "slide_count": 10,
+  "template_id": "thu",
+  "theme": {
+    "colors": {
+      "accent1": "#660874",
+      "accent2": "#660874",
+      "accent3": "#E6C46D",
+      "accent4": "#969FA7",
+      "accent5": "#A9C37C",
+      "accent6": "#5A8071",
+      "bg1": "#FFFFFF",
+      "bg2": "#EBEBEB",
+      "folHlink": "#43064C",
+      "hlink": "#007698",
+      "tx1": "#000000",
+      "tx2": "#3D3D3D"
+    },
+    "fonts": {
+      "font_major": "Gill Sans MT",
+      "font_minor": "Gill Sans MT"
+    },
+    "safe_area": {
+      "height": 0.92,
+      "width": 0.92,
+      "x": 0.04,
+      "y": 0.04
+    }
+  }
+}

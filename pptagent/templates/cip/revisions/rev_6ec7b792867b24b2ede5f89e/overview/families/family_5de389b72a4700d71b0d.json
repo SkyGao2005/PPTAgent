@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the visual is not the primary evidence.",
+    "Avoid for multiple charts or dashboard-style analysis."
+  ],
+  "description": "A large central heatmap provides the evidence, followed by concise explanatory bullets beneath a prominent title.",
+  "digest": "heatmap with explanatory bullets",
+  "family_id": "family_5de389b72a4700d71b0d",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "chart"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s008",
+  "selection_hints": [
+    "Use for presenting one dominant analytical chart with concise interpretation.",
+    "Choose when a heatmap or matrix visualization needs supporting takeaways."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "heatmap with explanatory bullets",
+      "page_number": 8,
+      "region_roles": [
+        "bullet_group",
+        "chart",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A large central heatmap provides the evidence, followed by concise explanatory bullets beneath a prominent title."
+    }
+  ],
+  "stage": "content"
+}

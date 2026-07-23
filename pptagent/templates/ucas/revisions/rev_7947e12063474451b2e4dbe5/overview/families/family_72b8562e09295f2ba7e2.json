@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires visuals, charts, or side-by-side comparison.",
+    "Avoid for highly detailed procedures that need more than a few concise steps."
+  ],
+  "description": "A branded instructional content slide presents a prominent heading above a wide numbered-step text area with date, page number, and organization footer.",
+  "digest": "titled page with numbered instructions",
+  "family_id": "family_72b8562e09295f2ba7e2",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for a short set of numbered instructions or operating steps.",
+    "Choose when a clear title and one broad text block are sufficient.",
+    "Suitable for procedural guidance within a branded institutional deck."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "titled page with numbered instructions",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A branded instructional content slide presents a prominent heading above a wide numbered-step text area with date, page number, and organization footer."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,0 +1,157 @@
+{
+  "family_ids": [
+    "family_72b8562e09295f2ba7e2"
+  ],
+  "layout_css_path": "slides/s004/layout.css",
+  "overlay_image_path": "slides/s004/overlay.webp",
+  "page_number": 4,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "titled page with numbered instructions",
+    "layout_pattern": "title_body",
+    "message_pattern": "process",
+    "modalities": [
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A branded instructional content slide presents a prominent heading above a wide numbered-step text area with date, page number, and organization footer.",
+    "title": "章节标题：本模版的使用方法"
+  },
+  "reference_image_path": "slides/s004/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.104987,
+        "width": 0.799352,
+        "x": 0.074933,
+        "y": 0.024196
+      },
+      "capacity": {
+        "max_chars": 18,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.456217,
+        "width": 0.945536,
+        "x": 0.027431,
+        "y": 0.283571
+      },
+      "capacity": {
+        "max_chars": 214,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 92,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.23622,
+        "x": 0.027431,
+        "y": 0.926852
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 5,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r003",
+      "required": false,
+      "role": "footer",
+      "style_ref": "text.footer"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.216535,
+        "x": 0.391732,
+        "y": 0.926852
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r004",
+      "required": false,
+      "role": "footer",
+      "style_ref": "text.footer"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.313641,
+        "x": 0.658929,
+        "y": 0.926852
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 4,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r005",
+      "required": false,
+      "role": "footer",
+      "style_ref": "text.footer"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_76133485b54c6190eaae6d06"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s004",
+  "theme_tokens": {
+    "--template-accent1": "#174994",
+    "--template-accent2": "#AE1324",
+    "--template-accent3": "#AF5819",
+    "--template-accent4": "#5A8071",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#969FA7",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#2E2E2E",
+    "--template-folHlink": "#174994",
+    "--template-font-1": "+mj-ea",
+    "--template-font-2": "+mn-ea",
+    "--template-font-major": "Times New Roman",
+    "--template-font-minor": "Times New Roman",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

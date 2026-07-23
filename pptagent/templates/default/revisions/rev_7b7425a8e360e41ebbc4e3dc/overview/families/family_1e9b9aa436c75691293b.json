@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the subject has no strong portrait-oriented image.",
+    "Avoid when the content requires multiple sections, charts, or short scannable bullets.",
+    "Avoid when a prominent standalone heading is essential."
+  ],
+  "description": "A portrait-oriented photograph anchors the left side while a dense explanatory narrative occupies the right against a decorative branded background.",
+  "digest": "side photo with dense explanatory text",
+  "family_id": "family_1e9b9aa436c75691293b",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s011",
+  "selection_hints": [
+    "Use for an image-led profile or cultural subject requiring substantial explanation.",
+    "Choose when a single portrait image and one continuous narrative should share the page.",
+    "Suitable for historical background, biography, or contextual interpretation."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "side photo with dense explanatory text",
+      "page_number": 11,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s011",
+      "summary": "A portrait-oriented photograph anchors the left side while a dense explanatory narrative occupies the right against a decorative branded background."
+    }
+  ],
+  "stage": "content"
+}

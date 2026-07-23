@@ -1,0 +1,129 @@
+{
+  "asset_roles": {
+    "content_image": 1,
+    "decoration": 1,
+    "logo": 1
+  },
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "detail_hint": "Each family lists only its digest. Call get_family_detail(family_id) for selection hints, avoid conditions, and member pages.",
+  "families": [
+    {
+      "digest": "branded thank-you closing with presenter details",
+      "family_id": "family_16a0060d03cd303745ef",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "slide_count": 1,
+      "stage": "closing"
+    },
+    {
+      "digest": "minimal chapter divider with title and subtitle",
+      "family_id": "family_8cb363d7f972f4fb1a1a",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "slide_count": 3,
+      "stage": "section"
+    },
+    {
+      "digest": "academic cover with title on blue band",
+      "family_id": "family_43c2c442d8f2cfd79f4d",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "cover"
+    },
+    {
+      "digest": "two-column explanation with supporting screenshot",
+      "family_id": "family_fc19922fcae104e28eca",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "image",
+        "group"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "agenda list beside bold title panel",
+      "family_id": "family_c5363a8cb981dfe4e245",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "group"
+      ],
+      "slide_count": 1,
+      "stage": "agenda"
+    },
+    {
+      "digest": "large data table with takeaway bullets",
+      "family_id": "family_9a9cf60b0f2c455c4ee4",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "table",
+        "group"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "titled page with numbered instructions",
+      "family_id": "family_72b8562e09295f2ba7e2",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    }
+  ],
+  "family_count": 7,
+  "name": "ucas",
+  "revision_id": "rev_7947e12063474451b2e4dbe5",
+  "schema_version": "2.0",
+  "slide_count": 9,
+  "template_id": "ucas",
+  "theme": {
+    "colors": {
+      "accent1": "#174994",
+      "accent2": "#AE1324",
+      "accent3": "#AF5819",
+      "accent4": "#5A8071",
+      "accent5": "#A9C37C",
+      "accent6": "#969FA7",
+      "bg1": "#FFFFFF",
+      "bg2": "#EBEBEB",
+      "color_1": "#2E2E2E",
+      "folHlink": "#174994",
+      "hlink": "#007698",
+      "tx1": "#000000",
+      "tx2": "#3D3D3D"
+    },
+    "fonts": {
+      "font_1": "+mj-ea",
+      "font_2": "+mn-ea",
+      "font_major": "Times New Roman",
+      "font_minor": "Times New Roman"
+    },
+    "safe_area": {
+      "height": 0.92,
+      "width": 0.92,
+      "x": 0.04,
+      "y": 0.04
+    }
+  }
+}

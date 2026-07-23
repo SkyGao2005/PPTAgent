@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic requires multiple parallel sections or comparisons.",
+    "Avoid when no strong supporting photograph is available.",
+    "Avoid for data-heavy or highly structured content."
+  ],
+  "description": "A prominent heading and concise explanatory text lead into a large centered documentary photograph.",
+  "digest": "title and explanation above centered photo",
+  "family_id": "family_d96cdb936f19dfd9bab8",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use for introducing a cultural, historical, or educational topic with concise context.",
+    "Choose when one supporting photograph should reinforce the explanatory text.",
+    "Works well for a single focused idea rather than several subtopics."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title and explanation above centered photo",
+      "page_number": 10,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A prominent heading and concise explanatory text lead into a large centered documentary photograph."
+    }
+  ],
+  "stage": "content"
+}

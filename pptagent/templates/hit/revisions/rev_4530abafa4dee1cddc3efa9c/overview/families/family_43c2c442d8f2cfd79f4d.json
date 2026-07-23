@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the opening page needs a prominent photograph or illustration.",
+    "Avoid when the cover requires multiple sponsors, speakers, or detailed event information."
+  ],
+  "description": "A formal university-branded cover centers the presentation title on a broad blue band with author, affiliation, and date details below.",
+  "digest": "academic cover with title on blue band",
+  "family_id": "family_43c2c442d8f2cfd79f4d",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for the opening cover of an academic or university presentation.",
+    "Choose when a formal institutional look and a short centered title are appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "academic cover with title on blue band",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal university-branded cover centers the presentation title on a broad blue band with author, affiliation, and date details below."
+    }
+  ],
+  "stage": "cover"
+}

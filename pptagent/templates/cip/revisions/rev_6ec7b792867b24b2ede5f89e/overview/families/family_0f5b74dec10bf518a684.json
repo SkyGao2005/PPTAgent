@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic has no process, system, or workflow to visualize.",
+    "Avoid when the main visual must remain editable as separate diagram elements.",
+    "Avoid for image-led storytelling or minimal statement slides."
+  ],
+  "description": "A titled split-layout content slide pairs a compact process summary with a large, detailed workflow diagram.",
+  "digest": "workflow overview with bullets and process diagram",
+  "family_id": "family_0f5b74dec10bf518a684",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "diagram"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining a workflow with a concise textual summary beside a detailed process visual.",
+    "Choose when readers need both high-level takeaways and a comprehensive system diagram.",
+    "Works well for technical, operational, or research process explanations."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "workflow overview with bullets and process diagram",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A titled split-layout content slide pairs a compact process summary with a large, detailed workflow diagram."
+    }
+  ],
+  "stage": "content"
+}

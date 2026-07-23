@@ -1,0 +1,39 @@
+{
+  "avoid_when": [
+    "Avoid when the main evidence is better expressed as a chart or visual narrative.",
+    "Avoid when there are only a few data points and no need for a structured table.",
+    "Avoid when detailed interpretation requires more space than a short bullet list."
+  ],
+  "description": "A formal content slide places a wide data table below the heading and reserves a lower text area for analytical takeaway bullets.",
+  "digest": "large data table with takeaway bullets",
+  "family_id": "family_9a9cf60b0f2c455c4ee4",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "table",
+    "group"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s008",
+  "selection_hints": [
+    "Use for presenting a substantial data table with concise conclusions beneath it.",
+    "Choose when the audience should inspect structured values and then read the key interpretation.",
+    "Suitable for evidence-heavy academic, technical, or institutional presentations."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large data table with takeaway bullets",
+      "page_number": 8,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "table",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A formal content slide places a wide data table below the heading and reserves a lower text area for analytical takeaway bullets."
+    }
+  ],
+  "stage": "content"
+}

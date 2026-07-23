@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for image-led storytelling or visual comparisons.",
+    "Avoid when content requires multiple independent panels or data views."
+  ],
+  "description": "A conventional content slide pairs a prominent blue title band with one spacious bulleted text area.",
+  "digest": "title band over single bullet list",
+  "family_id": "family_2995f6528dd02904ea14",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for explaining one topic through several concise bullet points.",
+    "Choose when one key point may need more detail than the others.",
+    "Suitable for straightforward informational content with a strong heading band."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title band over single bullet list",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A conventional content slide pairs a prominent blue title band with one spacious bulleted text area."
+    }
+  ],
+  "stage": "content"
+}

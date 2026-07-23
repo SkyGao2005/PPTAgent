@@ -1,0 +1,89 @@
+{
+  "family_ids": [
+    "family_43c2c442d8f2cfd79f4d"
+  ],
+  "layout_css_path": "slides/s001/layout.css",
+  "overlay_image_path": "slides/s001/overlay.webp",
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "cover with title on purple band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal university-branded cover uses a wide purple title band with centered presenter details beneath it.",
+    "title": "清华简约主题PPT模板 留边白底变体 16:9"
+  },
+  "reference_image_path": "slides/s001/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.28599,
+        "width": 0.901702,
+        "x": 0.049149,
+        "y": 0.280193
+      },
+      "capacity": {
+        "max_chars": 32,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 14,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.195538,
+        "width": 0.901702,
+        "x": 0.04767,
+        "y": 0.634632
+      },
+      "capacity": {
+        "max_chars": 25,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 11,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "subtitle",
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "reusable_asset_ids": [
+    "asset_f3abdfc778a95f868ca73d3a",
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "schema_version": "2.0",
+  "slide_id": "s001",
+  "theme_tokens": {
+    "--template-accent1": "#660874",
+    "--template-accent2": "#660874",
+    "--template-accent3": "#E6C46D",
+    "--template-accent4": "#969FA7",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#5A8071",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-folHlink": "#43064C",
+    "--template-font-major": "Gill Sans MT",
+    "--template-font-minor": "Gill Sans MT",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  }
+}

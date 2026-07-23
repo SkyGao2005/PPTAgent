@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid when the opening slide needs a photograph, agenda, or detailed supporting content.",
+    "Avoid for internal content pages requiring multiple sections or data visuals."
+  ],
+  "description": "A formal academic cover uses a prominent blue title band with centered presenter, affiliation, and date details below.",
+  "digest": "academic cover with title on blue band",
+  "family_id": "family_43c2c442d8f2cfd79f4d",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Choose for a formal academic or institutional presentation cover.",
+    "Use when the title should dominate and presenter details fit beneath it.",
+    "Best suited to concise titles in a traditional 4:3 format."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "academic cover with title on blue band",
+      "page_number": 1,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal academic cover uses a prominent blue title band with centered presenter, affiliation, and date details below."
+    }
+  ],
+  "stage": "cover"
+}

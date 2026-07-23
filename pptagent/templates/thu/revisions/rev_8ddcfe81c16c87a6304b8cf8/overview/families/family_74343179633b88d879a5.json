@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when multiple images, side-by-side comparisons, or data visualizations are required.",
+    "Avoid when the narrative needs the title at the top of the slide."
+  ],
+  "description": "A large landscape image dominates the upper slide, followed by a left-aligned title and explanatory text below.",
+  "digest": "large image above title and description",
+  "family_id": "family_74343179633b88d879a5",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Choose for a visual-led content page with one dominant landscape image.",
+    "Use when the image needs a concise heading and several lines of supporting explanation."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "large image above title and description",
+      "page_number": 7,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A large landscape image dominates the upper slide, followed by a left-aligned title and explanatory text below."
+    }
+  ],
+  "stage": "content"
+}

@@ -1,41 +1,23 @@
 {
-  "active_revision_id": "rev_c7d2a53438a3bf8a0082885a",
-  "aspect_ratio": "4:3",
-  "created_at": "2026-07-21T05:46:14.734750Z",
-  "error": null,
-  "latest_revision_id": "rev_c7d2a53438a3bf8a0082885a",
+  "schema_version": "2.0",
+  "template_id": "beamer",
   "name": "beamer",
+  "status": "ready",
+  "latest_revision_id": "rev_7ebfbf4a55b2e6a6a8ee6c21",
+  "active_revision_id": "rev_7ebfbf4a55b2e6a6a8ee6c21",
   "revisions": [
     {
-      "created_at": "2026-07-22T03:44:49.427903Z",
-      "revision_id": "rev_7028832c281ddb2816afc8cc",
+      "revision_id": "rev_7ebfbf4a55b2e6a6a8ee6c21",
+      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9",
       "slide_count": 6,
-      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9"
-    },
-    {
-      "created_at": "2026-07-22T05:21:16.615055Z",
-      "revision_id": "rev_90cb5c0bced9cd66f4921061",
-      "slide_count": 6,
-      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9"
-    },
-    {
-      "created_at": "2026-07-22T05:31:36.346039Z",
-      "revision_id": "rev_f85973df1b25c4b1e93da0e8",
-      "slide_count": 6,
-      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9"
-    },
-    {
-      "created_at": "2026-07-22T14:31:58.306399Z",
-      "revision_id": "rev_c7d2a53438a3bf8a0082885a",
-      "slide_count": 6,
-      "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9"
+      "created_at": "2026-07-22T18:08:20.221049Z"
     }
   ],
-  "schema_version": "2.0",
-  "slide_count": 6,
   "source_hash": "0902ae1bffc7e69ff007a5872d91dc62bb56f4f79a5436e487edbc67b73e22f9",
-  "status": "ready",
-  "template_id": "beamer",
-  "thumbnail": "revisions/rev_c7d2a53438a3bf8a0082885a/slides/s001/reference.webp",
-  "updated_at": "2026-07-22T14:31:58.307207Z"
+  "slide_count": 6,
+  "aspect_ratio": "4:3",
+  "thumbnail": "revisions/rev_7ebfbf4a55b2e6a6a8ee6c21/slides/s001/reference.webp",
+  "error": null,
+  "created_at": "2026-07-21T05:46:14.734750Z",
+  "updated_at": "2026-07-22T18:08:20.222585Z"
 }

@@ -1,0 +1,63 @@
+{
+  "avoid_when": [
+    "Avoid for detailed content, data, or multi-part explanations.",
+    "Avoid when the page needs imagery or several independent content blocks.",
+    "Avoid for regular content slides that need charts, tables, or multiple detailed sections.",
+    "Avoid when the heading and supporting description require substantial vertical space.",
+    "Avoid for regular content slides that need charts, tables, images, or detailed explanations.",
+    "Avoid when the section heading and supporting line cannot remain concise."
+  ],
+  "description": "A spacious section divider places a prominent heading and brief descriptor above a strong branded lower band.",
+  "digest": "section divider above branded colour band",
+  "family_id": "family_46a1d96fd896d8a30aa1",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Best for a short section title with one concise supporting line.",
+    "Use to open a new chapter or major thematic section.",
+    "Choose when a prominent heading and one concise explanatory line are sufficient.",
+    "Best for a prominent section name paired with one short explanatory line.",
+    "Choose when a spacious transitional pause is desired."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "section divider above branded colour band",
+      "page_number": 3,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A spacious section divider places a prominent heading and brief descriptor above a strong branded lower band."
+    },
+    {
+      "density": "sparse",
+      "digest": "section divider above branded colour band",
+      "page_number": 5,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A sparse section divider places a large heading and short introduction above a wide branded purple footer band."
+    },
+    {
+      "density": "sparse",
+      "digest": "section divider with title and subtitle",
+      "page_number": 8,
+      "region_roles": [
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A spacious chapter divider places a large heading and short preview line above a branded purple footer band."
+    }
+  ],
+  "stage": "section"
+}

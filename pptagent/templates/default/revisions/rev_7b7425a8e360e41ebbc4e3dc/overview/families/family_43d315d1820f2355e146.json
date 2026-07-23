@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the message depends on imagery, charts, or data comparison.",
+    "Avoid for short, highly visual, or minimalist statements."
+  ],
+  "description": "A prominent heading introduces a dense, left-aligned explanatory text block framed by strong decorative edge artwork.",
+  "digest": "text-heavy explanation with title and bullets",
+  "family_id": "family_43d315d1820f2355e146",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for a detailed conceptual explanation supported by several text points.",
+    "Choose when substantial prose must fit beneath a prominent heading."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "text-heavy explanation with title and bullets",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A prominent heading introduces a dense, left-aligned explanatory text block framed by strong decorative edge artwork."
+    }
+  ],
+  "stage": "content"
+}

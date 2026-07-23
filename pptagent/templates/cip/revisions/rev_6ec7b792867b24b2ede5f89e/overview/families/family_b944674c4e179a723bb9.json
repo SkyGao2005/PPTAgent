@@ -1,0 +1,48 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs visuals, data charts, or side-by-side comparison.",
+    "Avoid when more than two main topic groups must be presented.",
+    "Avoid when the content needs charts, images, tables, or multiple independent panels.",
+    "Avoid when more than a few short hierarchical bullet groups are required."
+  ],
+  "description": "A conventional content slide presents a prominent top heading above a spacious two-level bullet outline.",
+  "digest": "title with two-level bullet outline",
+  "family_id": "family_b944674c4e179a723bb9",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s005",
+  "selection_hints": [
+    "Use for a straightforward explanation organized into a few hierarchical bullet groups.",
+    "Choose when a topic can be summarized with short headings and supporting statements.",
+    "Use for a straightforward explanatory slide organized as a short hierarchical outline.",
+    "Use when two or three main ideas each need concise supporting points."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with two-level bullet outline",
+      "page_number": 5,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A conventional content slide presents a prominent top heading above a spacious two-level bullet outline."
+    },
+    {
+      "density": "medium",
+      "digest": "title with hierarchical bullet outline",
+      "page_number": 6,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A conventional branded content slide places a prominent title above one wide hierarchical bullet block."
+    }
+  ],
+  "stage": "content"
+}

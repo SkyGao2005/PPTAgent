@@ -1,0 +1,40 @@
+/* Layout scaffold for s002 (agenda/split).
+ * .tpl-* rules are the template's page chrome. Each one paints itself,
+ * imagery included: emit every one as an empty <div> before the
+ * content, add nothing to it, and never restyle or reposition it.
+ * .dec-* rules are the sample slide's own decoration: include them as
+ * empty <div>s by default, but move or drop them when your layout
+ * departs from the sample's.
+ * .r-* rules record how the sample page arranged its content --
+ * geometry, type and colour in one low-specificity rule per region.
+ * They are the default grid, not a constraint: redeclare a region's
+ * class after this import whenever your content needs a different
+ * size, position, colour or count of sibling regions.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#174994;
+  --template-accent2:#AE1324;
+  --template-accent3:#AF5819;
+  --template-accent4:#5A8071;
+  --template-accent5:#A9C37C;
+  --template-accent6:#969FA7;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EBEBEB;
+  --template-color-1:#2E2E2E;
+  --template-folHlink:#174994;
+  --template-font-1:+mj-ea;
+  --template-font-2:+mn-ea;
+  --template-font-major:Times New Roman;
+  --template-font-minor:Times New Roman;
+  --template-hlink:#007698;
+  --template-tx1:#000000;
+  --template-tx2:#3D3D3D;
+}
+.slide .tpl-01{position:absolute;left:7.493%;top:19.483%;width:28.592%;height:66.636%;z-index:1;background-color:#174994} /* layout / Rectangle 6 */
+.r-r001{position:absolute;left:10.097%;top:35.118%;width:23.622%;height:29.764%;z-index:6;font-size:4.444vh;font-family:"Times New Roman";font-weight:700;text-align:center;color:#FFFFFF} /* title / text */
+.r-r002{position:absolute;left:38.137%;top:20.099%;width:59.12%;height:66.567%;z-index:2;font-size:4.444vh;font-family:"+mj-ea";font-weight:700;text-align:left;color:#174994} /* bullet_group / text */
+.r-r003{position:absolute;left:2.743%;top:92.685%;width:94.514%;height:5.324%;z-index:3;font-size:2.222vh;font-family:"Times New Roman";text-align:left;color:#969FA7} /* footer / group */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

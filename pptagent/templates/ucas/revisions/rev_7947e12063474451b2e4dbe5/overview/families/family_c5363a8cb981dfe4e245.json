@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs detailed descriptions, images, or more than a few sections.",
+    "Avoid when a conventional top-heading layout is required."
+  ],
+  "description": "A bold blue title panel anchors a spacious agenda list, with restrained presentation metadata along the bottom.",
+  "digest": "agenda list beside bold title panel",
+  "family_id": "family_c5363a8cb981dfe4e245",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise agenda with approximately three main sections.",
+    "Choose when a strong vertical title panel and spacious section list fit the deck style."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "agenda list beside bold title panel",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A bold blue title panel anchors a spacious agenda list, with restrained presentation metadata along the bottom."
+    }
+  ],
+  "stage": "agenda"
+}

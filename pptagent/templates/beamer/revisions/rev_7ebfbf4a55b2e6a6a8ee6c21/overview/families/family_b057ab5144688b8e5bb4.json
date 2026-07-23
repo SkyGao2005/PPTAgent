@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs multiple data views, a timeline, or several parallel content cards.",
+    "Avoid when the visual cannot be paired with a concise explanatory text block."
+  ],
+  "description": "A broad title sits above a balanced two-column composition with a large supporting visual on the left and explanatory text on the right.",
+  "digest": "title with diagram and explanatory text",
+  "family_id": "family_b057ab5144688b8e5bb4",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "diagram"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for explaining one concept with a prominent visual and adjacent prose.",
+    "Choose when a diagram, photograph, or illustration needs substantial textual context."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with diagram and explanatory text",
+      "page_number": 3,
+      "region_roles": [
+        "body",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A broad title sits above a balanced two-column composition with a large supporting visual on the left and explanatory text on the right."
+    }
+  ],
+  "stage": "content"
+}

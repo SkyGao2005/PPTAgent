@@ -1,0 +1,137 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid for content-heavy slides or pages requiring charts, images, or detailed explanations.",
+    "Avoid when presenter, affiliation, and date metadata are unnecessary."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [],
+  "judged_decoration_shape_ids": [],
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "branded cover with title band and metadata",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal branded cover centers a large title in a blue horizontal band above presenter and date metadata.",
+    "title": "PPTAgent: Beyond Text-to-Slides"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.234874,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.25031
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 43,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 19,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Main presentation title displayed prominently across a full-width colored band.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s001-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.217552,
+        "width": 1.0,
+        "x": -0.0,
+        "y": 0.514816
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 48,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 20,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Presenter or author names with optional organizational affiliations.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s001-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.141776,
+        "width": 1.0,
+        "x": 0.008152,
+        "y": 0.751044
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 14,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 6,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.97,
+      "description": "Presentation date or other brief event metadata.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "footer",
+      "source_shape_ids": [
+        "s001-sh0003"
+      ],
+      "style_ref": "text.footer"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use as an opening slide for a formal academic, technical, or institutional presentation.",
+    "Choose when a single prominent title should be followed by centered presenter and date details."
+  ],
+  "slide_id": "s001",
+  "warnings": []
+}

@@ -1,0 +1,144 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the visual is not the primary evidence.",
+    "Avoid for multiple charts or dashboard-style analysis."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [
+    "asset_b3642a78187cdf1ccb5b3ca8"
+  ],
+  "judged_decoration_shape_ids": [],
+  "page_number": 8,
+  "page_semantics": {
+    "density": "medium",
+    "digest": "heatmap with explanatory bullets",
+    "layout_pattern": "title_body",
+    "message_pattern": "evidence",
+    "modalities": [
+      "text",
+      "chart"
+    ],
+    "stage": "content",
+    "summary": "A large central heatmap provides the evidence, followed by concise explanatory bullets beneath a prominent title.",
+    "title": "Correlation Analysis"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 28,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 12,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Slide heading naming the analysis topic.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s008-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [
+        "asset_b3642a78187cdf1ccb5b3ca8"
+      ],
+      "bbox": {
+        "height": 0.507922,
+        "width": 0.755082,
+        "x": 0.122459,
+        "y": 0.156943
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Primary correlation heatmap or other analytical visualization.",
+      "kind": "chart",
+      "region_id": "r002",
+      "role": "chart",
+      "source_shape_ids": [
+        "s008-sh0002"
+      ],
+      "style_ref": "chart.chart"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.297538,
+        "width": 0.755082,
+        "x": 0.122459,
+        "y": 0.681081
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 221,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 95,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.97,
+      "description": "Short bullet list interpreting the visualization and explaining its scale or key findings.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s008-sh0003"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "replaceable_asset_ids": [
+    "asset_b3642a78187cdf1ccb5b3ca8"
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for presenting one dominant analytical chart with concise interpretation.",
+    "Choose when a heatmap or matrix visualization needs supporting takeaways."
+  ],
+  "slide_id": "s008",
+  "warnings": []
+}

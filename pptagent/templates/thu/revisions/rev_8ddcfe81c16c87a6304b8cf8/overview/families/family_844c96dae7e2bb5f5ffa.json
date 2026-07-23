@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs more than a few sections or detailed descriptions.",
+    "Avoid when a conventional top-heading layout or image-led page is preferred."
+  ],
+  "description": "A bold colored sidebar holds the agenda title while a large bullet list presents the presentation sections on the right.",
+  "digest": "agenda with sidebar title and section list",
+  "family_id": "family_844c96dae7e2bb5f5ffa",
+  "layout_pattern": "split",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise agenda with roughly three to five sections.",
+    "Choose when a strong branded sidebar should separate the page title from the contents list."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "agenda with sidebar title and section list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A bold colored sidebar holds the agenda title while a large bullet list presents the presentation sections on the right."
+    }
+  ],
+  "stage": "agenda"
+}

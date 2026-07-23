@@ -1,0 +1,66 @@
+{
+  "avoid_when": [
+    "Avoid for detailed explanations, data, or multi-item content.",
+    "Avoid when the section introduction requires a prominent image.",
+    "Avoid when the page needs detailed explanations, data, or multiple content blocks.",
+    "Avoid when no chapter transition or section introduction is needed.",
+    "Avoid when the page needs detailed content, charts, or multiple sections."
+  ],
+  "description": "A formal section divider uses a large lower-page heading and brief descriptor above a deep blue branded footer band.",
+  "digest": "section divider with title above blue band",
+  "family_id": "family_2839ee43bdf089a43815",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major topic.",
+    "Best for a concise section title with one line of context.",
+    "Choose when a formal branded transition page is needed.",
+    "Use to introduce a new chapter or major section.",
+    "Best for a prominent heading with one short supporting line and optional date.",
+    "Best for a concise section title with one short explanatory line.",
+    "Choose when a formal institutional transition page is appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "section divider with title above blue band",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A formal section divider uses a large lower-page heading and brief descriptor above a deep blue branded footer band."
+    },
+    {
+      "density": "sparse",
+      "digest": "chapter divider with title and blue footer",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A spacious chapter divider places a large heading and short introduction immediately above a branded blue footer band."
+    },
+    {
+      "density": "sparse",
+      "digest": "section divider with title and blue band",
+      "page_number": 8,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s008",
+      "summary": "A formal chapter divider places a large heading and short preview above a branded blue footer band with a date."
+    }
+  ],
+  "stage": "section"
+}

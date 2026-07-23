@@ -1,0 +1,39 @@
+{
+  "avoid_when": [
+    "Avoid when the visual must dominate the full slide.",
+    "Avoid for three or more parallel content sections.",
+    "Avoid when no supporting screenshot or illustration is available."
+  ],
+  "description": "A formal content slide pairs a prominent heading with explanatory text and a large supporting visual in a balanced two-column layout.",
+  "digest": "two-column explanation with supporting screenshot",
+  "family_id": "family_fc19922fcae104e28eca",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining a concept with text on the left and a supporting visual on the right.",
+    "Choose when two concise points need a large screenshot or reference image.",
+    "Suitable for instructional or academic presentation content."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column explanation with supporting screenshot",
+      "page_number": 6,
+      "region_roles": [
+        "bullet_group",
+        "footer",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A formal content slide pairs a prominent heading with explanatory text and a large supporting visual in a balanced two-column layout."
+    }
+  ],
+  "stage": "content"
+}

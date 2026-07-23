@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the closing slide needs contact details, next steps, or multiple content blocks.",
+    "Avoid for content-heavy conclusions or detailed recap slides."
+  ],
+  "description": "A minimalist closing page uses one large centered statement and generous white space to end the presentation clearly.",
+  "digest": "minimal centered closing statement",
+  "family_id": "family_b67fa6203f50e7791857",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use as the final slide for a concise presentation sign-off.",
+    "Choose when a single prominent closing message is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal centered closing statement",
+      "page_number": 6,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A minimalist closing page uses one large centered statement and generous white space to end the presentation clearly."
+    }
+  ],
+  "stage": "closing"
+}

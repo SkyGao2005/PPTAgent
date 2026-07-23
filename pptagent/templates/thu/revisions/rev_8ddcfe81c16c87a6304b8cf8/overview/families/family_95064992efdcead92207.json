@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the closing page needs contact details, calls to action, or multiple content blocks.",
+    "Avoid for regular informational slides or data-heavy conclusions."
+  ],
+  "description": "A sparse branded closing slide centers one prominent thank-you message inside a wide purple banner.",
+  "digest": "branded closing with centered thank-you message",
+  "family_id": "family_95064992efdcead92207",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use as the final thank-you page of a formal presentation.",
+    "Choose when a single short closing message should dominate the slide."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "branded closing with centered thank-you message",
+      "page_number": 10,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A sparse branded closing slide centers one prominent thank-you message inside a wide purple banner."
+    }
+  ],
+  "stage": "closing"
+}

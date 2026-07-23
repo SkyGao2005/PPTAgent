@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs a heading, explanatory copy, or multiple content elements.",
+    "Avoid when the visual must span the full canvas."
+  ],
+  "description": "A single large reference graphic is placed prominently against a dark geometric background for focused visual examination.",
+  "digest": "single reference diagram on decorative background",
+  "family_id": "family_483b83cc1b014f662dd8",
+  "layout_pattern": "hero",
+  "modalities": [
+    "image"
+  ],
+  "name": "content-hero",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Use for showcasing one detailed diagram, map, plan, or archival reference image.",
+    "Choose when the visual should stand alone without supporting text."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "single reference diagram on decorative background",
+      "page_number": 7,
+      "region_roles": [
+        "diagram"
+      ],
+      "slide_id": "s007",
+      "summary": "A single large reference graphic is placed prominently against a dark geometric background for focused visual examination."
+    }
+  ],
+  "stage": "content"
+}

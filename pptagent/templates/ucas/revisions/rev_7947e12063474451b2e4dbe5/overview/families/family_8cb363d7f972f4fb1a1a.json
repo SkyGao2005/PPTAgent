@@ -1,0 +1,69 @@
+{
+  "avoid_when": [
+    "Avoid when the slide needs detailed body content, visuals, or data.",
+    "Avoid for an opening cover that requires presenter or event information.",
+    "Avoid for regular content slides requiring detailed explanation, charts, or multiple sections.",
+    "Avoid when the page needs imagery, comparisons, or dense information.",
+    "Avoid for regular content slides that need tables, charts, or detailed explanation.",
+    "Avoid when the section introduction requires imagery or multiple content blocks."
+  ],
+  "description": "A clean section divider centers attention on a large blue heading with a restrained gray subtitle and minimal footer metadata.",
+  "digest": "minimal chapter divider with title and subtitle",
+  "family_id": "family_8cb363d7f972f4fb1a1a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "section-hero",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use to introduce a new chapter or major section.",
+    "Choose when a concise title and one-line descriptor are sufficient.",
+    "Works well for formal academic or institutional presentations.",
+    "Use to introduce a new chapter or major topic.",
+    "Choose when a prominent section title needs one concise supporting line.",
+    "Works well as a restrained academic or institutional transition page.",
+    "Choose when a restrained academic or institutional transition page is appropriate.",
+    "Best for a concise section title with one supporting subtitle."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "minimal chapter divider with title and subtitle",
+      "page_number": 3,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A clean section divider centers attention on a large blue heading with a restrained gray subtitle and minimal footer metadata."
+    },
+    {
+      "density": "sparse",
+      "digest": "minimal chapter divider with title and subtitle",
+      "page_number": 5,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A sparse institutional section divider pairs a large blue heading with a short gray subtitle and understated footer metadata."
+    },
+    {
+      "density": "sparse",
+      "digest": "minimal section divider with title and subtitle",
+      "page_number": 7,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "A clean section divider centers attention on a large left-aligned chapter heading and brief subtitle, with understated metadata along the bottom."
+    }
+  ],
+  "stage": "section"
+}

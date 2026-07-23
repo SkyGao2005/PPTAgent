@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the content does not have a supporting figure or diagram.",
+    "Avoid when multiple parallel visuals or extensive bullet lists are required."
+  ],
+  "description": "A branded content slide pairs a left-side explanatory text block with a large right-side technical visual under a full-width title band.",
+  "digest": "title with text and side diagram",
+  "family_id": "family_15ba6317af67ec30cea7",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining a concept with substantial text and one prominent supporting visual.",
+    "Use when the visual should receive slightly more space than the written explanation."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with text and side diagram",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A branded content slide pairs a left-side explanatory text block with a large right-side technical visual under a full-width title band."
+    }
+  ],
+  "stage": "content"
+}

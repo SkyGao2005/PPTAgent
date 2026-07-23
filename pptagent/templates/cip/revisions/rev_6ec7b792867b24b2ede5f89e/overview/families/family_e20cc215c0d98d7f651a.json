@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when a detailed recap, contact information, or next steps are required.",
+    "Avoid for regular content slides with multiple information blocks."
+  ],
+  "description": "A sparse branded closing page centered on one prominent thank-you statement across a blue horizontal band.",
+  "digest": "closing thank-you message on blue band",
+  "family_id": "family_e20cc215c0d98d7f651a",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use as the final slide of a formal presentation.",
+    "Choose when a simple branded thank-you closing is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "closing thank-you message on blue band",
+      "page_number": 9,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A sparse branded closing page centered on one prominent thank-you statement across a blue horizontal band."
+    }
+  ],
+  "stage": "closing"
+}
