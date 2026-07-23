@@ -145,6 +145,54 @@ def test_shapes_are_emitted_in_paint_order_not_document_order(tmp_path: Path) ->
     assert boxes[0].width > boxes[1].width
 
 
+_OVERHANGING = """<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0}
+.slide{position:relative;width:1280px;height:720px;background:#fff}
+/* A brand wedge that bleeds off the left edge, as template chrome does. */
+.wedge{position:absolute;left:-400px;top:100px;width:732px;height:400px;
+  background:#0071BC;clip-path:polygon(45% 0%, 100% 0%, 55% 100%, 0% 100%)}
+</style></head><body><main class="slide"><div class="wedge"></div></main></body></html>"""
+
+
+def test_decoration_that_overhangs_the_canvas_keeps_its_shape(tmp_path: Path) -> None:
+    """Rasterizing at the element's page coordinates clipped to the viewport.
+
+    A wedge starting at a negative x had the part left of the canvas cut, and
+    the capture then came back holding the wrong page region -- the artwork
+    landed on the wrong side of its own box, so the wedge read as a
+    differently shaped block.
+    """
+
+    if not Path(__file__).parents[1].joinpath("html2pptx", "node_modules").is_dir():
+        pytest.skip("html2pptx dependencies are not installed")
+
+    import io
+
+    from PIL import Image
+
+    (tmp_path / "slide_01.html").write_text(_OVERHANGING, encoding="utf-8")
+    output = tmp_path / "deck.pptx"
+    asyncio.run(convert_html_to_pptx(tmp_path, output, aspect_ratio="16:9"))
+
+    slide = Presentation(str(output)).slides[0]
+    picture = next(
+        s for s in slide.shapes if s.shape_type == MSO_SHAPE_TYPE.PICTURE
+    )
+    with Image.open(io.BytesIO(picture.image.blob)).convert("RGBA") as image:
+        alpha = image.getchannel("A")
+        width, height = alpha.size
+        row = height // 2
+
+        def opaque(x: int) -> bool:
+            return alpha.getpixel((x, row)) > 128
+
+        # The parallelogram crosses the middle row from about 22% to 78%; the
+        # far edges stay empty. Capturing the wrong region filled the left.
+        assert not opaque(int(width * 0.05))
+        assert opaque(int(width * 0.50))
+        assert not opaque(int(width * 0.95))
+
+
 _BORDERED = """<!doctype html><html><head><meta charset="utf-8"><style>
 html,body{margin:0}
 .slide{position:relative;width:1280px;height:720px;background:#fff}

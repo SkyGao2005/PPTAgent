@@ -14,6 +14,7 @@ from deeppresenter.templates.store import (
     TemplateStore,
 )
 from deeppresenter.templates.overview import OVERVIEW_INDEX_PATH, family_detail_path
+from deeppresenter.templates.scaffold import summarize_layout_css
 from deeppresenter.utils.config import ContextBudgetConfig, chars_for_tokens
 
 
@@ -665,8 +666,20 @@ class TemplateContextProvider:
                 image_paths[kind] = relative
 
         layout_css = compact.get("layout_css_path") or record.get("layout_css_path")
+        layout_summary = None
         if isinstance(layout_css, str) and (revision.root / layout_css).exists():
             revision.resolve_path(layout_css)
+            # Handing over only the path left generation importing a file it
+            # had never read: it could not see where the template's own
+            # modules sit, so it invented cards and capsules of its own and
+            # dropped content into bands the decoration already occupies.
+            layout_summary = summarize_layout_css(
+                (revision.root / layout_css).read_text(encoding="utf-8"),
+                # A third of the budget: enough for the regions and the
+                # chrome of even a dense page, while leaving room for the
+                # semantics the summary does not carry.
+                max_chars=max(1200, max_chars // 3),
+            )
         else:
             layout_css = None
 
@@ -693,6 +706,7 @@ class TemplateContextProvider:
             "avoid_when": semantic.get("avoid_when", []),
             "reference_files": image_paths,
             "layout_css": layout_css,
+            "layout_summary": layout_summary,
         }
         return _bounded_object(
             payload,

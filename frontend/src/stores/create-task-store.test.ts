@@ -11,7 +11,11 @@ vi.mock("sonner", () => ({
   toast: { warning: vi.fn() },
 }))
 
-import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
+import {
+  MAX_ATTACHMENTS,
+  NO_TEMPLATE,
+  useCreateTaskStore,
+} from "@/stores/create-task-store"
 
 function fakeFile(name: string): File {
   return new File(["x"], name)
@@ -89,5 +93,39 @@ describe("template selection", () => {
       templateId: "beamer",
       ratio: "4:3",
     })
+  })
+})
+
+describe("generating without a template", () => {
+  it("sends a null template id so the backend derives the design itself", async () => {
+    const store = useCreateTaskStore.getState()
+    store.setTopic("自由设计")
+    store.useNoTemplate()
+    mockApi.createOutline.mockResolvedValue({ outline_id: "o-free" })
+
+    await expect(useCreateTaskStore.getState().createOutline()).resolves.toBe("o-free")
+
+    expect(mockApi.createOutline).toHaveBeenCalledWith(
+      expect.objectContaining({ template_id: null }),
+    )
+  })
+
+  it("keeps the sentinel out of the payload only, so the choice stays visible", () => {
+    const store = useCreateTaskStore.getState()
+    store.useNoTemplate()
+
+    expect(useCreateTaskStore.getState().templateId).toBe(NO_TEMPLATE)
+    expect(useCreateTaskStore.getState().templateId).not.toBe("")
+  })
+
+  it("lets the ratio be chosen when no template dictates one", () => {
+    const store = useCreateTaskStore.getState()
+    store.useNoTemplate()
+    store.setRatio("4:3")
+
+    expect(useCreateTaskStore.getState().ratio).toBe("4:3")
+    // Picking a template afterwards hands the canvas back to the template.
+    useCreateTaskStore.getState().selectTemplate("tpl", "16:9")
+    expect(useCreateTaskStore.getState().ratio).toBe("16:9")
   })
 })

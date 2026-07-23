@@ -1226,3 +1226,58 @@ def test_alignment_comes_from_the_paragraph_and_is_always_stated() -> None:
     assert "text-align:justify" in _css("justify")
     # Unstated in the template still means stated in the scaffold.
     assert "text-align:left" in _css(None)
+
+
+def test_layout_summary_shows_every_module_without_the_polygons() -> None:
+    """Serving only a path left generation importing a file it never read.
+
+    The summary is what lets a page see where the template's own modules sit
+    and what they look like. Clip polygons are named rather than reproduced:
+    a dense page's outlines run to tens of kilobytes and no layout decision
+    depends on their vertices.
+    """
+
+    from deeppresenter.templates.scaffold import summarize_layout_css
+
+    css = build_layout_css(_semantic(), _graph(), Theme(canvas=_canvas()))
+    summary = summarize_layout_css(css)
+
+    region = next(
+        line for line in summary.splitlines() if line.startswith(".r-r001")
+    )
+    assert "left:5%" in region and "color:#FFFFFF" in region
+    assert "title / text" in region
+    # The page-level helpers are noise for a model placing content.
+    assert ".safe-area" not in summary
+    assert "polygon(" not in summary
+
+
+def test_a_dense_summary_keeps_regions_and_chrome_over_sample_decoration() -> None:
+    """Sample decoration is the droppable tier, so it yields first.
+
+    Clipping the text instead ended a dense page's summary mid-rule, which
+    is worse than a shorter but complete one.
+    """
+
+    from deeppresenter.templates.scaffold import summarize_layout_css
+
+    lines = [
+        ".slide .tpl-01{left:0%;top:0%;width:10%;height:10%} /* layout / band */",
+        *(
+            f".dec-{index:02d}{{left:{index}%;top:0%;width:5%;height:5%}}"
+            " /* sample decoration / capsule */"
+            for index in range(1, 40)
+        ),
+        ".r-r001{left:5%;top:5%;width:50%;height:10%} /* title / text */",
+    ]
+    summary = summarize_layout_css("\n".join(lines), max_chars=600)
+
+    assert len(summary) <= 600
+    assert ".tpl-01{" in summary
+    assert ".r-r001{" in summary
+    assert "more .dec-* rules omitted" in summary
+    # Every surviving line is whole.
+    assert all(
+        line.endswith("*/") or line.endswith("}")
+        for line in summary.splitlines()
+    )

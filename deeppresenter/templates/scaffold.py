@@ -22,6 +22,7 @@ The scaffold carries two kinds of rules with two different contracts:
 
 from __future__ import annotations
 
+import re
 from typing import Mapping, Sequence
 from urllib.parse import quote
 
@@ -678,3 +679,109 @@ def build_layout_css(
         "}"
     )
     return "\n".join(lines) + "\n"
+
+
+# Declarations worth showing a model that has to place content among the
+# template's own modules. Long values (clip polygons, data URLs) are named
+# rather than reproduced: what a page needs is where a module sits and what
+# it looks like, not the vertices of its outline.
+_DIGEST_KEYS = (
+    "left",
+    "top",
+    "width",
+    "height",
+    "font-size",
+    "line-height",
+    "text-align",
+    "color",
+    "background",
+    "background-color",
+    "z-index",
+)
+
+_RULE_RE = re.compile(r"^(\.[^{\n]+)\{([^}]*)\}(?:\s*/\*(.*?)\*/)?", re.MULTILINE)
+_PERCENT_RE = re.compile(r"(-?\d+\.\d+)%")
+# A page dense enough to need more rules than this is described well enough by
+# the first ones plus its reference image.
+_DIGEST_MAX_RULES = 34
+
+
+def _round_percent(value: str) -> str:
+    """Three decimals of a percentage is noise a model cannot act on."""
+
+    return _PERCENT_RE.sub(lambda m: f"{float(m.group(1)):.1f}%", value)
+
+
+def summarize_layout_css(css: str, max_chars: int | None = None) -> str:
+    """One line per scaffold rule: where a module sits and how it looks.
+
+    Serving the scaffold as a path alone left generation guessing at the
+    template's own component design -- it imported a file it had never read
+    and invented cards and capsules of its own. Serving the file verbatim is
+    not an option either: a dense page's clip polygons run to tens of
+    kilobytes. This keeps the geometry, the palette and the role comment,
+    which is what a page needs in order to compose with the template rather
+    than beside it.
+    """
+
+    lines: list[str] = []
+    for match in _RULE_RE.finditer(css):
+        selector = match.group(1).strip().removeprefix(".slide ")
+        if not selector.startswith(".") or selector.startswith((".slide", ".safe")):
+            continue
+        declarations = dict(
+            (part.split(":", 1)[0].strip(), part.split(":", 1)[1].strip())
+            for part in match.group(2).split(";")
+            if ":" in part
+        )
+        parts = [
+            f"{key}:{_round_percent(declarations[key])}"
+            for key in _DIGEST_KEYS
+            if key in declarations
+        ]
+        if "background-image" in declarations:
+            parts.append("bg-image:asset")
+        clip = declarations.get("clip-path")
+        if clip and clip != "none":
+            parts.append(f"clip:{clip.count(',') + 1}pt")
+        # Only the role survives from the comment. The advice that follows it
+        # is identical on every rule of a tier and repeating it per line cost
+        # more than the geometry it was attached to.
+        note = (match.group(3) or "").split("--")[0].strip()
+        lines.append(
+            f"{selector}{{{';'.join(parts)}}}" + (f" /* {note} */" if note else "")
+        )
+    return _fit_digest(lines, max_chars)
+
+
+def _fit_digest(lines: list[str], max_chars: int | None) -> str:
+    """Trim a digest to size by dropping the most droppable tier first.
+
+    Clipping the text itself left a dense page's summary ending mid-rule,
+    which is worse than a shorter but complete one. Sample decoration is
+    both the most numerous tier and the one a page may discard, so it yields
+    before the regions and the chrome that a page has to honour.
+    """
+
+    def rendered(items: list[str], hidden: int) -> str:
+        if hidden:
+            items = items + [f"/* + {hidden} more .dec-* rules omitted */"]
+        return "\n".join(items)
+
+    kept = list(lines)
+    hidden = 0
+    while max_chars is not None and len(rendered(kept, hidden)) > max_chars:
+        index = next(
+            (
+                position
+                for position in range(len(kept) - 1, -1, -1)
+                if kept[position].startswith(".dec-")
+            ),
+            None,
+        )
+        if index is None:
+            break
+        kept.pop(index)
+        hidden += 1
+    text = rendered(kept, hidden)
+    return text if max_chars is None else text[:max_chars]

@@ -24,6 +24,12 @@ class EventType(str, Enum):
     TASK_FAILED = "task.failed"          # 任务失败
     TASK_CANCELLED = "task.cancelled"    # 用户取消任务
 
+    # ── 内容审查 ──────────────────────────────────────────────────
+    OUTLINE_GENERATING = "outline.generating"
+    OUTLINE_READY = "outline.ready"
+    OUTLINE_FAILED = "outline.failed"
+    OUTLINE_APPROVED = "outline.approved"
+
     # ── 模板解析（方向 A 发布）──────────────────────────────────
     TEMPLATE_PARSE_STARTED = "template.parse_started"
     TEMPLATE_PARSE_PROGRESS = "template.parse_progress"

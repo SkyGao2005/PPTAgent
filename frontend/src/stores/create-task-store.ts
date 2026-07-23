@@ -14,6 +14,16 @@ interface ReferenceAttachment {
 
 export const MAX_ATTACHMENTS = 8
 
+/**
+ * Chosen deliberately, as opposed to `""` which means nothing is chosen yet.
+ *
+ * The two states have to stay apart: an empty selection keeps the submit
+ * button disabled so a template is never skipped by accident, while this one
+ * enables it and tells the backend to derive the visual system from the
+ * manuscript instead of from a template.
+ */
+export const NO_TEMPLATE = "__no_template__"
+
 interface CreateTaskState {
   topic: string
   pageCount: number
@@ -25,7 +35,9 @@ interface CreateTaskState {
   setTopic: (topic: string) => void
   setPageCount: (pageCount: number) => void
   setLanguage: (language: string) => void
+  setRatio: (ratio: "16:9" | "4:3") => void
   selectTemplate: (templateId: string, ratio: "16:9" | "4:3") => void
+  useNoTemplate: () => void
   clearTemplate: () => void
   /** Returns how many files were actually added (capped at MAX_ATTACHMENTS). */
   addAttachments: (files: File[]) => number
@@ -45,7 +57,11 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   setTopic: (topic) => set({ topic }),
   setPageCount: (pageCount) => set({ pageCount }),
   setLanguage: (language) => set({ language }),
+  setRatio: (ratio) => set({ ratio }),
   selectTemplate: (templateId, ratio) => set({ templateId, ratio }),
+  // Without a template nothing dictates the canvas, so the ratio the user
+  // picks is kept rather than overwritten.
+  useNoTemplate: () => set({ templateId: NO_TEMPLATE }),
   clearTemplate: () => set({ templateId: "" }),
   addAttachments: (files) => {
     const room = Math.max(0, MAX_ATTACHMENTS - get().attachments.length)
@@ -101,7 +117,7 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
       }
       const outline = await api.createOutline({
         topic: topic.trim(),
-        template_id: templateId,
+        template_id: templateId === NO_TEMPLATE ? null : templateId,
         page_count: pageCount,
         ratio,
         language,

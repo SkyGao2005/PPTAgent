@@ -60,6 +60,7 @@ class OutlineDraftResponse(BaseModel):
     ratio: str
     template_id: Optional[str] = None
     revision: int
+    last_seq: int = Field(default=0, ge=0)
     manuscript: str
     comments: list[OutlineComment]
     task_id: Optional[str] = None

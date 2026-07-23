@@ -49,6 +49,42 @@ export function connectTaskEvents(
   return () => source.close()
 }
 
+export function connectOutlineEvents(
+  outlineId: string,
+  lastSeq: number,
+  onEvent: (event: GenerationEvent) => void,
+  onStatusChange: (state: ConnectionState) => void,
+): () => void {
+  onStatusChange("connecting")
+
+  if (USE_MOCK) {
+    let unsubscribe: (() => void) | null = null
+    let closed = false
+    void import("@/mocks/mock-server").then((server) => {
+      if (closed) {
+        return
+      }
+      unsubscribe = server.mockSubscribeOutline(outlineId, lastSeq, onEvent)
+      onStatusChange("open")
+    })
+    return () => {
+      closed = true
+      unsubscribe?.()
+    }
+  }
+
+  const params = new URLSearchParams({ last_seq: String(lastSeq) })
+  const source = new EventSource(
+    `${resolveApiUrl(`/api/outlines/${encodeURIComponent(outlineId)}/events`)}?${params}`,
+  )
+  source.onopen = () => onStatusChange("open")
+  source.onerror = () => onStatusChange("reconnecting")
+  source.onmessage = (message) => {
+    onEvent(JSON.parse(message.data) as GenerationEvent)
+  }
+  return () => source.close()
+}
+
 export function connectTemplateEvents(
   lastSeq: number,
   onEvent: (event: GenerationEvent) => void,

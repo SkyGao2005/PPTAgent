@@ -10,19 +10,21 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
 
+from deeppresenter.server.models.artifacts import task_dir
+from deeppresenter.server.models.events import EventType, StageName
 from deeppresenter.server.models.outlines import (
     OutlineComment,
     OutlineDraftRecord,
     OutlineDraftResponse,
     OutlineStatus,
 )
+from deeppresenter.server.services.event_bus import EventBus
 from deeppresenter.server.services.task_manager import TaskManager
 from deeppresenter.templates.context import TemplateContextProvider
 from deeppresenter.templates.models import SUPPORTED_ASPECT_RATIOS
 from deeppresenter.templates.store import TemplateAspectRatioMismatchError
 from deeppresenter.utils.markdown import rewrite_markdown_images
 
-OUTLINE_ROOT = "_outlines"
 OUTLINE_RECORD_FILE = "outline.json"
 REVIEWABLE_IMAGE_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 RESEARCH_REQUEST_MARKERS = (
@@ -69,14 +71,15 @@ class OutlineService:
         template_context_provider: TemplateContextProvider | None = None,
     ) -> None:
         self.workspace_base = Path(workspace_base)
-        self.root = self.workspace_base / OUTLINE_ROOT
-        self.root.mkdir(parents=True, exist_ok=True)
+        self.workspace_base.mkdir(parents=True, exist_ok=True)
         self.task_manager = task_manager
         self.use_placeholder = use_placeholder
         self.config_path = config_path
         self.template_context_provider = template_context_provider
         self._drafts: dict[str, OutlineDraftRecord] = {}
+        self._workspaces: dict[str, Path] = {}
         self._runners: dict[str, asyncio.Task[None]] = {}
+        self._restored_failures: list[str] = []
         self._lock = asyncio.Lock()
         self._restore()
 
@@ -95,9 +98,17 @@ class OutlineService:
     ) -> OutlineDraftResponse:
         """Create and start the first Research manuscript revision."""
 
-        outline_id = uuid.uuid4().hex[:12]
-        workspace = self._workspace(outline_id)
-        workspace.mkdir(parents=True, exist_ok=False)
+        while True:
+            outline_id = uuid.uuid4().hex[:8]
+            try:
+                workspace = self.task_manager.prepare_review_workspace(
+                    outline_id,
+                    require_new=True,
+                )
+            except FileExistsError:
+                continue
+            break
+        self._workspaces[outline_id] = workspace
 
         resolved_template = template
         resolved_template_id = template_id or template
@@ -134,6 +145,11 @@ class OutlineService:
         )
         self._drafts[outline_id] = draft
         self._save(draft)
+        await self._emit_outline(
+            draft,
+            EventType.OUTLINE_GENERATING,
+            "Research 正在生成内容文稿",
+        )
         await self._start_generation(draft, comment=None)
         return self.to_response(draft)
 
@@ -171,6 +187,11 @@ class OutlineService:
             draft.updated_at = self._now()
             self._save(draft)
 
+        await self._emit_outline(
+            draft,
+            EventType.OUTLINE_GENERATING,
+            f"Research 正在生成第 {target_revision} 版内容文稿",
+        )
         await self._start_generation(draft, comment=normalized_comment or None)
         return self.to_response(draft)
 
@@ -196,11 +217,18 @@ class OutlineService:
                 enable_planner=False,
                 language=draft.language,
                 approved_manuscript_path=draft.manuscript_path,
+                task_id=draft.outline_id,
+                prepared_template_context_path=draft.template_context_path,
             )
             draft.task_id = task_id
             draft.status = OutlineStatus.APPROVED
             draft.updated_at = self._now()
             self._save(draft)
+            await self._emit_outline(
+                draft,
+                EventType.OUTLINE_APPROVED,
+                "内容文稿已确认，继续生成幻灯片",
+            )
             return task_id
 
     def to_response(self, draft: OutlineDraftRecord) -> OutlineDraftResponse:
@@ -223,6 +251,7 @@ class OutlineService:
             ratio=draft.ratio,
             template_id=draft.template_id,
             revision=draft.revision,
+            last_seq=self._last_seq(draft.outline_id),
             manuscript=manuscript,
             comments=draft.comments,
             task_id=draft.task_id,
@@ -304,6 +333,18 @@ class OutlineService:
         finally:
             draft.updated_at = self._now()
             self._save(draft)
+            if draft.status == OutlineStatus.READY:
+                await self._emit_outline(
+                    draft,
+                    EventType.OUTLINE_READY,
+                    f"第 {draft.revision} 版内容文稿已生成",
+                )
+            elif draft.status == OutlineStatus.FAILED:
+                await self._emit_outline(
+                    draft,
+                    EventType.OUTLINE_FAILED,
+                    draft.error_message or "内容文稿生成失败",
+                )
 
     async def _agent_manuscript(
         self,
@@ -333,7 +374,7 @@ class OutlineService:
         )
         loop = AgentLoop(
             config=DeepPresenterConfig.load_from_file(self.config_path),
-            session_id=f"outline-{draft.outline_id}",
+            session_id=draft.outline_id,
             workspace=self._workspace(draft.outline_id),
             language="zh" if draft.language.lower().startswith("zh") else "en",
         )
@@ -509,19 +550,52 @@ class OutlineService:
         )
 
     def _restore(self) -> None:
-        for record_path in self.root.glob(f"*/{OUTLINE_RECORD_FILE}"):
+        for record_path in self.workspace_base.glob(f"*/{OUTLINE_RECORD_FILE}"):
             try:
                 draft = OutlineDraftRecord.model_validate_json(
                     record_path.read_text(encoding="utf-8")
                 )
             except (OSError, ValueError):
                 continue
+            self._workspaces[draft.outline_id] = record_path.parent
             if draft.status == OutlineStatus.GENERATING:
                 draft.status = OutlineStatus.FAILED
                 draft.error_message = "服务重启中断了本次内容生成，请重新生成"
                 draft.updated_at = self._now()
                 self._save(draft)
+                self._restored_failures.append(draft.outline_id)
             self._drafts[draft.outline_id] = draft
+            if draft.status != OutlineStatus.APPROVED:
+                self.task_manager.prepare_review_workspace(
+                    draft.outline_id,
+                    require_new=False,
+                )
+
+    async def emit_restored_failures(self) -> None:
+        """Notify reconnecting SSE clients about generations lost on restart."""
+
+        for outline_id in self._restored_failures:
+            draft = self._drafts.get(outline_id)
+            if draft is not None and draft.status == OutlineStatus.FAILED:
+                await self._emit_outline(
+                    draft,
+                    EventType.OUTLINE_FAILED,
+                    draft.error_message or "内容文稿生成失败",
+                )
+        self._restored_failures.clear()
+
+    def reconcile_restored_tasks(self) -> None:
+        """Finish an approval that persisted task.json before outline.json."""
+
+        for draft in self._drafts.values():
+            if (
+                draft.status != OutlineStatus.APPROVED
+                and self.task_manager.get_snapshot(draft.outline_id) is not None
+            ):
+                draft.status = OutlineStatus.APPROVED
+                draft.task_id = draft.outline_id
+                draft.updated_at = self._now()
+                self._save(draft)
 
     def _save(self, draft: OutlineDraftRecord) -> None:
         workspace = self._workspace(draft.outline_id)
@@ -538,7 +612,40 @@ class OutlineService:
         return draft
 
     def _workspace(self, outline_id: str) -> Path:
-        return self.root / outline_id
+        return self._workspaces.get(
+            outline_id,
+            task_dir(self.workspace_base, outline_id),
+        )
+
+    def get_event_bus(self, outline_id: str) -> EventBus | None:
+        """Return the shared review/task EventBus for SSE subscriptions."""
+
+        self._require(outline_id)
+        return self.task_manager.get_event_bus(outline_id)
+
+    def _last_seq(self, outline_id: str) -> int:
+        bus = self.task_manager.get_event_bus(outline_id)
+        return bus.seq if bus is not None else 0
+
+    async def _emit_outline(
+        self,
+        draft: OutlineDraftRecord,
+        event_type: EventType,
+        message: str,
+    ) -> None:
+        reporter = self.task_manager.get_event_reporter(draft.outline_id)
+        if reporter is None:
+            return
+        await reporter.emit(
+            event_type,
+            stage=StageName.RESEARCH,
+            message=message,
+            payload={
+                "outline_id": draft.outline_id,
+                "outline_status": draft.status.value,
+                "revision": draft.revision,
+            },
+        )
 
     @staticmethod
     def _now() -> str:

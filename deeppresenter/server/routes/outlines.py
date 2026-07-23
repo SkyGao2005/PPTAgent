@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import mimetypes
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from deeppresenter.server.models.outlines import (
@@ -133,6 +134,40 @@ async def get_outline(
     except Exception as exc:
         _raise_outline_error(exc)
         raise
+
+
+@router.get("/{outline_id}/events")
+async def subscribe_outline_events(
+    outline_id: str,
+    request: Request,
+    last_seq: int = Query(default=0, ge=0, description="客户端最后收到的 seq"),
+) -> StreamingResponse:
+    """Push manuscript status changes without REST polling."""
+
+    service = _get_service(request)
+    try:
+        bus = service.get_event_bus(outline_id)
+    except Exception as exc:
+        _raise_outline_error(exc)
+        raise
+    if bus is None:
+        raise HTTPException(status_code=404, detail="内容文稿事件流不存在")
+
+    async def _event_stream():
+        async for event_dict in bus.subscribe(last_seq=last_seq):
+            yield f"data: {json.dumps(event_dict, ensure_ascii=False)}\n\n"
+            if event_dict.get("type") == "eof":
+                return
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/{outline_id}/assets/{asset_path:path}")

@@ -12,7 +12,7 @@ import io
 import re
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 from playwright.async_api import BrowserContext
 
 # Text-bearing leaf boxes, canvas overflows, computed font sizes, text-on-text
@@ -53,8 +53,49 @@ _LINT_JS = """
         holders.push(el);
         texts.push({
             x: rect.x, y: rect.y, w: rect.width, h: rect.height,
-            size: parseFloat(cs.fontSize), snippet,
+            size: parseFloat(cs.fontSize), snippet, color: cs.color,
+            bold: parseInt(cs.fontWeight, 10) >= 600,
         });
+    }
+
+    // Content the page placed where the template already paints. Decoration
+    // is emitted before the content and often sits above it, so a photo or a
+    // caption dropped into that band is buried rather than composed with.
+    const decorated = [...document.querySelectorAll(
+        '[class*="tpl-"],[class*="dec-"]')];
+    const buried = [];
+    for (const el of document.querySelectorAll('body *')) {
+        // Skip the scaffold's own divs. A page-invented class that merely
+        // starts with `r-` is still the page's content and is checked.
+        if ([...el.classList].some((c) => /^(tpl|dec)-\\d+$/.test(c)
+                || /^r-r\\d+$/.test(c))) continue;
+        const own = [...el.childNodes].some(
+            (n) => n.nodeType === 3 && n.textContent.trim());
+        if (!own && el.tagName !== 'IMG') continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.width < 8 || rect.height < 8) continue;
+        let hidden = 0, total = 0;
+        for (let i = 0; i < 5; i++) {
+            for (let j = 0; j < 5; j++) {
+                const px = rect.left + rect.width * (i + 0.5) / 5;
+                const py = rect.top + rect.height * (j + 0.5) / 5;
+                if (px < 0 || py < 0 || px > width || py > height) continue;
+                total++;
+                const stack = document.elementsFromPoint(px, py);
+                const self = stack.indexOf(el);
+                if (self < 0) { hidden++; continue; }
+                if (stack.slice(0, self).some((o) => decorated.includes(o))) {
+                    hidden++;
+                }
+            }
+        }
+        if (total && hidden / total >= 0.5 && buried.length < 6) {
+            buried.push({
+                label: (el.textContent || '').trim().replace(/\\s+/g, ' ')
+                    .slice(0, 24) || '<' + el.tagName.toLowerCase() + '>',
+                fraction: Math.round(100 * hidden / total),
+            });
+        }
     }
 
     // Two text boxes on top of each other render as glyph soup. Ancestor
@@ -121,7 +162,19 @@ _LINT_JS = """
     }
 
     return {width, height, texts, overflows, text_overlaps,
-            missing_chrome, covered_artwork};
+            missing_chrome, covered_artwork, buried};
+}
+"""
+
+# Hiding the text leaves the ground it was sitting on, which is the only way
+# to measure what a reader actually has to separate the letters from.
+_HIDE_TEXT_JS = """
+() => {
+    for (const el of document.querySelectorAll('body *')) {
+        const own = [...el.childNodes].some(
+            (n) => n.nodeType === 3 && n.textContent.trim());
+        if (own) el.style.color = 'transparent';
+    }
 }
 """
 
@@ -129,6 +182,12 @@ _LINT_JS = """
 # flat surface: the letters do not separate from their ground.
 _MIN_LUMINANCE_SPREAD = 32
 _MIN_READABLE_FONT_PX = 14
+# WCAG AA: 4.5:1 for body text, 3:1 once the type is large enough to read on
+# its shape alone.
+_MIN_CONTRAST = 4.5
+_MIN_CONTRAST_LARGE = 3.0
+_LARGE_TEXT_PX = 24
+_LARGE_BOLD_PX = 19
 # One uniform rectangle this large is dead canvas, not breathing room.
 _EMPTY_RECT_FRACTION = 0.45
 _MAX_WARNINGS = 10
@@ -177,6 +236,83 @@ def scaffold_expectations(html_path: Path) -> dict[str, list[str]]:
             ):
                 artwork.append(name)
     return {"required": required, "artwork": artwork}
+
+
+_RGB_RE = re.compile(r"rgba?\(([^)]*)\)")
+
+
+def _relative_luminance(rgb: tuple[float, float, float]) -> float:
+    channels = []
+    for value in rgb:
+        srgb = value / 255
+        channels.append(
+            srgb / 12.92 if srgb <= 0.04045 else ((srgb + 0.055) / 1.055) ** 2.4
+        )
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+
+def _contrast_ratio(
+    foreground: tuple[float, float, float],
+    background: tuple[float, float, float],
+) -> float:
+    light, dark = sorted(
+        (_relative_luminance(foreground), _relative_luminance(background)),
+        reverse=True,
+    )
+    return (light + 0.05) / (dark + 0.05)
+
+
+def _parse_rgb(value: str) -> tuple[float, float, float] | None:
+    match = _RGB_RE.search(value or "")
+    if match is None:
+        return None
+    parts = [part.strip() for part in match.group(1).replace("/", " ").split(",")]
+    numbers = []
+    for part in parts[:3]:
+        try:
+            numbers.append(float(part))
+        except ValueError:
+            return None
+    return tuple(numbers) if len(numbers) == 3 else None
+
+
+def _ground_under_glyphs(
+    rendered: Image.Image,
+    ground: Image.Image,
+    box: tuple[int, int, int, int],
+) -> tuple[float, float, float] | None:
+    """The colour behind the letters themselves, not behind their box.
+
+    A heading's box is routinely wider than the shape it sits on: the title
+    on a 167px trapezoid occupies a 440px box, so averaging the box reports
+    the white page beside it and the collision disappears. Hiding the type
+    and diffing marks exactly the glyph pixels, and the ground is read at
+    those pixels only.
+    """
+
+    rendered_crop = rendered.crop(box)
+    ground_crop = ground.crop(box)
+    difference = ImageChops.difference(rendered_crop, ground_crop).convert("L")
+    # The threshold stays low on purpose. Text that barely differs from its
+    # ground is exactly the case worth reporting, and a high cut-off erased
+    # the glyph mask precisely when the contrast was worst. Antialiased edge
+    # pixels are welcome too: the ground is read from the hidden-text render,
+    # so their coordinates still yield the true surface.
+    glyphs = [
+        pixel
+        for pixel, delta in zip(ground_crop.getdata(), difference.getdata())
+        if delta > 6
+    ]
+    if len(glyphs) < 24:
+        return None
+    glyphs.sort(key=_relative_luminance)
+    return glyphs[len(glyphs) // 2]
+
+
+def _required_contrast(text: dict) -> float:
+    size = text.get("size") or 0
+    large = size >= _LARGE_TEXT_PX or (text.get("bold") and size >= _LARGE_BOLD_PX)
+    return _MIN_CONTRAST_LARGE if large else _MIN_CONTRAST
 
 
 def _percentile(histogram: list[int], fraction: float) -> int:
@@ -242,10 +378,25 @@ def _largest_empty_rect_fraction(image: Image.Image) -> float:
     return best / (_GRID_COLS * _GRID_ROWS)
 
 
-def analyze_slide(screenshot: bytes, data: dict) -> list[str]:
-    """Turn one screenshot plus DOM measurements into named defects."""
+def analyze_slide(
+    screenshot: bytes,
+    data: dict,
+    ground: bytes | None = None,
+) -> list[str]:
+    """Turn one screenshot plus DOM measurements into named defects.
 
-    image = Image.open(io.BytesIO(screenshot)).convert("L")
+    ``ground`` is the same page rendered with its text made transparent. It
+    is what lets contrast be measured against the surface the letters
+    actually sit on: a dark title laid over a dark-to-light gradient shows a
+    wide luminance spread while remaining unreadable, because the spread
+    belongs to the background, not to the type.
+    """
+
+    rendered = Image.open(io.BytesIO(screenshot)).convert("RGB")
+    image = rendered.convert("L")
+    ground_image = (
+        Image.open(io.BytesIO(ground)).convert("RGB") if ground else None
+    )
     width, height = data["width"], data["height"]
     warnings: list[str] = []
 
@@ -263,6 +414,14 @@ def analyze_slide(screenshot: bytes, data: dict) -> list[str]:
             "content so the template's own imagery stays visible."
         )
 
+    for item in data.get("buried", []):
+        warnings.append(
+            f"'{item['label']}' sits under the template's own decoration over "
+            f"~{item['fraction']}% of its area, so most of it never reaches "
+            "the reader. Move it to open space instead of placing content "
+            "where the template already paints."
+        )
+
     small_fonts: list[str] = []
     for text in data["texts"]:
         left = max(0, int(text["x"]))
@@ -270,13 +429,30 @@ def analyze_slide(screenshot: bytes, data: dict) -> list[str]:
         right = min(width, int(text["x"] + text["w"]))
         bottom = min(height, int(text["y"] + text["h"]))
         if right - left >= 4 and bottom - top >= 4:
-            spread = _luminance_spread(image.crop((left, top, right, bottom)))
-            if spread < _MIN_LUMINANCE_SPREAD:
-                warnings.append(
-                    f"Text '{text['snippet']}' is nearly invisible against its "
-                    f"background (luminance spread {spread}/255). Give it a "
-                    "contrasting colour or a backing panel."
-                )
+            box = (left, top, right, bottom)
+            colour = _parse_rgb(text.get("color", ""))
+            measured = False
+            if ground_image is not None and colour is not None:
+                behind = _ground_under_glyphs(rendered, ground_image, box)
+                if behind is not None:
+                    ratio = _contrast_ratio(colour, behind)
+                    required = _required_contrast(text)
+                    measured = True
+                    if ratio < required:
+                        warnings.append(
+                            f"Text '{text['snippet']}' has only {ratio:.1f}:1 "
+                            f"contrast against the surface behind it "
+                            f"({required:.1f}:1 needed). Pick a readable colour "
+                            "from the palette or give it a backing panel."
+                        )
+            if not measured:
+                spread = _luminance_spread(image.crop(box))
+                if spread < _MIN_LUMINANCE_SPREAD:
+                    warnings.append(
+                        f"Text '{text['snippet']}' is nearly invisible against its "
+                        f"background (luminance spread {spread}/255). Give it a "
+                        "contrasting colour or a backing panel."
+                    )
         if 0 < text["size"] < _MIN_READABLE_FONT_PX:
             small_fonts.append(text["snippet"])
 
@@ -329,6 +505,10 @@ async def lint_slide(
         await page.goto(html_path.resolve().as_uri(), wait_until="networkidle")
         data = await page.evaluate(_LINT_JS, expected)
         screenshot = await page.screenshot(type="png")
+        # Second pass with the type hidden: the surface that is left is the
+        # ground each block of text has to be legible against.
+        await page.evaluate(_HIDE_TEXT_JS)
+        ground = await page.screenshot(type="png")
     finally:
         await page.close()
-    return analyze_slide(screenshot, data)
+    return analyze_slide(screenshot, data, ground)

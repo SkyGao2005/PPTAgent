@@ -184,3 +184,9 @@ class EventBus:
     def subscriber_count(self) -> int:
         """当前活跃的 SSE 订阅者数量。"""
         return len(self._subscribers)
+
+    @property
+    def closed(self) -> bool:
+        """Whether this bus has stopped accepting events."""
+
+        return self._closed

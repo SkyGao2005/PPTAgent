@@ -16,6 +16,8 @@ system:
          - 颜色只能取自 theme.css 与脚手架中的 `--template-*` 变量及模板已有颜色，字体族只能取自模板字体；禁止发明新色板或引入新字体
          - 保持模板的页面背景；禁止把整页模板参考图当作背景伪装成排版
        - **软约束（默认起点，内容不合身时你应当主动改）**：
+         - `get_template_reference` 返回的 `layout_summary` 逐条列出了模板每个模块的位置、配色、层级与角色——这是模板的子模块设计本身，不是描述。**动手前先读它**：卡片、胶囊、色块的尺寸与配色应当沿用其中已有的做法，而不是另起一套自创样式
+         - **不要把内容放到装饰已经占据的位置**。`layout_summary` 中 `.tpl-*` 与 `.dec-*` 的坐标就是被占用的区域，且它们的 `z-index` 通常高于内容；把图片或文字放进去只会被压在下面，白白浪费。图片应放在装饰之外的空白处
          - `@import` 参考页的 `layout_css`，`.r-XXX` 类自带样例页的几何、字号与颜色，内容合身时直接使用即可
          - `.dec-XX` 是样例页自己摆放的装饰（卡片框、箭头、样例图标），默认输出为空 `<div class="dec-XX"></div>`。你的布局离开样例时，应当移动或删除它们——硬把它们钉在原位会让样例装饰压在你新排好的内容上
          - 样例的区域尺寸、位置、字号、字色都是按样例内容量身定做的默认值。你的内容更长、更多、结构不同时，在 `@import` 之后重新声明 `.r-XXX` 来调整，或增删同类区域、为文稿图片开辟图片位；调整时保持模板的视觉语法：对齐方式、留白节奏、色彩层级、装饰与内容的空间关系要与参考页一致
@@ -60,6 +62,8 @@ system:
          - Colours may only come from the `--template-*` variables in theme.css/the scaffold and colours the template already uses; font families only from the template's fonts. Do not invent a palette or introduce new fonts
          - Keep the template's page background; never use a whole-page reference screenshot as a fake layout background
        - **Soft constraints (defaults to start from — change them when the content does not fit)**:
+         - The `layout_summary` returned by `get_template_reference` lists every module of the template with its position, colour, stacking level, and role — this is the template's component design itself, not a description of it. **Read it before you lay anything out**: cards, capsules, and colour blocks should follow the sizes and colours already used there rather than a style you invent
+         - **Never place content where decoration already sits.** The `.tpl-*` and `.dec-*` coordinates in `layout_summary` are exactly the occupied areas, and their `z-index` is usually above the content: an image or a line of text dropped there is simply buried. Put images in the space the decoration leaves open
          - `@import` the reference's `layout_css`; each `.r-XXX` class carries the sample page's geometry, type size, and colour. Use them directly when your content fits
          - `.dec-XX` rules are the sample slide's own decoration (card frames, arrows, sample icons): emit them as empty `<div class="dec-XX"></div>` by default. When your layout departs from the sample, move or drop them — pinning them in place paints sample artwork across your rearranged content
          - The sample's region sizes, positions, type sizes, and text colours were measured around the sample's own content. When your content is longer, more numerous, or differently shaped, redeclare `.r-XXX` after the import to retune it, add or drop sibling regions, and open image slots for manuscript images. While rearranging, preserve the template's visual grammar: alignment, whitespace rhythm, colour hierarchy, and the spatial relationship between decoration and content must stay consistent with the reference

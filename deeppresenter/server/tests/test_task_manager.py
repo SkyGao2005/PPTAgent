@@ -12,7 +12,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from deeppresenter.server.models.artifacts import task_dir
+from deeppresenter.server.models.artifacts import (
+    SlideArtifact,
+    revision_dir,
+    slide_dir,
+    task_dir,
+)
 from deeppresenter.server.models.events import (
     EventType,
     StageName,
@@ -254,6 +259,30 @@ class TestTaskCreate:
         assert copied_image.read_bytes() == b"png"
         assert str(copied_image.resolve()) in copied.read_text(encoding="utf-8")
 
+    @pytest.mark.asyncio
+    async def test_review_workspace_and_event_bus_are_reused_on_approval(
+        self, tmp_workspace
+    ):
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        task_id = "review123"
+        workspace = manager.prepare_review_workspace(task_id, require_new=True)
+        bus = manager.get_event_bus(task_id)
+        source = workspace / "manuscript-v1.md"
+        source.write_text("# 已审查文稿", encoding="utf-8")
+        research_artifact = workspace / "research.json"
+        research_artifact.write_text('{"kept": true}', encoding="utf-8")
+
+        created_id = await manager.create(
+            instruction="测试任务",
+            approved_manuscript_path=source,
+            task_id=task_id,
+        )
+
+        assert created_id == task_id
+        assert manager.get_event_bus(task_id) is bus
+        assert research_artifact.is_file()
+        assert (workspace / "approved_manuscript.md").is_file()
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # TaskManager 查询
@@ -437,6 +466,148 @@ class TestTaskRetry:
 
 
 class TestTaskExport:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("fmt", ["pptx", "pdf"])
+    async def test_export_rebuilds_from_each_selected_html_revision(
+        self, tmp_workspace, monkeypatch, fmt
+    ):
+        """The downloaded deck must use current.json, never the initial PPTX."""
+
+        task_id = "expcurrent"
+        workspace = task_dir(tmp_workspace, task_id)
+        html_dir = workspace / "slides"
+        html_dir.mkdir(parents=True)
+        stale_artifact = workspace / "manuscript.pptx"
+        stale_artifact.write_bytes(b"stale-initial-deck")
+
+        selected_html = {
+            1: b"<html><body>selected-v2</body></html>",
+            2: b"<html><body>selected-v3</body></html>",
+        }
+        for index, revision in ((1, 2), (2, 3)):
+            source = html_dir / f"slide_{index:02d}.html"
+            source.write_bytes(b"<html><body>stale-canonical</body></html>")
+            artifact = SlideArtifact(
+                slide_id=f"slide-{index}",
+                task_id=task_id,
+                index=index,
+                source_path=str(source.relative_to(workspace)),
+                revision=revision,
+            )
+            current = slide_dir(
+                tmp_workspace, task_id, artifact.slide_id
+            ) / "current.json"
+            current.parent.mkdir(parents=True)
+            current.write_text(artifact.model_dump_json(), encoding="utf-8")
+            revision_source = (
+                revision_dir(
+                    tmp_workspace,
+                    task_id,
+                    artifact.slide_id,
+                    revision,
+                )
+                / "source.html"
+            )
+            revision_source.parent.mkdir(parents=True)
+            revision_source.write_bytes(selected_html[index])
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snapshot = TaskSnapshot(
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            result_artifact="manuscript.pptx",
+            generation_params={"powerpoint_type": "4:3"},
+        )
+        manager._snapshots[task_id] = snapshot
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
+        manager._preview_services[task_id] = PreviewService(tmp_workspace)
+
+        captured: dict = {}
+
+        async def fake_render(
+            html_files: list[Path],
+            output_path: Path,
+            *,
+            fmt: str,
+            aspect_ratio: str,
+        ) -> None:
+            captured["html"] = [path.read_bytes() for path in html_files]
+            captured["format"] = fmt
+            captured["aspect_ratio"] = aspect_ratio
+            output_path.write_bytes(b"rebuilt-current-deck")
+
+        monkeypatch.setattr(manager, "_render_html_export", fake_render)
+
+        exported = await manager.export(task_id, fmt=fmt)
+
+        assert exported is not None
+        assert exported != "manuscript.pptx"
+        assert exported.endswith(f".{fmt}")
+        assert (workspace / exported).read_bytes() == b"rebuilt-current-deck"
+        assert captured == {
+            "html": [selected_html[1], selected_html[2]],
+            "format": fmt,
+            "aspect_ratio": "4:3",
+        }
+        manifest_path = (workspace / exported).with_suffix(".manifest.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert [
+            (slide["index"], slide["revision"])
+            for slide in manifest["slides"]
+        ] == [(1, 2), (2, 3)]
+        assert snapshot.result_artifact == exported
+        assert not list(html_dir.glob(".deeppresenter-export-*.html"))
+
+    @pytest.mark.asyncio
+    async def test_failed_html_rebuild_never_returns_the_stale_artifact(
+        self, tmp_workspace, monkeypatch
+    ):
+        task_id = "expfailed"
+        workspace = task_dir(tmp_workspace, task_id)
+        source = workspace / "slides" / "slide_01.html"
+        source.parent.mkdir(parents=True)
+        source.write_text("<html><body>current</body></html>", encoding="utf-8")
+        stale_artifact = workspace / "manuscript.pptx"
+        stale_artifact.write_bytes(b"stale")
+
+        slide = SlideArtifact(
+            slide_id="slide-1",
+            task_id=task_id,
+            index=1,
+            source_path="slides/slide_01.html",
+            revision=1,
+        )
+        current = slide_dir(tmp_workspace, task_id, slide.slide_id) / "current.json"
+        current.parent.mkdir(parents=True)
+        current.write_text(slide.model_dump_json(), encoding="utf-8")
+
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+        snapshot = TaskSnapshot(
+            task_id=task_id,
+            status=TaskStatus.COMPLETED,
+            result_artifact="manuscript.pptx",
+        )
+        manager._snapshots[task_id] = snapshot
+        manager._buses[task_id] = EventBus(workspace)
+        manager._reporters[task_id] = EventReporter(
+            task_id, manager._buses[task_id].publish
+        )
+        manager._preview_services[task_id] = PreviewService(tmp_workspace)
+
+        async def fail_render(*_args, **_kwargs) -> None:
+            raise RuntimeError("converter failed")
+
+        monkeypatch.setattr(manager, "_render_html_export", fail_render)
+
+        assert await manager.export(task_id) is None
+        assert snapshot.result_artifact == "manuscript.pptx"
+        events = list(manager._buses[task_id]._replay(0))
+        assert events[-1]["type"] == EventType.EXPORT_FAILED.value
+        assert not list(source.parent.glob(".deeppresenter-export-*.html"))
+
     @pytest.mark.asyncio
     async def test_export_with_artifact(self, tmp_workspace):
         """导出应返回快照中的 result_artifact（文件在磁盘上存在时）。"""

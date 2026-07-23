@@ -127,7 +127,8 @@ export interface TaskHistoryResponse {
 
 export interface CreateTaskPayload {
   topic: string
-  template_id: string
+  /** Null asks the backend to derive the visual system from the manuscript. */
+  template_id: string | null
   page_count: number
   ratio: "16:9" | "4:3"
   language: string
@@ -151,6 +152,7 @@ export interface OutlineDraft {
   ratio: "16:9" | "4:3"
   template_id: string | null
   revision: number
+  last_seq: number
   manuscript: string
   comments: OutlineComment[]
   task_id: string | null

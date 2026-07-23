@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from deeppresenter.utils.slide_lint import analyze_slide, scaffold_expectations
 
@@ -102,6 +102,75 @@ def test_a_half_empty_canvas_is_reported() -> None:
     warnings = analyze_slide(_png(image), _data())
 
     assert any("empty rectangle" in warning for warning in warnings)
+
+
+def test_content_buried_under_decoration_is_reported() -> None:
+    data = _data(buried=[{"label": "607 万册（件）", "fraction": 56}])
+
+    warnings = analyze_slide(_png(_busy(200, 100)), data)
+
+    assert any(
+        "607 万册（件）" in warning and "decoration" in warning
+        for warning in warnings
+    )
+
+
+def test_contrast_is_measured_where_the_glyphs_actually_sit() -> None:
+    """A heading's box is routinely wider than the shape it sits on.
+
+    The title sits on a narrow dark trapezoid and overhangs it onto white
+    paper. Averaging the box reports the white and the collision vanishes,
+    so the ground is read at the glyph pixels alone.
+    """
+
+    width, height = 400, 60
+    ground = Image.new("RGB", (width, height), (255, 255, 255))
+    # The trapezoid: dark, and far narrower than the text box.
+    ground.paste((0, 45, 110), (0, 0, 120, height))
+    rendered = ground.copy()
+    draw = ImageDraw.Draw(rendered)
+    # Dark navy glyphs, drawn only over the dark band.
+    draw.rectangle((10, 20, 100, 40), fill=(0, 32, 96))
+
+    data = _data(
+        width=width,
+        height=height,
+        texts=[
+            {
+                "x": 0, "y": 0, "w": width, "h": height,
+                "size": 42, "bold": True, "snippet": "阅读地图",
+                "color": "rgb(0, 32, 96)",
+            }
+        ],
+    )
+
+    warnings = analyze_slide(_png(rendered), data, _png(ground))
+
+    assert any(
+        "阅读地图" in warning and "contrast" in warning for warning in warnings
+    )
+
+
+def test_text_on_its_own_light_ground_passes() -> None:
+    width, height = 400, 60
+    ground = Image.new("RGB", (width, height), (255, 255, 255))
+    rendered = ground.copy()
+    ImageDraw.Draw(rendered).rectangle((10, 20, 100, 40), fill=(0, 32, 96))
+    data = _data(
+        width=width,
+        height=height,
+        texts=[
+            {
+                "x": 0, "y": 0, "w": width, "h": height,
+                "size": 42, "bold": True, "snippet": "标题",
+                "color": "rgb(0, 32, 96)",
+            }
+        ],
+    )
+
+    warnings = analyze_slide(_png(rendered), data, _png(ground))
+
+    assert not any("contrast" in warning for warning in warnings)
 
 
 def test_scaffold_expectations_read_the_imported_layout(tmp_path: Path) -> None:

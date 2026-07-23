@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { connectTaskEvents, connectTemplateEvents } from "@/lib/sse"
+import {
+  connectOutlineEvents,
+  connectTaskEvents,
+  connectTemplateEvents,
+} from "@/lib/sse"
 
 class FakeEventSource {
   static instances: FakeEventSource[] = []
@@ -48,6 +52,15 @@ describe("SSE reconnect watermarks", () => {
     const dispose = connectTemplateEvents(17, vi.fn())
     expect(FakeEventSource.instances[0].url).toContain(
       "/api/templates/events?last_seq=17",
+    )
+    dispose()
+    expect(FakeEventSource.instances[0].close).toHaveBeenCalledOnce()
+  })
+
+  it("connects manuscript review to its outline event stream", () => {
+    const dispose = connectOutlineEvents("outline 1", 9, vi.fn(), vi.fn())
+    expect(FakeEventSource.instances[0].url).toContain(
+      "/api/outlines/outline%201/events?last_seq=9",
     )
     dispose()
     expect(FakeEventSource.instances[0].close).toHaveBeenCalledOnce()

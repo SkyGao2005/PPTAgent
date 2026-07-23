@@ -53,7 +53,7 @@ interface MockSlide {
 interface MockTask {
   id: string
   topic: string
-  templateId: string
+  templateId: string | null
   ratio: "16:9" | "4:3"
   totalSlides: number
   status: TaskStatus
@@ -84,6 +84,9 @@ interface MockOutline {
 
 const tasks = new Map<string, MockTask>()
 const outlines = new Map<string, MockOutline>()
+const outlineListeners = new Map<string, Set<Listener>>()
+const outlineEvents = new Map<string, GenerationEvent[]>()
+const outlineSequences = new Map<string, number>()
 let templates: TemplateSummary[] = structuredClone(seedTemplates)
 const templateListeners = new Set<Listener>()
 const templateEvents: GenerationEvent[] = []
@@ -123,7 +126,9 @@ function previewOf(task: MockTask, slide: MockSlide, snapshot?: DeckSlide): stri
   )
 }
 
-function getTemplateOrFirst(templateId: string): TemplateSummary {
+function getTemplateOrFirst(templateId: string | null): TemplateSummary {
+  // A null id is a deck generated without a template. The mock still needs a
+  // palette to draw a preview with, so it borrows the first one.
   return templates.find((item) => item.id === templateId) ?? templates[0]
 }
 
@@ -230,6 +235,39 @@ function emit(task: MockTask, partial: Partial<GenerationEvent> & { type: string
   task.events.push(event)
   persist()
   for (const listener of task.listeners) {
+    listener(event)
+  }
+}
+
+function emitOutline(
+  outline: MockOutline,
+  type: "outline.generating" | "outline.ready" | "outline.failed" | "outline.approved",
+): void {
+  const seq = (outlineSequences.get(outline.id) ?? 0) + 1
+  outlineSequences.set(outline.id, seq)
+  const event: GenerationEvent = {
+    task_id: outline.id,
+    seq,
+    type,
+    stage: "research",
+    status: type === "outline.failed" ? "failed" : "running",
+    progress: null,
+    message: "",
+    slide_id: null,
+    slide_index: null,
+    total_slides: outline.deck.length,
+    artifact_url: null,
+    created_at: now(),
+    payload: {
+      outline_id: outline.id,
+      outline_status: outline.status,
+      revision: outline.revision,
+    },
+  }
+  const events = outlineEvents.get(outline.id) ?? []
+  events.push(event)
+  outlineEvents.set(outline.id, events)
+  for (const listener of outlineListeners.get(outline.id) ?? []) {
     listener(event)
   }
 }
@@ -614,6 +652,7 @@ function outlineOf(outline: MockOutline): OutlineDraft {
     ratio: outline.payload.ratio,
     template_id: outline.payload.template_id || null,
     revision: outline.revision,
+    last_seq: outlineSequences.get(outline.id) ?? 0,
     manuscript: outline.manuscript,
     comments: structuredClone(outline.comments),
     task_id: outline.taskId,
@@ -627,8 +666,9 @@ function createTaskFromDeck(
   payload: CreateTaskPayload,
   sourceDeck: DeckSlide[],
   reviewedManuscript: boolean,
+  preparedTaskId?: string,
 ): TaskSnapshot {
-  const id = `t${Date.now().toString(36)}`
+  const id = preparedTaskId ?? `t${Date.now().toString(36)}`
   const deck = structuredClone(sourceDeck)
   const task: MockTask = {
     id,
@@ -703,6 +743,7 @@ export function mockCreateOutline(payload: CreateTaskPayload): OutlineDraft {
     updated_at: timestamp,
   }
   outlines.set(id, outline)
+  emitOutline(outline, "outline.ready")
   persistOutlines()
   return outlineOf(outline)
 }
@@ -739,6 +780,7 @@ export function mockRegenerateOutline(
   outline.status = "generating"
   outline.errorMessage = null
   outline.updated_at = now()
+  emitOutline(outline, "outline.generating")
   persistOutlines()
   setTimeout(() => {
     const nextDeck = structuredClone(outline.deck)
@@ -753,6 +795,7 @@ export function mockRegenerateOutline(
     outline.revision = nextRevision
     outline.status = "ready"
     outline.updated_at = now()
+    emitOutline(outline, "outline.ready")
     persistOutlines()
   }, delay(950))
   return outlineOf(outline)
@@ -769,10 +812,11 @@ export function mockApproveOutline(outlineId: string): OutlineApproval {
   if (outline.status !== "ready") {
     throw new Error(`Mock outline cannot be approved from ${outline.status}`)
   }
-  const snapshot = createTaskFromDeck(outline.payload, outline.deck, true)
+  const snapshot = createTaskFromDeck(outline.payload, outline.deck, true, outline.id)
   outline.taskId = snapshot.task_id
   outline.status = "approved"
   outline.updated_at = now()
+  emitOutline(outline, "outline.approved")
   persistOutlines()
   return { task_id: snapshot.task_id, outline_id: outline.id, status: "queued" }
 }
@@ -1010,6 +1054,25 @@ export function mockSubscribeTask(
   }
   task.listeners.add(onEvent)
   return () => task.listeners.delete(onEvent)
+}
+
+export function mockSubscribeOutline(
+  outlineId: string,
+  afterSeq: number,
+  onEvent: Listener,
+): () => void {
+  if (!outlines.has(outlineId)) {
+    throw new Error(`Mock outline not found: ${outlineId}`)
+  }
+  for (const event of outlineEvents.get(outlineId) ?? []) {
+    if (event.seq > afterSeq) {
+      onEvent(event)
+    }
+  }
+  const listeners = outlineListeners.get(outlineId) ?? new Set<Listener>()
+  listeners.add(onEvent)
+  outlineListeners.set(outlineId, listeners)
+  return () => listeners.delete(onEvent)
 }
 
 // ---- templates ----

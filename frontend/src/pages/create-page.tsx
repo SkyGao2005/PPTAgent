@@ -9,6 +9,7 @@ import {
   FileTextIcon,
   LoaderCircleIcon,
   PlusIcon,
+  SparklesIcon,
   XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -33,7 +34,11 @@ import {
   getTemplatePaletteSwatches,
 } from "@/lib/template-metadata"
 import { cn } from "@/lib/utils"
-import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
+import {
+  MAX_ATTACHMENTS,
+  NO_TEMPLATE,
+  useCreateTaskStore,
+} from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
 
 const suggestions = [
@@ -80,7 +85,9 @@ export function CreatePage() {
     creating,
     setTopic,
     setPageCount,
+    setRatio,
     selectTemplate,
+    useNoTemplate,
     clearTemplate,
     addAttachments,
     removeAttachment,
@@ -110,6 +117,11 @@ export function CreatePage() {
   // template is ready — a stale id must never reach task creation.
   useEffect(() => {
     if (!templatesLoaded) {
+      return
+    }
+    // Designing without a template is a choice, not a stale id: leaving it to
+    // the fallback below would silently reinstate a template.
+    if (templateId === NO_TEMPLATE) {
       return
     }
     if (readyTemplates.length === 0) {
@@ -282,12 +294,36 @@ export function CreatePage() {
                 >
                   模板:{" "}
                   <strong className="font-semibold text-foreground">
-                    {selectedTemplate?.name ??
-                      (templatesLoaded ? "选择模板" : "载入中…")}
+                    {templateId === NO_TEMPLATE
+                      ? "不使用模板"
+                      : (selectedTemplate?.name ??
+                        (templatesLoaded ? "选择模板" : "载入中…"))}
                   </strong>
                   <ChipChevron />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuItem
+                    className={cn(
+                      templateId === NO_TEMPLATE && "bg-foreground/[0.065]",
+                    )}
+                    onClick={useNoTemplate}
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground/[0.04]">
+                      <SparklesIcon className="size-3.5 text-hint" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">不使用模板</span>
+                      <span className="block truncate text-[10px] leading-4 text-hint">
+                        由内容自行决定配色与版式
+                      </span>
+                    </span>
+                    {templateId === NO_TEMPLATE && (
+                      <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                        <CheckIcon className="size-3.5" />
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {templatesLoadError ? (
                     <>
                       <DropdownMenuItem disabled>
@@ -395,16 +431,45 @@ export function CreatePage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <span
-                className={cn(chipClass, "cursor-default hover:bg-transparent")}
-                aria-label={`画面比例 ${ratio}，由模板决定`}
-                title="画面比例由所选模板决定"
-              >
-                <strong className="font-heading font-semibold text-foreground">
-                  {ratio}
-                </strong>
-                <span className="text-[11px] text-hint">模板比例</span>
-              </span>
+              {/* With a template the canvas is the template's; without one
+                  there is nothing to inherit, so the ratio becomes a choice. */}
+              {templateId === NO_TEMPLATE ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <button type="button" className={chipClass} aria-label="画面比例" />
+                    }
+                  >
+                    <strong className="font-heading font-semibold text-foreground">
+                      {ratio}
+                    </strong>
+                    <ChipChevron />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    {(["16:9", "4:3"] as const).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        className={cn(ratio === option && "bg-foreground/[0.065]")}
+                        onClick={() => setRatio(option)}
+                      >
+                        <span className="font-heading flex-1">{option}</span>
+                        {ratio === option && <CheckIcon className="size-3.5" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <span
+                  className={cn(chipClass, "cursor-default hover:bg-transparent")}
+                  aria-label={`画面比例 ${ratio}，由模板决定`}
+                  title="画面比例由所选模板决定"
+                >
+                  <strong className="font-heading font-semibold text-foreground">
+                    {ratio}
+                  </strong>
+                  <span className="text-[11px] text-hint">模板比例</span>
+                </span>
+              )}
 
             </div>
 

@@ -7,15 +7,17 @@ FastAPI 服务默认运行真实 AgentLoop；测试可显式启用占位执行�
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import re
 import shutil
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Literal, Optional
 
-from deeppresenter.server.models.artifacts import task_dir
+from deeppresenter.server.models.artifacts import revision_dir, task_dir
 from deeppresenter.server.models.events import (
     StageName,
     TaskStatus,
@@ -32,6 +34,20 @@ from deeppresenter.utils.markdown import rewrite_markdown_images
 # 任务快照文件名
 SNAPSHOT_FILE = "task.json"
 MANUSCRIPT_IMAGE_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+
+
+@dataclass(frozen=True)
+class _HtmlExportPage:
+    """One selected HTML revision frozen for a deck export."""
+
+    index: int
+    slide_id: str
+    revision: int
+    canonical_path: Path
+    source_path: str
+    revision_source_path: str | None
+    html: bytes
+    checksum: str
 
 
 def _copy_reviewed_manuscript(source: Path, workspace: Path) -> Path:
@@ -212,6 +228,44 @@ class TaskManager:
         # task_id → asyncio.Event（取消信号）
         self._cancel_events: Dict[str, asyncio.Event] = {}
 
+    def prepare_review_workspace(self, task_id: str, *, require_new: bool) -> Path:
+        """Prepare the final task workspace before its manuscript is approved.
+
+        Review generation and formal slide generation deliberately share this
+        directory and EventBus. The task snapshot is created only on approval,
+        so unapproved drafts stay out of the task history API.
+        """
+
+        if task_id in self._snapshots:
+            raise ValueError(f"Task {task_id} already exists")
+        workspace = task_dir(self.workspace_base, task_id)
+        workspace.mkdir(parents=True, exist_ok=not require_new)
+        self._ensure_runtime_services(task_id, workspace)
+        return workspace
+
+    def _ensure_runtime_services(
+        self,
+        task_id: str,
+        workspace: Path,
+    ) -> tuple[EventBus, EventReporter]:
+        """Create or reuse the runtime services bound to one task workspace."""
+
+        bus = self._buses.get(task_id)
+        replaced_bus = bus is None or bus.closed
+        if replaced_bus:
+            bus = EventBus(workspace)
+            self._buses[task_id] = bus
+        reporter = self._reporters.get(task_id)
+        if replaced_bus or reporter is None or reporter.task_id != task_id:
+            reporter = EventReporter(task_id, bus.publish)
+            self._reporters[task_id] = reporter
+        self._preview_services.setdefault(
+            task_id,
+            PreviewService(self.workspace_base),
+        )
+        self._cancel_events.setdefault(task_id, asyncio.Event())
+        return bus, reporter
+
     # ── 任务创建 ──────────────────────────────────────────────
 
     async def create(
@@ -227,6 +281,8 @@ class TaskManager:
         enable_planner: bool = False,
         language: str = "zh",
         approved_manuscript_path: str | Path | None = None,
+        task_id: str | None = None,
+        prepared_template_context_path: str | Path | None = None,
     ) -> str:
         """创建新任务，返回 task_id。
 
@@ -265,7 +321,9 @@ class TaskManager:
             template_revision_id = revision.revision_id
             template = revision.template_id
 
-        task_id = uuid.uuid4().hex[:8]
+        task_id = task_id or uuid.uuid4().hex[:8]
+        if task_id in self._snapshots:
+            raise ValueError(f"Task {task_id} already exists")
         workspace = task_dir(self.workspace_base, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
         manuscript_path: str | None = None
@@ -282,7 +340,19 @@ class TaskManager:
             # Planner or Research again would waste work and change approved content.
             enable_planner = False
         template_context_path: str | None = None
-        if resolved_template_id and not self.use_placeholder:
+        if prepared_template_context_path is not None:
+            prepared_context = (
+                Path(prepared_template_context_path).expanduser().resolve(strict=True)
+            )
+            if (
+                not prepared_context.is_dir()
+                or not prepared_context.is_relative_to(workspace.resolve())
+            ):
+                raise ValueError(
+                    "Prepared template context must be inside the task workspace"
+                )
+            template_context_path = str(prepared_context)
+        elif resolved_template_id and not self.use_placeholder:
             assert self.template_context_provider is not None
             template_context = await asyncio.to_thread(
                 self.template_context_provider.materialize,
@@ -292,17 +362,9 @@ class TaskManager:
             )
             template_context_path = str(template_context["context_dir"])
 
-        # 创建事件总线
-        bus = EventBus(workspace)
-        self._buses[task_id] = bus
-        reporter = EventReporter(task_id, bus.publish)
-        self._reporters[task_id] = reporter
-        preview_service = PreviewService(self.workspace_base)
-        self._preview_services[task_id] = preview_service
-
-        # 创建取消信号
-        cancel_evt = asyncio.Event()
-        self._cancel_events[task_id] = cancel_evt
+        # Review-mode tasks already own these services. Reuse them so the
+        # outline SSE stream continues seamlessly as the task starts Design.
+        _, reporter = self._ensure_runtime_services(task_id, workspace)
 
         # 写入初始快照
         params = {
@@ -514,8 +576,8 @@ class TaskManager:
     ) -> Optional[str]:
         """触发导出，返回产物相对路径。
 
-        先检查快照中记录的 result_artifact 是否在磁盘上存在，
-        不存在则扫描任务根目录和 exports/ 目录，仍找不到则返回 None。
+        HTML 模式按每页 ``current.json`` 指向的 revision 重新生成，确保用户
+        切换版本后下载的文件与当前预览一致。没有 HTML 页面时才复用已有产物。
         """
         snapshot = self._snapshots.get(task_id)
         if snapshot is None:
@@ -533,6 +595,13 @@ class TaskManager:
 
         await reporter.export_started()
         try:
+            rebuilt = await self._export_current_html(task_id, fmt)
+            if rebuilt is not None:
+                await reporter.export_completed(
+                    artifact_url(task_id, rebuilt), Path(rebuilt).name
+                )
+                return rebuilt
+
             suffix = f".{fmt}"
 
             def _relative_if_exists(path: Path) -> Optional[str]:
@@ -586,6 +655,198 @@ class TaskManager:
         except Exception as exc:
             await reporter.export_failed(str(exc))
             return None
+
+    async def _export_current_html(
+        self,
+        task_id: str,
+        fmt: Literal["pptx", "pdf"],
+    ) -> str | None:
+        """Rebuild an artifact from the exact revisions selected for each page."""
+
+        pages = self._collect_current_html_pages(task_id)
+        if pages is None:
+            return None
+
+        snapshot = self._snapshots[task_id]
+        aspect_ratio = snapshot.generation_params.get("powerpoint_type") or "16:9"
+        if aspect_ratio not in SUPPORTED_ASPECT_RATIOS:
+            raise RuntimeError(f"不支持的导出画布比例：{aspect_ratio}")
+
+        fingerprint = hashlib.sha256()
+        for page in pages:
+            fingerprint.update(
+                (
+                    f"{page.index}\0{page.slide_id}\0{page.revision}\0"
+                    f"{page.source_path}\0{page.checksum}\n"
+                ).encode("utf-8")
+            )
+        export_id = fingerprint.hexdigest()[:12]
+
+        root = task_dir(self.workspace_base, task_id).resolve()
+        export_dir = root / "exports"
+        export_dir.mkdir(parents=True, exist_ok=True)
+        artifact = export_dir / f"presentation-{export_id}.{fmt}"
+        token = uuid.uuid4().hex
+        temporary_artifact = export_dir / f".presentation-{export_id}-{token}.{fmt}"
+        frozen_sources: list[Path] = []
+
+        try:
+            for page in pages:
+                frozen = page.canonical_path.with_name(
+                    f".deeppresenter-export-{token}-{page.index:06d}.html"
+                )
+                frozen.write_bytes(page.html)
+                frozen_sources.append(frozen)
+
+            await self._render_html_export(
+                frozen_sources,
+                temporary_artifact,
+                fmt=fmt,
+                aspect_ratio=aspect_ratio,
+            )
+            if not temporary_artifact.is_file():
+                raise RuntimeError("导出转换未生成目标文件")
+            temporary_artifact.replace(artifact)
+        finally:
+            for frozen in frozen_sources:
+                frozen.unlink(missing_ok=True)
+            temporary_artifact.unlink(missing_ok=True)
+            shutil.rmtree(
+                export_dir / f".slide_images-pdf-{temporary_artifact.stem}",
+                ignore_errors=True,
+            )
+
+        relative_artifact = str(artifact.relative_to(root))
+        manifest = artifact.with_suffix(".manifest.json")
+        manifest_payload = {
+            "schema_version": 1,
+            "task_id": task_id,
+            "format": fmt,
+            "artifact_path": relative_artifact,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "slides": [
+                {
+                    "index": page.index,
+                    "slide_id": page.slide_id,
+                    "revision": page.revision,
+                    "source_path": page.source_path,
+                    "revision_source_path": page.revision_source_path,
+                    "source_sha256": page.checksum,
+                }
+                for page in pages
+            ],
+        }
+        temporary_manifest = manifest.with_name(f".{manifest.name}-{token}.tmp")
+        temporary_manifest.write_text(
+            json.dumps(manifest_payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        temporary_manifest.replace(manifest)
+
+        snapshot.result_artifact = relative_artifact
+        snapshot.updated_at = datetime.now(timezone.utc).isoformat()
+        self._save_snapshot(root, snapshot)
+        return relative_artifact
+
+    def _collect_current_html_pages(
+        self,
+        task_id: str,
+    ) -> list[_HtmlExportPage] | None:
+        """Load current page metadata and resolve each selected revision snapshot."""
+
+        preview_service = self._preview_services.get(task_id)
+        if preview_service is None:
+            return None
+        slides = preview_service.list_slides(task_id)
+        if not slides or not any(slide.mode == "html" for slide in slides):
+            return None
+        if any(slide.mode != "html" for slide in slides):
+            raise RuntimeError("同一任务混合了 HTML 与模板页面，无法安全导出")
+
+        indices = [slide.index for slide in slides]
+        if indices != list(range(1, len(slides) + 1)):
+            raise RuntimeError(f"页面序号不连续，拒绝导出：{indices}")
+
+        root = task_dir(self.workspace_base, task_id).resolve()
+        pages: list[_HtmlExportPage] = []
+        for slide in slides:
+            if not slide.source_path:
+                raise RuntimeError(f"第 {slide.index} 页缺少 HTML 源文件路径")
+
+            source = Path(slide.source_path)
+            canonical = source if source.is_absolute() else root / source
+            canonical = canonical.resolve()
+            if not canonical.is_relative_to(root):
+                raise RuntimeError(f"第 {slide.index} 页的源文件不在任务工作区内")
+            if canonical.suffix.lower() != ".html":
+                raise RuntimeError(f"第 {slide.index} 页的源文件不是 HTML")
+
+            revision_source = (
+                revision_dir(
+                    self.workspace_base,
+                    task_id,
+                    slide.slide_id,
+                    slide.revision,
+                )
+                / "source.html"
+            )
+            selected_source = revision_source if revision_source.is_file() else canonical
+            if not selected_source.is_file():
+                raise RuntimeError(
+                    f"第 {slide.index} 页版本 v{slide.revision} 的源文件不存在"
+                )
+
+            html = selected_source.read_bytes()
+            revision_source_path = (
+                str(revision_source.resolve().relative_to(root))
+                if revision_source.is_file()
+                else None
+            )
+            pages.append(
+                _HtmlExportPage(
+                    index=slide.index,
+                    slide_id=slide.slide_id,
+                    revision=slide.revision,
+                    canonical_path=canonical,
+                    source_path=str(canonical.relative_to(root)),
+                    revision_source_path=revision_source_path,
+                    html=html,
+                    checksum=hashlib.sha256(html).hexdigest(),
+                )
+            )
+        return pages
+
+    async def _render_html_export(
+        self,
+        html_files: list[Path],
+        output_path: Path,
+        *,
+        fmt: Literal["pptx", "pdf"],
+        aspect_ratio: str,
+    ) -> None:
+        """Convert already ordered, frozen HTML pages into one export artifact."""
+
+        from deeppresenter.utils.webview import (
+            PlaywrightConverter,
+            convert_html_to_pptx,
+        )
+
+        if fmt == "pptx":
+            await convert_html_to_pptx(
+                html_files,
+                output_path,
+                aspect_ratio=aspect_ratio,  # type: ignore[arg-type]
+                soft_parsing=True,
+            )
+            return
+
+        async with PlaywrightConverter() as converter:
+            await converter.convert_to_pdf(
+                html_files,
+                output_path,
+                aspect_ratio=aspect_ratio,  # type: ignore[arg-type]
+                preserve_order=True,
+            )
 
     # ── 启动恢复 ──────────────────────────────────────────────
 

@@ -181,6 +181,8 @@ def create_app(
         for tid, bus in restored._buses.items():
             if tid not in manager._buses:
                 manager._buses[tid] = bus
+            else:
+                await bus.close()
         for tid, reporter in restored._reporters.items():
             if tid not in manager._reporters:
                 manager._reporters[tid] = reporter
@@ -190,6 +192,8 @@ def create_app(
         for tid, evt in restored._cancel_events.items():
             if tid not in manager._cancel_events:
                 manager._cancel_events[tid] = evt
+        app.state.outline_service.reconcile_restored_tasks()
+        await app.state.outline_service.emit_restored_failures()
 
     app.include_router(outlines_router)
     app.include_router(tasks_router)

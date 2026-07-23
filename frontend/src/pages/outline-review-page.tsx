@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import { useNavigate, useParams } from "react-router-dom"
 import remarkGfm from "remark-gfm"
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/api"
 import { resolveApiUrl } from "@/lib/api-url"
+import { connectOutlineEvents } from "@/lib/sse"
 import { usePageMetadata } from "@/lib/use-page-metadata"
 import { cn } from "@/lib/utils"
 import type { OutlineDraft } from "@/types/api"
@@ -89,10 +90,11 @@ export function OutlineReviewPage() {
   const [comment, setComment] = useState("")
   const [loadError, setLoadError] = useState<string | null>(null)
   const [pending, setPending] = useState<PendingAction>(null)
-  const [pollVersion, setPollVersion] = useState(0)
+  const lastSeqRef = useRef(0)
 
   const reload = useCallback(async (): Promise<OutlineDraft> => {
     const next = await api.getOutline(outlineId)
+    lastSeqRef.current = Math.max(lastSeqRef.current, next.last_seq)
     setOutline(next)
     setLoadError(null)
     return next
@@ -100,17 +102,39 @@ export function OutlineReviewPage() {
 
   useEffect(() => {
     let active = true
-    let timer: ReturnType<typeof setTimeout> | undefined
+    let disconnect: (() => void) | undefined
 
-    async function poll(): Promise<void> {
+    async function connect(): Promise<void> {
       try {
         const next = await api.getOutline(outlineId)
         if (!active) return
+        lastSeqRef.current = next.last_seq
         setOutline(next)
         setLoadError(null)
-        if (next.status === "generating") {
-          timer = setTimeout(() => void poll(), 900)
-        }
+        disconnect = connectOutlineEvents(
+          outlineId,
+          next.last_seq,
+          (event) => {
+            if (
+              !active ||
+              event.task_id !== outlineId ||
+              !Number.isInteger(event.seq) ||
+              event.seq <= lastSeqRef.current
+            ) {
+              return
+            }
+            lastSeqRef.current = event.seq
+            if (!event.type.startsWith("outline.")) {
+              return
+            }
+            void reload().catch(() => {
+              if (active) {
+                setLoadError("实时状态已收到，但内容刷新失败，请重新打开此页面。")
+              }
+            })
+          },
+          () => undefined,
+        )
       } catch {
         if (!active) return
         setLoadError("无法载入这份内容文稿，请返回主页重新开始。")
@@ -118,24 +142,24 @@ export function OutlineReviewPage() {
     }
 
     if (outlineId) {
-      void poll()
+      void connect()
     } else {
       setLoadError("缺少内容文稿编号，请返回主页重新开始。")
     }
     return () => {
       active = false
-      if (timer) clearTimeout(timer)
+      disconnect?.()
     }
-  }, [outlineId, pollVersion])
+  }, [outlineId, reload])
 
   async function handleRegenerate(): Promise<void> {
     if (!outline || outline.status === "generating" || pending) return
     setPending("regenerate")
     try {
       const next = await api.regenerateOutline(outline.outline_id, comment)
+      lastSeqRef.current = Math.max(lastSeqRef.current, next.last_seq)
       setOutline(next)
       setComment("")
-      setPollVersion((value) => value + 1)
       toast.success("已提交内容修改", {
         description: "修改意见已追加到 Research 上下文，默认不重新调研。",
       })
