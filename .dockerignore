@@ -6,6 +6,7 @@ __pycache__
 node_modules
 runs
 workspace
+userdata
 
 *.pyc
 *.pyo

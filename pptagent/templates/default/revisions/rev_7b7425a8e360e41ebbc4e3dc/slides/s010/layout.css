@@ -1,0 +1,48 @@
+/* Layout scaffold for s010 (content/title_body).
+ * .tpl-* rules are the template's page chrome. Each one paints itself,
+ * imagery included: emit every one as an empty <div> before the
+ * content, add nothing to it, and never restyle or reposition it.
+ * .dec-* rules are the sample slide's own decoration: include them as
+ * empty <div>s by default, but move or drop them when your layout
+ * departs from the sample's.
+ * .r-* rules record how the sample page arranged its content --
+ * geometry, type and colour in one low-specificity rule per region.
+ * They are the default grid, not a constraint: redeclare a region's
+ * class after this import whenever your content needs a different
+ * size, position, colour or count of sibling regions.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#2C3C43}
+.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#90C226;
+  --template-accent2:#54A021;
+  --template-accent3:#E6B91E;
+  --template-accent4:#E76618;
+  --template-accent5:#C42F1A;
+  --template-accent6:#918655;
+  --template-bg1:#000000;
+  --template-bg2:#2C3C43;
+  --template-color-1:#BCDA7D;
+  --template-color-2:#262626;
+  --template-color-3:#3F7819;
+  --template-folHlink:#B9D181;
+  --template-font-1:Arial Rounded MT Bold;
+  --template-font-major:Trebuchet MS;
+  --template-font-minor:Trebuchet MS;
+  --template-hlink:#99CA3C;
+  --template-tx1:#FFFFFF;
+  --template-tx2:#EBEBEB;
+}
+.slide .tpl-01{position:absolute;left:75.307%;top:-0.123%;width:24.667%;height:100.124%;z-index:3;background-color:#90C2264C;clip-path:polygon(68.02% 0%, 100% 0%, 100% 100%, 0% 100%)} /* master / Rectangle 23 */
+.slide .tpl-02{position:absolute;left:78.768%;top:-0.123%;width:21.232%;height:100.124%;z-index:4;background-color:#90C22633;clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 46.72% 100%)} /* master / Rectangle 25 */
+.slide .tpl-03{position:absolute;left:73.264%;top:44.444%;width:26.736%;height:55.556%;z-index:5;background-color:#54A021B8;clip-path:polygon(50% 0%, 100% 100%, 0% 100%)} /* master / Isosceles Triangle 23 */
+.slide .tpl-04{position:absolute;left:76.562%;top:-0.123%;width:23.412%;height:100.124%;z-index:6;background-color:#3F7819B2;clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 86.56% 100%)} /* master / Rectangle 27 */
+.slide .tpl-05{position:absolute;left:89.392%;top:-0.123%;width:10.582%;height:100.124%;z-index:7;background-color:#BCDA7DB2;clip-path:polygon(79.04% 0%, 100% 0%, 100% 100%, 0% 100%)} /* master / Rectangle 28 */
+.slide .tpl-06{position:absolute;left:89.723%;top:-0.123%;width:10.251%;height:100.124%;z-index:8;background-color:#90C226A6;clip-path:polygon(0% 0%, 100% 0%, 100% 100%, 88.76% 100%)} /* master / Rectangle 29 */
+.slide .tpl-07{position:absolute;left:85.069%;top:52.346%;width:14.905%;height:47.654%;z-index:9;background-color:#90C226CC;clip-path:polygon(50% 0%, 100% 100%, 0% 100%)} /* master / Isosceles Triangle 27 */
+.slide .tpl-08{position:absolute;left:0%;top:58.518%;width:3.681%;height:41.481%;z-index:10;background-color:#90C226D9;clip-path:polygon(50% 0%, 100% 100%, 0% 100%)} /* master / Isosceles Triangle 28 */
+.r-r001{position:absolute;left:5.556%;top:0.47%;width:70.511%;height:19.259%;z-index:11;font-size:6.667vh;font-family:"Trebuchet MS";text-align:center;color:#90C226} /* title / text */
+.r-r002{position:absolute;left:5.556%;top:19.729%;width:70.511%;height:25.758%;z-index:12;font-size:3.333vh;font-family:"Trebuchet MS";text-align:left;color:#BCDA7D} /* body / text */
+.r-r003{position:absolute;left:20.625%;top:45.487%;width:44.531%;height:52.71%;z-index:13} /* photo / image */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

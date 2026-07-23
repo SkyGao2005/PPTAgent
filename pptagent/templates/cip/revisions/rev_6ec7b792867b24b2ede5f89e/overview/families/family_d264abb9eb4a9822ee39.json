@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy slides or pages requiring charts, images, or detailed explanations.",
+    "Avoid when presenter, affiliation, and date metadata are unnecessary."
+  ],
+  "description": "A formal branded cover centers a large title in a blue horizontal band above presenter and date metadata.",
+  "digest": "branded cover with title band and metadata",
+  "family_id": "family_d264abb9eb4a9822ee39",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use as an opening slide for a formal academic, technical, or institutional presentation.",
+    "Choose when a single prominent title should be followed by centered presenter and date details."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "branded cover with title band and metadata",
+      "page_number": 1,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal branded cover centers a large title in a blue horizontal band above presenter and date metadata."
+    }
+  ],
+  "stage": "cover"
+}

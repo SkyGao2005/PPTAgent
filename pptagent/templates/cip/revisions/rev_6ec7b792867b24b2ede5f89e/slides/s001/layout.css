@@ -1,0 +1,45 @@
+/* Layout scaffold for s001 (cover/hero).
+ * .tpl-* rules are the template's page chrome. Each one paints itself,
+ * imagery included: emit every one as an empty <div> before the
+ * content, add nothing to it, and never restyle or reposition it.
+ * .dec-* rules are the sample slide's own decoration: include them as
+ * empty <div>s by default, but move or drop them when your layout
+ * departs from the sample's.
+ * .r-* rules record how the sample page arranged its content --
+ * geometry, type and colour in one low-specificity rule per region.
+ * They are the default grid, not a constraint: redeclare a region's
+ * class after this import whenever your content needs a different
+ * size, position, colour or count of sibling regions.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#4F81BD;
+  --template-accent2:#C0504D;
+  --template-accent3:#9BBB59;
+  --template-accent4:#8064A2;
+  --template-accent5:#4BACC6;
+  --template-accent6:#F79646;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EEECE1;
+  --template-color-1:#194297;
+  --template-color-2:#385AA4;
+  --template-color-3:#003399;
+  --template-color-4:#262626;
+  --template-folHlink:#800080;
+  --template-font-1:微软雅黑;
+  --template-font-2:Microsoft YaHei;
+  --template-font-3:SimHei;
+  --template-font-major:Calibri;
+  --template-font-minor:Calibri;
+  --template-hlink:#0000FF;
+  --template-tx1:#000000;
+  --template-tx2:#1F497D;
+}
+.slide .tpl-01{position:absolute;left:0%;top:0.185%;width:39.821%;height:10.768%;z-index:1;background-image:url(../../assets/asset_aff11db7738f68006ecc4ba8.png);background-size:100% 100%;background-repeat:no-repeat} /* layout / 图片 5 */
+.slide .tpl-02{position:absolute;left:84.206%;top:0.185%;width:13.26%;height:10.768%;z-index:2;background-image:url(../../assets/asset_5cabde49ecf2b341df5e7dc9.jpg);background-size:100% 100%;background-repeat:no-repeat} /* layout / Picture 2 */
+.r-r001{position:absolute;left:0%;top:25.031%;width:100%;height:23.487%;z-index:3;font-size:8.889vh;font-family:"Microsoft YaHei";text-align:center;color:#FFFFFF} /* title / text */
+.r-r002{position:absolute;left:-0%;top:51.482%;width:100%;height:21.755%;z-index:4;font-size:5.185vh;font-family:"Microsoft YaHei";font-weight:400;text-align:center;color:#262626} /* subtitle / text */
+.r-r003{position:absolute;left:0.815%;top:75.104%;width:100%;height:14.178%;z-index:5;font-size:5.185vh;font-family:"Microsoft YaHei";font-weight:400;text-align:center;color:#262626} /* footer / text */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

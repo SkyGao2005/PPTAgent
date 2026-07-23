@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the visual is decorative rather than explanatory.",
+    "Avoid when the content requires multiple charts, cards, or sequential steps."
+  ],
+  "description": "A banner title introduces a balanced split layout with explanatory text on the left and a large technical diagram on the right.",
+  "digest": "title with explanatory text and technical diagram",
+  "family_id": "family_7ac372e1cc07cee93126",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "diagram"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s006",
+  "selection_hints": [
+    "Use for explaining a concept with supporting text and one large diagram.",
+    "Choose when the visual and written explanation need roughly equal emphasis."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "title with explanatory text and technical diagram",
+      "page_number": 6,
+      "region_roles": [
+        "body",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s006",
+      "summary": "A banner title introduces a balanced split layout with explanatory text on the left and a large technical diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

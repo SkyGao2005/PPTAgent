@@ -173,6 +173,51 @@ describe("fetchTemplates merge", () => {
 })
 
 describe("template SSE ordering", () => {
+  it("hydrates IR metadata after a template becomes ready", async () => {
+    const templateId = "m0-ready-metadata"
+    useTemplatesStore.setState({
+      templates: [
+        template({
+          id: templateId,
+          status: "parsing",
+          progress: 80,
+          layouts: [],
+        }),
+      ],
+    })
+    mockApi.listTemplates.mockResolvedValue([
+      template({
+        id: templateId,
+        status: "ready",
+        progress: 100,
+        revision_id: "rev_ready",
+        layouts: ["封面", "图文分栏"],
+        palette: {
+          bg: "#F5F9FC",
+          surface: "#FFFFFF",
+          primary: "#16498A",
+          accent: "#F0B429",
+          ink: "#1B2430",
+          dark: false,
+        },
+      }),
+    ])
+
+    useTemplatesStore.getState().applyTemplateEvent({
+      ...progressEvent(templateId, 100, 1),
+      type: "template.ready",
+    })
+
+    await vi.waitFor(() => {
+      const current = useTemplatesStore
+        .getState()
+        .templates.find((item) => item.id === templateId)
+      expect(current?.revision_id).toBe("rev_ready")
+      expect(current?.layouts).toEqual(["封面", "图文分栏"])
+      expect(current?.palette.primary).toBe("#16498A")
+    })
+  })
+
   it("buffers an event for an id that only appears in a later snapshot", async () => {
     const templateId = "m0-arrives-late"
     useTemplatesStore.getState().applyTemplateEvent({

@@ -15,7 +15,7 @@ import jsonschema
 from docker.errors import DockerException, NotFound
 from fastmcp.utilities.json_schema import compress_schema
 from fastmcp.utilities.types import get_cached_typeadapter
-from mcp.types import CallToolResult, TextContent
+from mcp.types import CallToolResult, ImageContent, TextContent
 from openai.types.chat.chat_completion_message_function_tool_call import (
     ChatCompletionMessageFunctionToolCall as ToolCall,
 )
@@ -42,6 +42,11 @@ from deeppresenter.utils.mcp_client import MCPClient
 from deeppresenter.utils.typings import ChatMessage, MCPServer, Role
 
 LOCAL_TOOL_SERVER = "local"
+BOUNDED_STRUCTURED_TOOLS = {
+    "get_template_overview",
+    "search_template_references",
+    "get_template_reference",
+}
 
 
 class ToolTiming(BaseModel):
@@ -56,15 +61,24 @@ class AgentEnv:
         workspace: Path,
         config: DeepPresenterConfig,
         cutoff_len: int = TOOL_CUTOFF_LEN,
+        event_reporter=None,
+        preview_service=None,
     ):
         if isinstance(workspace, str):
             workspace = Path(workspace)
         self.workspace = workspace.absolute()
         self.cutoff_len = cutoff_len
         self.async_mode = config.async_tool_mode
+        self.event_reporter = event_reporter
+        self.preview_service = preview_service
+        self.current_stage = None
         self.mcp_configs = []
         with open(config.mcp_config_file, encoding="utf-8") as f:
             for s in json.load(f):
+                # The legacy pptagent-mcp layout engine is intentionally not part
+                # of the DeepPresenter HTML generation runtime.
+                if s.get("name") == "pptagent":
+                    continue
                 server = MCPServer(**s)
                 if server.network and config.offline_mode:
                     continue
@@ -108,6 +122,12 @@ class AgentEnv:
         if self.async_mode:
             self._register_async_tools()
 
+    def _requires_docker(self) -> bool:
+        return any(
+            server.command == "docker" or server.name == "sandbox"
+            for server in self.mcp_configs
+        )
+
     async def tool_execute(
         self,
         tool_call: ToolCall,
@@ -130,6 +150,7 @@ class AgentEnv:
                 except jsonschema.ValidationError as e:
                     raise ValueError(f"Input validation error: {e.message}") from e
 
+            await self._report_tool_started(tool_call, arguments)
             result = await self._execute_tool(tool_call.function.name, arguments)
         except KeyError:
             result = CallToolResult(
@@ -166,6 +187,7 @@ class AgentEnv:
                 f"Tool `{tool_call.function.name}` execution took {elapsed:.2f} seconds"
             )
             self.timing_dict[tool_call.function.name].total_time += elapsed
+            await self._report_tool_finished(tool_call, arguments, elapsed, result)
         if result.isError:
             self.timing_dict[tool_call.function.name].error_count += 1
             warning(
@@ -174,47 +196,53 @@ class AgentEnv:
         else:
             self.timing_dict[tool_call.function.name].success_count += 1
 
-        if len(result.content) != 1 or any(
+        if not result.content or any(
             c.type not in ["image", "text"] for c in result.content
         ):
             raise ValueError(
-                f"Only one text/image block is supported currently. While getting {result.content} from {tool_call.function.name}"
+                f"Only text/image blocks are supported currently. While getting {result.content} from {tool_call.function.name}"
             )
         content = []
-        block = result.content[0]
-        if block.type == "text":
-            if len(block.text) > self.cutoff_len:
-                truncated = block.text[: self.cutoff_len]
-                truncated = truncated[: truncated.rfind("\n")]
+        for block in result.content:
+            if block.type == "text":
+                assert isinstance(block, TextContent)
+                if len(block.text) > self.cutoff_len and not (
+                    tool_call.function.name in BOUNDED_STRUCTURED_TOOLS
+                    and self._tool_to_server.get(tool_call.function.name)
+                    == LOCAL_TOOL_SERVER
+                ):
+                    truncated = block.text[: self.cutoff_len]
+                    truncated = truncated[: truncated.rfind("\n")]
 
-                # checking if we are reading from local file
-                if tool_call.function.name == "read_file":
-                    local_file = arguments["path"]
-                else:
-                    hash_id = uuid.uuid4().hex[:4]
-                    local_file = (
-                        self.workspace / f"{tool_call.function.name}_{hash_id}.txt"
+                    # checking if we are reading from local file
+                    if tool_call.function.name == "read_file":
+                        local_file = arguments["path"]
+                    else:
+                        hash_id = uuid.uuid4().hex[:4]
+                        local_file = (
+                            self.workspace / f"{tool_call.function.name}_{hash_id}.txt"
+                        )
+                        local_file.write_text(block.text)
+
+                    truncated += CUTOFF_WARNING.format(
+                        line=truncated.count("\n"), resource_id=str(local_file)
                     )
-                    local_file.write_text(block.text)
+                    block.text = truncated
 
-                truncated += CUTOFF_WARNING.format(
-                    line=truncated.count("\n"), resource_id=str(local_file)
+                content.append(
+                    {
+                        "type": "text",
+                        "text": block.text,
+                    }
                 )
-                block.text = truncated
-
-            content.append(
-                {
-                    "type": "text",
-                    "text": block.text,
-                }
-            )
-        elif block.type == "image":
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": block.data},
-                }
-            )
+            elif block.type == "image":
+                assert isinstance(block, ImageContent)
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": block.data},
+                    }
+                )
         msg = ChatMessage(
             role=Role.TOOL,
             content=content,
@@ -225,23 +253,175 @@ class AgentEnv:
         self.tool_history.append((tool_call, msg))
         return msg
 
-    async def __aenter__(self):
+    async def _report_tool_started(
+        self, tool_call: ToolCall, arguments: dict | None
+    ) -> None:
+        if self.event_reporter is None:
+            return
         try:
-            client = docker.from_env()
-            container = client.containers.get(self.workspace.stem)
-            warning(
-                f"Found duplicated sandbox container id={self.workspace.stem}, killed."
+            await self.event_reporter.tool_started(
+                tool_call.function.name,
+                stage=self.current_stage,
+                payload={
+                    "tool_call_id": tool_call.id,
+                    "has_arguments": arguments is not None,
+                },
             )
-            container.remove(force=True)
-        # happend if cannot find the container
-        except NotFound:
-            pass
-        except DockerException as e:
-            error(f"Docker is not accessible: {e}.")
-            sys.exit(1)
         except Exception as e:
-            error(f"Unexpected error when launching docker containers: {e}.")
-            sys.exit(1)
+            warning(f"Failed to report tool start event: {e}")
+
+    async def _report_tool_finished(
+        self,
+        tool_call: ToolCall,
+        arguments: dict | None,
+        elapsed: float,
+        result: CallToolResult,
+    ) -> None:
+        if self.event_reporter is None:
+            await self._maybe_render_html_preview(tool_call, arguments, result)
+            return
+        try:
+            if result.isError:
+                await self.event_reporter.tool_failed(
+                    tool_call.function.name,
+                    elapsed=elapsed,
+                    stage=self.current_stage,
+                    error=self._tool_result_text(result),
+                    payload={"tool_call_id": tool_call.id},
+                )
+            else:
+                await self.event_reporter.tool_completed(
+                    tool_call.function.name,
+                    elapsed=elapsed,
+                    stage=self.current_stage,
+                    payload={"tool_call_id": tool_call.id},
+                )
+            await self._maybe_render_html_preview(tool_call, arguments, result)
+        except Exception as e:
+            warning(f"Failed to report tool finish event: {e}")
+
+    async def _maybe_render_html_preview(
+        self,
+        tool_call: ToolCall,
+        arguments: dict | None,
+        result: CallToolResult,
+    ) -> None:
+        if (
+            self.preview_service is None
+            or result.isError
+            or tool_call.function.name != "inspect_slide"
+            or not arguments
+            or "html_file" not in arguments
+        ):
+            return
+        html_path = None
+        slide_id = None
+        slide_index = None
+        aspect_ratio = arguments.get("aspect_ratio", "16:9")
+        try:
+            from deeppresenter.server.services.preview import (
+                artifact_url,
+                parse_slide_index,
+                stable_slide_id,
+            )
+
+            html_path = Path(arguments["html_file"])
+            if not html_path.is_absolute():
+                html_path = self.workspace / html_path
+            slide_index = parse_slide_index(html_path)
+            slide_id = stable_slide_id(self.workspace.stem, slide_index)
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_started(slide_id, slide_index)
+            # retry 跳过已完成页：直接复用已有 artifact
+            if slide_id in self._skip_slide_ids:
+                existing = self.preview_service.get_slide(self.workspace.stem, slide_id)
+                if existing and existing.preview_path:
+                    url = artifact_url(self.workspace.stem, existing.preview_path)
+                    if self.event_reporter is not None:
+                        await self.event_reporter.slide_preview_ready(
+                            slide_id, slide_index, url
+                        )
+                        await self.event_reporter.slide_completed(slide_id, slide_index)
+                    return
+            artifact = await self.preview_service.render_html_slide(
+                self.workspace.stem,
+                html_path,
+                aspect_ratio=aspect_ratio,
+                slide_index=slide_index,
+                slide_id=slide_id,
+            )
+            if self.event_reporter is not None:
+                await self.event_reporter.slide_preview_ready(
+                    artifact.slide_id,
+                    artifact.index,
+                    artifact_url(artifact.task_id, artifact.preview_path),
+                )
+                await self.event_reporter.slide_completed(
+                    artifact.slide_id,
+                    artifact.index,
+                )
+        except Exception as e:
+            if (
+                self.event_reporter is not None
+                and slide_id is not None
+                and slide_index is not None
+            ):
+                try:
+                    await self.event_reporter.slide_failed(
+                        slide_id,
+                        slide_index,
+                        f"第 {slide_index} 页预览生成失败：{e}",
+                        payload={
+                            "error": str(e),
+                            "html_file": str(html_path) if html_path else None,
+                            "aspect_ratio": aspect_ratio,
+                            "source_preserved": True,
+                        },
+                    )
+                except Exception as report_error:
+                    warning(f"Failed to report slide preview failure: {report_error}")
+            warning(f"Failed to render slide preview: {e}")
+
+    @staticmethod
+    def _tool_result_text(result: CallToolResult) -> str:
+        texts = []
+        for block in result.content:
+            if getattr(block, "type", None) == "text":
+                texts.append(block.text)
+        return "\n".join(texts)[:500]
+
+    async def __aenter__(self):
+        # retry 跳过已完成页：读取 TaskManager 写入的 skip 列表
+        skip_file = self.workspace / ".retry_skip.json"
+        self._skip_slide_ids: set[str] = set()
+        if skip_file.exists():
+            try:
+                self._skip_slide_ids = set(
+                    json.loads(skip_file.read_text(encoding="utf-8"))
+                )
+                debug(
+                    f"Retry mode: skipping {len(self._skip_slide_ids)} completed slides"
+                )
+            except (json.JSONDecodeError, OSError):
+                pass
+
+        if self._requires_docker():
+            try:
+                client = docker.from_env()
+                container = client.containers.get(self.workspace.stem)
+                warning(
+                    f"Found duplicated sandbox container id={self.workspace.stem}, killed."
+                )
+                container.remove(force=True)
+            # happend if cannot find the container
+            except NotFound:
+                pass
+            except DockerException as e:
+                error(f"Docker is not accessible: {e}.")
+                sys.exit(1)
+            except Exception as e:
+                error(f"Unexpected error when launching docker containers: {e}.")
+                sys.exit(1)
 
         with timer("Connecting MCP servers"):
             await asyncio.gather(

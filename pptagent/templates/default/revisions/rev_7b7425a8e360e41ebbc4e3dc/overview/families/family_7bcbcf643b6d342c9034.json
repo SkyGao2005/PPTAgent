@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the message needs imagery, data visualization, or side-by-side comparison.",
+    "Avoid when the body content cannot be expressed as one structured text block."
+  ],
+  "description": "A large heading sits above a dense single-column explanatory text block on a dark field with green edge artwork.",
+  "digest": "title with dense explanatory bullet text",
+  "family_id": "family_7bcbcf643b6d342c9034",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concept definition or detailed explanation supported by several text points.",
+    "Choose when substantial text should remain the primary focus of the slide."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "title with dense explanatory bullet text",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A large heading sits above a dense single-column explanatory text block on a dark field with green edge artwork."
+    }
+  ],
+  "stage": "content"
+}

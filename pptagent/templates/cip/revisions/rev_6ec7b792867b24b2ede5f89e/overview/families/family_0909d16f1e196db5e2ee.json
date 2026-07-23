@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs descriptions, timings, owners, or multiple columns.",
+    "Avoid for a highly visual or image-led navigation page."
+  ],
+  "description": "A formal agenda page presents the deck structure as a large, spacious bullet list beneath a compact heading.",
+  "digest": "simple agenda with large bullet list",
+  "family_id": "family_0909d16f1e196db5e2ee",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise agenda with roughly four to six major sections.",
+    "Choose when a formal, spacious, single-column table of contents is appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple agenda with large bullet list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A formal agenda page presents the deck structure as a large, spacious bullet list beneath a compact heading."
+    }
+  ],
+  "stage": "agenda"
+}

@@ -1,0 +1,170 @@
+{
+  "background_asset_ids": [],
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "colors": [
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent1",
+      "usage_count": 0,
+      "value": "#660874"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent2",
+      "usage_count": 0,
+      "value": "#660874"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent3",
+      "usage_count": 0,
+      "value": "#E6C46D"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent4",
+      "usage_count": 0,
+      "value": "#969FA7"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent5",
+      "usage_count": 0,
+      "value": "#A9C37C"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "accent6",
+      "usage_count": 0,
+      "value": "#5A8071"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "hlink",
+      "usage_count": 0,
+      "value": "#007698"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "folHlink",
+      "usage_count": 0,
+      "value": "#43064C"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "bg1",
+      "usage_count": 0,
+      "value": "#FFFFFF"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "tx1",
+      "usage_count": 0,
+      "value": "#000000"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "bg2",
+      "usage_count": 0,
+      "value": "#EBEBEB"
+    },
+    {
+      "roles": [
+        "theme"
+      ],
+      "token": "tx2",
+      "usage_count": 0,
+      "value": "#3D3D3D"
+    },
+    {
+      "roles": [],
+      "token": "color_1",
+      "usage_count": 56,
+      "value": "#144189"
+    }
+  ],
+  "css_variables": {
+    "--template-accent1": "#660874",
+    "--template-accent2": "#660874",
+    "--template-accent3": "#E6C46D",
+    "--template-accent4": "#969FA7",
+    "--template-accent5": "#A9C37C",
+    "--template-accent6": "#5A8071",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#EBEBEB",
+    "--template-color-1": "#144189",
+    "--template-folHlink": "#43064C",
+    "--template-font-major": "Gill Sans MT",
+    "--template-font-minor": "Gill Sans MT",
+    "--template-hlink": "#007698",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#3D3D3D"
+  },
+  "decoration_asset_ids": [
+    "asset_52dd78a0ac7ee92797303b71"
+  ],
+  "fonts": [
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Gill Sans MT",
+      "roles": [
+        "theme"
+      ],
+      "token": "font_major",
+      "usage_count": 0
+    },
+    {
+      "fallback": [
+        "Arial",
+        "sans-serif"
+      ],
+      "family": "Gill Sans MT",
+      "roles": [
+        "theme"
+      ],
+      "token": "font_minor",
+      "usage_count": 0
+    }
+  ],
+  "logo_asset_ids": [
+    "asset_daf5beb781e3ef46abbb16c0"
+  ],
+  "safe_area": {
+    "height": 0.92,
+    "width": 0.92,
+    "x": 0.04,
+    "y": 0.04
+  },
+  "schema_version": "2.0"
+}

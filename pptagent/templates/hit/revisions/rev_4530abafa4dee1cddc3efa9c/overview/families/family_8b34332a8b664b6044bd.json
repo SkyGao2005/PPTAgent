@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda needs more than a few concise sections.",
+    "Avoid when chapter descriptions, timings, or presenters must be shown."
+  ],
+  "description": "A dark branded sidebar presents the agenda title while a spacious right panel lists the presentation's main chapters.",
+  "digest": "agenda with sidebar title and chapter list",
+  "family_id": "family_8b34332a8b664b6044bd",
+  "layout_pattern": "split",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-split",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise presentation agenda with about three major sections.",
+    "Choose when a strong branded sidebar and spacious chapter list are appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "agenda with sidebar title and chapter list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A dark branded sidebar presents the agenda title while a spacious right panel lists the presentation's main chapters."
+    }
+  ],
+  "stage": "agenda"
+}

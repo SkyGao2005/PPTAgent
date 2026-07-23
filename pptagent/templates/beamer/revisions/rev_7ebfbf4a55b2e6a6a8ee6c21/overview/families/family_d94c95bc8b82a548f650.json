@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the content is primarily visual or image-led.",
+    "Avoid when the information cannot be organized into a structured matrix."
+  ],
+  "description": "A bold title introduces a large structured table, followed by a rounded callout that highlights the main takeaway.",
+  "digest": "large comparison table with emphasis callout",
+  "family_id": "family_d94c95bc8b82a548f650",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text",
+    "table"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s005",
+  "selection_hints": [
+    "Use for presenting a dense structured matrix beneath a strong heading.",
+    "Choose when a table needs a prominent takeaway or interpretive callout."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large comparison table with emphasis callout",
+      "page_number": 5,
+      "region_roles": [
+        "body",
+        "table",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A bold title introduces a large structured table, followed by a rounded callout that highlights the main takeaway."
+    }
+  ],
+  "stage": "content"
+}

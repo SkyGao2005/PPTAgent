@@ -1,0 +1,69 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the presentation needs a detailed recap, contact information, or next steps.",
+    "Avoid when a neutral, unbranded closing slide is required."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [],
+  "judged_decoration_shape_ids": [],
+  "page_number": 10,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "branded closing with centered thank-you statement",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "closing",
+    "summary": "A sparse branded closing page centers one prominent thank-you statement within a wide blue band.",
+    "title": "感谢您的倾听！"
+  },
+  "reading_order": [
+    "r001"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.309584,
+        "width": 0.901702,
+        "x": 0.037664,
+        "y": 0.251522
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 4,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large centered closing or thank-you message placed across the dark blue horizontal band.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s010-sh0001"
+      ],
+      "style_ref": "text.title"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use as the final thank-you page of an institutional or academic presentation.",
+    "Choose when a single concise closing statement is sufficient."
+  ],
+  "slide_id": "s010",
+  "warnings": []
+}

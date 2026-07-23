@@ -1,0 +1,75 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the page needs a heading, explanatory copy, or multiple content elements.",
+    "Avoid when the visual must span the full canvas."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [
+    "asset_96db72ee0855d47f7d0766b3"
+  ],
+  "judged_decoration_shape_ids": [],
+  "page_number": 7,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "single reference diagram on decorative background",
+    "layout_pattern": "hero",
+    "message_pattern": "evidence",
+    "modalities": [
+      "image"
+    ],
+    "stage": "content",
+    "summary": "A single large reference graphic is placed prominently against a dark geometric background for focused visual examination.",
+    "title": null
+  },
+  "reading_order": [
+    "r001"
+  ],
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_96db72ee0855d47f7d0766b3"
+      ],
+      "bbox": {
+        "height": 0.91121,
+        "width": 0.514844,
+        "x": 0.151953,
+        "y": 0.044395
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 0.5650113585232822
+      },
+      "confidence": 0.97,
+      "description": "Primary reference image, diagram, map, plan, or scanned source material presented as the slide's sole content focus.",
+      "kind": "image",
+      "region_id": "r001",
+      "role": "diagram",
+      "source_shape_ids": [
+        "s007-sh0001"
+      ],
+      "style_ref": "image.diagram"
+    }
+  ],
+  "replaceable_asset_ids": [
+    "asset_96db72ee0855d47f7d0766b3"
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for showcasing one detailed diagram, map, plan, or archival reference image.",
+    "Choose when the visual should stand alone without supporting text."
+  ],
+  "slide_id": "s007",
+  "warnings": []
+}

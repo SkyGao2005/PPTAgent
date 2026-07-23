@@ -1,0 +1,19 @@
+:root {
+  --template-accent1: #174994;
+  --template-accent2: #AE1324;
+  --template-accent3: #AF5819;
+  --template-accent4: #5A8071;
+  --template-accent5: #A9C37C;
+  --template-accent6: #969FA7;
+  --template-bg1: #FFFFFF;
+  --template-bg2: #EBEBEB;
+  --template-color-1: #2E2E2E;
+  --template-folHlink: #174994;
+  --template-font-1: "+mj-ea";
+  --template-font-2: "+mn-ea";
+  --template-font-major: "Times New Roman";
+  --template-font-minor: "Times New Roman";
+  --template-hlink: #007698;
+  --template-tx1: #000000;
+  --template-tx2: #3D3D3D;
+}

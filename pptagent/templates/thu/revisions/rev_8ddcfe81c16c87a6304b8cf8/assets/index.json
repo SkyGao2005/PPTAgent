@@ -1,0 +1,335 @@
+{
+  "assets": [
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_2c34104c23f8a6777430b2f0",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "browser_pixel_height": 878,
+      "browser_pixel_width": 784,
+      "browser_sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "byte_size": 70564,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.67884,
+            "width": 0.497727,
+            "x": 0.462671,
+            "y": 0.257741
+          },
+          "page_number": 6,
+          "scope": "slide",
+          "shape_id": "s006-sh0003",
+          "slide_id": "s006",
+          "source_name": "图片 3"
+        }
+      ],
+      "path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "pixel_height": 878,
+      "pixel_width": 784,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_808f5857e34644a7f6a7baed",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_808f5857e34644a7f6a7baed.png",
+      "browser_pixel_height": 456,
+      "browser_pixel_width": 974,
+      "browser_sha256": "808f5857e34644a7f6a7baed154be8d85e395f0a820a06ce9d1a23c655989fd6",
+      "byte_size": 196065,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.597787,
+            "width": 0.890317,
+            "x": 0.04767,
+            "y": 0.08658
+          },
+          "page_number": 7,
+          "scope": "slide",
+          "shape_id": "s007-sh0002",
+          "slide_id": "s007",
+          "source_name": "图片 2"
+        }
+      ],
+      "path": "assets/asset_808f5857e34644a7f6a7baed.png",
+      "pixel_height": 456,
+      "pixel_width": 974,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "808f5857e34644a7f6a7baed154be8d85e395f0a820a06ce9d1a23c655989fd6",
+      "tags": [
+        "content_image"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_f3abdfc778a95f868ca73d3a",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_f3abdfc778a95f868ca73d3a.browser.png",
+      "browser_pixel_height": 123,
+      "browser_pixel_width": 350,
+      "browser_sha256": "472f38e772274bce8835aca9166dec3687719baa3abd5a16716d7bd8f186ff91",
+      "byte_size": 559052,
+      "extension": "wmf",
+      "media_type": "image/x-wmf",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.165888,
+            "width": 0.236996,
+            "x": 0.031018,
+            "y": 0.042819
+          },
+          "page_number": 1,
+          "scope": "layout",
+          "shape_id": "s001-layout-sh0009",
+          "slide_id": "s001",
+          "source_name": "图片 2"
+        },
+        {
+          "bbox": {
+            "height": 0.165888,
+            "width": 0.236996,
+            "x": 0.031018,
+            "y": 0.042819
+          },
+          "page_number": 10,
+          "scope": "layout",
+          "shape_id": "s010-layout-sh0009",
+          "slide_id": "s010",
+          "source_name": "图片 2"
+        }
+      ],
+      "path": "assets/asset_f3abdfc778a95f868ca73d3a.wmf",
+      "pixel_height": 156,
+      "pixel_width": 398,
+      "reuse_policy": "template_only",
+      "role": "decoration",
+      "sha256": "f3abdfc778a95f868ca73d3ac7aa72cda8530bbd34a31ea51145cb6505a82e3c",
+      "tags": [
+        "decoration"
+      ]
+    },
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_f7f312e5f990403a28feb57e",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_f7f312e5f990403a28feb57e.browser.png",
+      "browser_pixel_height": 366,
+      "browser_pixel_width": 365,
+      "browser_sha256": "c1548558179b66d8fad4b60d22ad6c81a1683c26b76f4e92b1102f0a50be1060",
+      "byte_size": 646492,
+      "extension": "wmf",
+      "media_type": "image/x-wmf",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 1,
+          "scope": "master",
+          "shape_id": "s001-master-sh0008",
+          "slide_id": "s001",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.052767,
+            "y": 0.098952
+          },
+          "page_number": 2,
+          "scope": "layout",
+          "shape_id": "s002-layout-sh0009",
+          "slide_id": "s002",
+          "source_name": "图片 18"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 2,
+          "scope": "master",
+          "shape_id": "s002-master-sh0008",
+          "slide_id": "s002",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.872091,
+            "y": 0.767222
+          },
+          "page_number": 3,
+          "scope": "layout",
+          "shape_id": "s003-layout-sh0002",
+          "slide_id": "s003",
+          "source_name": "图片 8"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 3,
+          "scope": "master",
+          "shape_id": "s003-master-sh0008",
+          "slide_id": "s003",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 4,
+          "scope": "master",
+          "shape_id": "s004-master-sh0008",
+          "slide_id": "s004",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.872091,
+            "y": 0.767222
+          },
+          "page_number": 5,
+          "scope": "layout",
+          "shape_id": "s005-layout-sh0002",
+          "slide_id": "s005",
+          "source_name": "图片 8"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 5,
+          "scope": "master",
+          "shape_id": "s005-master-sh0008",
+          "slide_id": "s005",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 6,
+          "scope": "master",
+          "shape_id": "s006-master-sh0008",
+          "slide_id": "s006",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 7,
+          "scope": "master",
+          "shape_id": "s007-master-sh0008",
+          "slide_id": "s007",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.872091,
+            "y": 0.767222
+          },
+          "page_number": 8,
+          "scope": "layout",
+          "shape_id": "s008-layout-sh0002",
+          "slide_id": "s008",
+          "source_name": "图片 8"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 8,
+          "scope": "master",
+          "shape_id": "s008-master-sh0008",
+          "slide_id": "s008",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 9,
+          "scope": "master",
+          "shape_id": "s009-master-sh0008",
+          "slide_id": "s009",
+          "source_name": "图片 7"
+        },
+        {
+          "bbox": {
+            "height": 0.148666,
+            "width": 0.083314,
+            "x": 0.877672,
+            "y": 0.063102
+          },
+          "page_number": 10,
+          "scope": "master",
+          "shape_id": "s010-master-sh0008",
+          "slide_id": "s010",
+          "source_name": "图片 7"
+        }
+      ],
+      "path": "assets/asset_f7f312e5f990403a28feb57e.wmf",
+      "pixel_height": 373,
+      "pixel_width": 372,
+      "reuse_policy": "always",
+      "role": "logo",
+      "sha256": "f7f312e5f990403a28feb57e2faf529d120b9077e3178504e5ec4a14886ea3eb",
+      "tags": [
+        "logo"
+      ]
+    }
+  ],
+  "schema_version": "2.0"
+}

@@ -14,6 +14,16 @@ interface ReferenceAttachment {
 
 export const MAX_ATTACHMENTS = 8
 
+/**
+ * Chosen deliberately, as opposed to `""` which means nothing is chosen yet.
+ *
+ * The two states have to stay apart: an empty selection keeps the submit
+ * button disabled so a template is never skipped by accident, while this one
+ * enables it and tells the backend to derive the visual system from the
+ * manuscript instead of from a template.
+ */
+export const NO_TEMPLATE = "__no_template__"
+
 interface CreateTaskState {
   topic: string
   pageCount: number
@@ -24,13 +34,15 @@ interface CreateTaskState {
   creating: boolean
   setTopic: (topic: string) => void
   setPageCount: (pageCount: number) => void
-  setRatio: (ratio: "16:9" | "4:3") => void
   setLanguage: (language: string) => void
-  setTemplateId: (templateId: string) => void
+  setRatio: (ratio: "16:9" | "4:3") => void
+  selectTemplate: (templateId: string, ratio: "16:9" | "4:3") => void
+  useNoTemplate: () => void
+  clearTemplate: () => void
   /** Returns how many files were actually added (capped at MAX_ATTACHMENTS). */
   addAttachments: (files: File[]) => number
   removeAttachment: (attachmentId: string) => void
-  createTask: () => Promise<string>
+  createOutline: () => Promise<string>
 }
 
 export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
@@ -44,9 +56,14 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   creating: false,
   setTopic: (topic) => set({ topic }),
   setPageCount: (pageCount) => set({ pageCount }),
-  setRatio: (ratio) => set({ ratio }),
   setLanguage: (language) => set({ language }),
-  setTemplateId: (templateId) => set({ templateId }),
+  setRatio: (ratio) => set({ ratio }),
+  selectTemplate: (templateId, ratio) => set({ templateId, ratio }),
+  // Dropping the template drops what dictated the canvas with it. Keeping the
+  // old template's ratio would leave a 4:3 deck behind with nothing on screen
+  // explaining why, so the choice resets to the default and stays editable.
+  useNoTemplate: () => set({ templateId: NO_TEMPLATE, ratio: "16:9" }),
+  clearTemplate: () => set({ templateId: "" }),
   addAttachments: (files) => {
     const room = Math.max(0, MAX_ATTACHMENTS - get().attachments.length)
     const accepted = files.slice(0, room)
@@ -76,9 +93,9 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
       })
     }
   },
-  async createTask() {
+  async createOutline() {
     if (get().creating) {
-      throw new Error("Task creation is already in progress")
+      throw new Error("Outline creation is already in progress")
     }
     const { topic, templateId, pageCount, ratio, language, attachments } = get()
     set({ creating: true })
@@ -99,18 +116,18 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
         }
         attachmentIds.push(uploadedId)
       }
-      const snapshot = await api.createTask({
+      const outline = await api.createOutline({
         topic: topic.trim(),
-        template_id: templateId,
+        template_id: templateId === NO_TEMPLATE ? null : templateId,
         page_count: pageCount,
         ratio,
         language,
         attachment_ids: attachmentIds,
       })
       // Release File/Blob references after a successful handoff. Returning to
-      // the create page must not silently reuse the previous task's files.
+      // the create page must not silently reuse the previous outline's files.
       set({ attachments: [] })
-      return snapshot.task_id
+      return outline.outline_id
     } finally {
       set({ creating: false })
     }

@@ -1,0 +1,34 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy presentations or slides requiring charts, images, or detailed explanation.",
+    "Avoid when the opening page needs a prominent logo or full-bleed photograph."
+  ],
+  "description": "A formal cover slide uses a wide blue title band, centered presenter details, and a small date below.",
+  "digest": "cover with title band and presenter details",
+  "family_id": "family_5c1c56f1a94aef5d93cf",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "cover-hero",
+  "representative_slide_id": "s001",
+  "selection_hints": [
+    "Use for a formal presentation opening with a concise title, presenter details, and date.",
+    "Choose when a restrained corporate cover with strong centered alignment is appropriate."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "cover with title band and presenter details",
+      "page_number": 1,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s001",
+      "summary": "A formal cover slide uses a wide blue title band, centered presenter details, and a small date below."
+    }
+  ],
+  "stage": "cover"
+}

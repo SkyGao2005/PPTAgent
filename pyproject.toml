@@ -89,6 +89,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+anthropic = [
+    "anthropic>=0.75",
+]
 litellm = [
     "litellm>=1.65,<1.85",
 ]
@@ -126,7 +129,18 @@ exclude = ["*.test", "*.test.*", "test.*", "test", "sarl*", "data*", "harness*"]
     "resource/*.png",
     "templates/**/*.txt",
     "templates/**/*.json",
+    "templates/**/*.jsonl",
+    "templates/**/*.css",
     "templates/**/*.pptx",
+    "templates/**/*.webp",
+    "templates/**/*.png",
+    "templates/**/*.jpg",
+    "templates/**/*.jpeg",
+    "templates/**/*.gif",
+    "templates/**/*.svg",
+    "templates/**/*.avif",
+    "templates/**/*.wmf",
+    "templates/**/*.emf",
 ]
 "deeppresenter" = [
     "roles/*.yaml",

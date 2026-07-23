@@ -16,7 +16,7 @@ When making changes, treat `deeppresenter` as the primary product surface unless
 - Python package metadata and console entrypoints live in `pyproject.toml`.
 - The main CLI command is `pptagent`, which points to `deeppresenter.cli:main`.
 - The MCP server command is `pptagent-mcp`, which points to `pptagent.mcp_server:main`.
-- Default runtime workspaces are created under `~/.cache/deeppresenter` unless `DEEPPRESENTER_WORKSPACE_BASE` is set.
+- Default runtime workspaces are created under `<project-root>/userdata` unless `DEEPPRESENTER_WORKSPACE_BASE` is set.
 - Configuration templates live at `deeppresenter/config.yaml.example` and `deeppresenter/mcp.json.example`.
 
 Do not assume the root `README.md` is fully current. It still references paths like `webui.py` that are not present in this checkout. Prefer the code and `pyproject.toml` over prose docs when they conflict.

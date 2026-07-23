@@ -14,6 +14,7 @@ from deeppresenter.utils.config import DeepPresenterConfig
 
 from .common import (
     LOCAL_BASE_URL,
+    LOCAL_CONTEXT_TOKENS,
     LOCAL_MODEL,
     PACKAGE_DIR,
     REQUIRED_LLM_KEYS,
@@ -48,7 +49,7 @@ def _build_inference_command() -> tuple[list[str], dict[str, str]]:
     if system == "darwin":
         env["MODEL_ENDPOINT"] = "https://www.modelscope.cn"
         console.print(
-            f"[cyan]Local model service is not running, starting llama-server -hf {LOCAL_MODEL} -c 100000 --port 7811 --log-disable --reasoning-budget 0[/cyan]"
+            f"[cyan]Local model service is not running, starting llama-server -hf {LOCAL_MODEL} -c {LOCAL_CONTEXT_TOKENS} --port 7811 --log-disable --reasoning-budget 0[/cyan]"
         )
         return (
             [
@@ -56,7 +57,7 @@ def _build_inference_command() -> tuple[list[str], dict[str, str]]:
                 "-hf",
                 LOCAL_MODEL,
                 "-c",
-                "100000",
+                str(LOCAL_CONTEXT_TOKENS),
                 "--port",
                 "7811",
                 "--log-disable",

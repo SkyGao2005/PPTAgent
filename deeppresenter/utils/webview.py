@@ -122,6 +122,7 @@ class PlaywrightConverter:
         output_pdf: Path | str,
         aspect_ratio: Literal["16:9", "4:3", "A1", "A2", "A3", "A4"],
         error_sink: list[str] | None = None,
+        preserve_order: bool = False,
     ) -> Path:
         if isinstance(output_pdf, str):
             output_pdf = Path(output_pdf)
@@ -144,7 +145,8 @@ class PlaywrightConverter:
                 ),
             )
         try:
-            for html, pdf in zip(sorted(html_files), pdf_files):
+            ordered_html_files = html_files if preserve_order else sorted(html_files)
+            for html, pdf in zip(ordered_html_files, pdf_files):
                 await page.goto(Path(html).resolve().as_uri(), wait_until="networkidle")
                 await page.pdf(path=pdf, **PDF_OPTIONS, **ASPECT_RATIOS[aspect_ratio])
         except Exception as e:

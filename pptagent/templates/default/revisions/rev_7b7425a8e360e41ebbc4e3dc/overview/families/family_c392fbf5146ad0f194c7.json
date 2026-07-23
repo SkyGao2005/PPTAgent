@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires multiple images, comparisons, or data visualizations.",
+    "Avoid when the explanation must be brief or highly scannable."
+  ],
+  "description": "A large subject photograph dominates the upper page, followed by a descriptive heading and a dense explanatory paragraph.",
+  "digest": "large photo with title and detailed description",
+  "family_id": "family_c392fbf5146ad0f194c7",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use for an image-led profile of a landmark, building, artwork, or other single subject.",
+    "Choose when a large photograph needs a substantial explanatory paragraph beneath it."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "large photo with title and detailed description",
+      "page_number": 9,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A large subject photograph dominates the upper page, followed by a descriptive heading and a dense explanatory paragraph."
+    }
+  ],
+  "stage": "content"
+}

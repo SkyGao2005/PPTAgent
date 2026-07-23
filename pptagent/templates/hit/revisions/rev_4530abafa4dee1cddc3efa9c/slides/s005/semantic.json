@@ -1,0 +1,137 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the page needs detailed explanations, data, or multiple content blocks.",
+    "Avoid when no chapter transition or section introduction is needed."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [],
+  "judged_decoration_shape_ids": [],
+  "page_number": 5,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "chapter divider with title and blue footer",
+    "layout_pattern": "hero",
+    "message_pattern": "transition",
+    "modalities": [
+      "text"
+    ],
+    "stage": "section",
+    "summary": "A spacious chapter divider places a large heading and short introduction immediately above a branded blue footer band.",
+    "title": "章节二。我到底在哪啊啊啊啊啊"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Large chapter or section heading positioned above the footer band.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s005-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.662207
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 71,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 31,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Brief section description, context line, or introductory subtitle.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s005-sh0002"
+      ],
+      "style_ref": "text.subtitle"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.053241,
+        "width": 0.233333,
+        "x": 0.623848,
+        "y": 0.868495
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 24,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.97,
+      "description": "Presentation or section date displayed within the lower blue band.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "footer",
+      "source_shape_ids": [
+        "s005-sh0003"
+      ],
+      "style_ref": "text.footer"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use to introduce a new chapter or major section.",
+    "Best for a prominent heading with one short supporting line and optional date."
+  ],
+  "slide_id": "s005",
+  "warnings": []
+}

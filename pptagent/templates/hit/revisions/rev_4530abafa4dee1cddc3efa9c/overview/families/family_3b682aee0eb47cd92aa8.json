@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs charts, images, comparisons, or multiple distinct sections.",
+    "Avoid for highly visual storytelling or very dense technical detail."
+  ],
+  "description": "A branded academic content slide presents a prominent header above one spacious instructional bullet list.",
+  "digest": "branded title with instructional bullet list",
+  "family_id": "family_3b682aee0eb47cd92aa8",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for straightforward instructions, guidelines, or explanatory points under one heading.",
+    "Choose when four to six concise bullets can communicate the topic without supporting visuals."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "branded title with instructional bullet list",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A branded academic content slide presents a prominent header above one spacious instructional bullet list."
+    }
+  ],
+  "stage": "content"
+}

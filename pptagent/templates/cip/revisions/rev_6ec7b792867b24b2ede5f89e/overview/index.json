@@ -1,0 +1,140 @@
+{
+  "asset_roles": {
+    "content_image": 1,
+    "decoration": 4,
+    "logo": 1
+  },
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "detail_hint": "Each family lists only its digest. Call get_family_detail(family_id) for selection hints, avoid conditions, and member pages.",
+  "families": [
+    {
+      "digest": "branded cover with title band and metadata",
+      "family_id": "family_d264abb9eb4a9822ee39",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "cover"
+    },
+    {
+      "digest": "closing thank-you message on blue band",
+      "family_id": "family_e20cc215c0d98d7f651a",
+      "layout_pattern": "hero",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "closing"
+    },
+    {
+      "digest": "split analysis with large comparison chart",
+      "family_id": "family_0001c614342240e61a23",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "chart"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "workflow overview with bullets and process diagram",
+      "family_id": "family_0f5b74dec10bf518a684",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "diagram"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "split explanation with supporting comparison diagram",
+      "family_id": "family_e124f99b5d727459d285",
+      "layout_pattern": "split",
+      "modalities": [
+        "text",
+        "diagram"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "heatmap with explanatory bullets",
+      "family_id": "family_5de389b72a4700d71b0d",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text",
+        "chart"
+      ],
+      "slide_count": 1,
+      "stage": "content"
+    },
+    {
+      "digest": "simple agenda with large bullet list",
+      "family_id": "family_0909d16f1e196db5e2ee",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 1,
+      "stage": "agenda"
+    },
+    {
+      "digest": "title with two-level bullet outline",
+      "family_id": "family_b944674c4e179a723bb9",
+      "layout_pattern": "title_body",
+      "modalities": [
+        "text"
+      ],
+      "slide_count": 2,
+      "stage": "content"
+    }
+  ],
+  "family_count": 8,
+  "name": "cip",
+  "revision_id": "rev_6ec7b792867b24b2ede5f89e",
+  "schema_version": "2.0",
+  "slide_count": 9,
+  "template_id": "cip",
+  "theme": {
+    "colors": {
+      "accent1": "#4F81BD",
+      "accent2": "#C0504D",
+      "accent3": "#9BBB59",
+      "accent4": "#8064A2",
+      "accent5": "#4BACC6",
+      "accent6": "#F79646",
+      "bg1": "#FFFFFF",
+      "bg2": "#EEECE1",
+      "color_1": "#194297",
+      "color_2": "#385AA4",
+      "color_3": "#003399",
+      "color_4": "#262626",
+      "folHlink": "#800080",
+      "hlink": "#0000FF",
+      "tx1": "#000000",
+      "tx2": "#1F497D"
+    },
+    "fonts": {
+      "font_1": "微软雅黑",
+      "font_2": "Microsoft YaHei",
+      "font_3": "SimHei",
+      "font_major": "Calibri",
+      "font_minor": "Calibri"
+    },
+    "safe_area": {
+      "height": 0.92,
+      "width": 0.92,
+      "x": 0.04,
+      "y": 0.04
+    }
+  }
+}

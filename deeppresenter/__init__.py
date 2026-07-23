@@ -6,4 +6,5 @@ __email__ = "wszh712811@gmail.com"
 
 import os
 
-assert os.name == "posix", "DeepPresenter only supports Linux and macOS"
+if not os.environ.get("DEEPPRESENTER_SKIP_POSIX"):
+    assert os.name == "posix", "DeepPresenter only supports Linux and macOS"

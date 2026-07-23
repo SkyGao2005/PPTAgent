@@ -184,6 +184,33 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
   });
 
   /**
+   * Capture one freshly built clone at the page origin.
+   *
+   * The page above is emptied before anything is rasterized, so where a
+   * clone sits is arbitrary -- but placing it at the element's own page
+   * coordinates put decoration that overhangs the canvas partly outside the
+   * viewport. An element screenshot then clamped to the viewport and
+   * captured the wrong region, so a wedge bleeding off the left edge came
+   * back drawn on the wrong side of its own box and read as a different
+   * shape. Rendering at the origin and clipping explicitly removes the
+   * dependency on where the element happened to live.
+   */
+  const captureAtOrigin = async (filePath, width, height) => {
+    const viewport = page.viewportSize();
+    if (viewport && (viewport.width < width || viewport.height < height)) {
+      await page.setViewportSize({
+        width: Math.max(viewport.width, Math.ceil(width)),
+        height: Math.max(viewport.height, Math.ceil(height))
+      });
+    }
+    await page.screenshot({
+      path: filePath,
+      omitBackground: true,
+      clip: { x: 0, y: 0, width, height }
+    });
+  };
+
+  /**
    * Calculate shadow extent for screenshot area expansion
    * Shadow extends by blur+spread radius in all directions, offset by shadow position
    */
@@ -213,30 +240,35 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
    * Render a background element with CSS styles as a PNG image
    * Handles gradients, colors, shadows, and border-radius
    */
-  const renderBackground = async (style, widthPx, heightPx, leftPx = 0, topPx = 0) => {
+  const renderBackground = async (style, widthPx, heightPx) => {
     const id = makeId();
     const shadowExtent = parseShadowExtent(style.boxShadow);
     const hasSignificantShadow = shadowExtent.left + shadowExtent.right + shadowExtent.top + shadowExtent.bottom > 0;
 
     const expandedWidth = widthPx + shadowExtent.left + shadowExtent.right;
     const expandedHeight = heightPx + shadowExtent.top + shadowExtent.bottom;
-    const expandedLeft = leftPx - shadowExtent.left;
-    const expandedTop = topPx - shadowExtent.top;
 
-    await page.evaluate(({ id, widthPx, heightPx, expandedLeft, expandedTop, shadowExtent, style }) => {
+    await page.evaluate(({ id, widthPx, heightPx, shadowExtent, style }) => {
       const el = document.createElement('div');
       el.id = id;
       el.style.position = 'fixed';
-      el.style.left = `${expandedLeft + shadowExtent.left}px`;
-      el.style.top = `${expandedTop + shadowExtent.top}px`;
-      el.style.width = `${widthPx}px`;
-      el.style.height = `${heightPx}px`;
+      const boxWidth = style.transform && style.layoutWidth ? style.layoutWidth : widthPx;
+      const boxHeight = style.transform && style.layoutHeight ? style.layoutHeight : heightPx;
+      // A rotated element keeps its layout size and turns about its centre, so
+      // the clone is centred inside the box that was measured for it.
+      el.style.left = `${shadowExtent.left + (widthPx - boxWidth) / 2}px`;
+      el.style.top = `${shadowExtent.top + (heightPx - boxHeight) / 2}px`;
+      el.style.width = `${boxWidth}px`;
+      el.style.height = `${boxHeight}px`;
       if (style.backgroundColor) el.style.backgroundColor = style.backgroundColor;
       if (style.backgroundImage) el.style.backgroundImage = style.backgroundImage;
       el.style.backgroundRepeat = style.backgroundRepeat || 'no-repeat';
       el.style.backgroundSize = style.backgroundSize || 'auto';
       el.style.backgroundPosition = style.backgroundPosition || '0% 0%';
       if (style.borderRadius) el.style.borderRadius = style.borderRadius;
+      // A clip is the shape itself, not decoration: PowerPoint has no
+      // equivalent, so the element is rasterized with the clip applied.
+      if (style.clipPath && style.clipPath !== 'none') el.style.clipPath = style.clipPath;
       if (style.boxShadow && style.boxShadow !== 'none') el.style.boxShadow = style.boxShadow;
       if (style.transform && style.transform !== 'none') el.style.transform = style.transform;
       // Handle border styles (uniform or individual sides)
@@ -252,24 +284,12 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       el.style.pointerEvents = 'none';
       el.style.zIndex = '2147483647';
       document.body.appendChild(el);
-    }, { id, widthPx, heightPx, expandedLeft, expandedTop, shadowExtent, style });
+    }, { id, widthPx, heightPx, shadowExtent, style });
 
     const filePath = makePath();
-    if (hasSignificantShadow) {
-      await page.screenshot({
-        path: filePath,
-        omitBackground: true,
-        clip: {
-          x: Math.max(0, expandedLeft),
-          y: Math.max(0, expandedTop),
-          width: expandedWidth,
-          height: expandedHeight
-        }
-      });
-    } else {
-      const handle = await page.$(`#${id}`);
-      await handle.screenshot({ path: filePath, omitBackground: true });
-    }
+    // A rotated clone spills outside its own element box, so the capture
+    // covers the area the layout actually reserved for it.
+    await captureAtOrigin(filePath, expandedWidth, expandedHeight);
     await page.evaluate((id) => {
       const el = document.getElementById(id);
       if (el) el.remove();
@@ -280,13 +300,11 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
   /**
    * Render an image element with applied CSS styles (object-fit, filters, shadows) as PNG
    */
-  const renderImage = async (src, style, widthPx, heightPx, leftPx = 0, topPx = 0) => {
+  const renderImage = async (src, style, widthPx, heightPx) => {
     const id = makeId();
     const shadowExtent = parseShadowExtent(style.boxShadow);
     const hasSignificantShadow = shadowExtent.left + shadowExtent.right + shadowExtent.top + shadowExtent.bottom > 0;
 
-    const expandedLeft = leftPx - shadowExtent.left;
-    const expandedTop = topPx - shadowExtent.top;
     const expandedWidth = widthPx + shadowExtent.left + shadowExtent.right;
     const expandedHeight = heightPx + shadowExtent.top + shadowExtent.bottom;
 
@@ -294,14 +312,14 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
     const hasBorder = style.border && style.border.width > 0;
     const borderWidthPx = hasBorder ? style.border.width / 0.75 : 0; // Convert points back to pixels
 
-    await page.evaluate(({ id, src, widthPx, heightPx, expandedLeft, expandedTop, shadowExtent, style, borderWidthPx }) => {
+    await page.evaluate(({ id, src, widthPx, heightPx, shadowExtent, style, borderWidthPx }) => {
       const img = document.createElement('img');
       img.id = id;
       img.src = src;
       img.style.position = 'fixed';
       // Position image within the expanded area, leaving room for shadow
-      img.style.left = `${expandedLeft + shadowExtent.left}px`;
-      img.style.top = `${expandedTop + shadowExtent.top}px`;
+      img.style.left = `${shadowExtent.left}px`;
+      img.style.top = `${shadowExtent.top}px`;
       img.style.width = `${widthPx}px`;
       img.style.height = `${heightPx}px`;
       img.style.objectFit = style.objectFit || 'fill';
@@ -317,7 +335,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       img.style.pointerEvents = 'none';
       img.style.zIndex = '2147483647';
       document.body.appendChild(img);
-    }, { id, src, widthPx, heightPx, expandedLeft, expandedTop, shadowExtent, style, borderWidthPx });
+    }, { id, src, widthPx, heightPx, shadowExtent, style, borderWidthPx });
 
     await page.waitForFunction((id) => {
       const el = document.getElementById(id);
@@ -325,21 +343,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
     }, id, { timeout: TIMEOUT_MS });
 
     const filePath = makePath();
-    if (hasSignificantShadow) {
-      await page.screenshot({
-        path: filePath,
-        omitBackground: true,
-        clip: {
-          x: Math.max(0, expandedLeft),
-          y: Math.max(0, expandedTop),
-          width: expandedWidth,
-          height: expandedHeight
-        }
-      });
-    } else {
-      const handle = await page.$(`#${id}`);
-      await handle.screenshot({ path: filePath, omitBackground: true });
-    }
+    await captureAtOrigin(filePath, expandedWidth, expandedHeight);
     await page.evaluate((id) => {
       const el = document.getElementById(id);
       if (el) el.remove();
@@ -351,14 +355,14 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
    * Render SVG markup as PNG image
    * PowerPoint doesn't natively support inline SVG
    */
-  const renderSvg = async (svgMarkup, widthPx, heightPx, leftPx = 0, topPx = 0) => {
+  const renderSvg = async (svgMarkup, widthPx, heightPx) => {
     const id = makeId();
-    await page.evaluate(({ id, svgMarkup, widthPx, heightPx, leftPx, topPx }) => {
+    await page.evaluate(({ id, svgMarkup, widthPx, heightPx }) => {
       const container = document.createElement('div');
       container.id = id;
       container.style.position = 'fixed';
-      container.style.left = `${leftPx}px`;
-      container.style.top = `${topPx}px`;
+      container.style.left = '0px';
+      container.style.top = '0px';
       container.style.width = `${widthPx}px`;
       container.style.height = `${heightPx}px`;
       container.style.pointerEvents = 'none';
@@ -374,11 +378,10 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
         svg.style.height = '100%';
         svg.style.display = 'block';
       }
-    }, { id, svgMarkup, widthPx, heightPx, leftPx, topPx });
+    }, { id, svgMarkup, widthPx, heightPx });
 
-    const handle = await page.$(`#${id}`);
     const filePath = makePath();
-    await handle.screenshot({ path: filePath, omitBackground: true });
+    await captureAtOrigin(filePath, widthPx, heightPx);
     await page.evaluate((id) => {
       const el = document.getElementById(id);
       if (el) el.remove();
@@ -391,9 +394,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
     const { filePath } = await renderBackground(
       slideData.background.style || {},
       Math.round(bodyDimensions.width),
-      Math.round(bodyDimensions.height),
-      0,
-      0
+      Math.round(bodyDimensions.height)
     );
     slideData.background = { type: 'image', path: filePath };
   } else if (slideData.background && slideData.background.type === 'gradient') {
@@ -403,9 +404,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
         backgroundImage: slideData.background.value
       },
       Math.round(bodyDimensions.width),
-      Math.round(bodyDimensions.height),
-      0,
-      0
+      Math.round(bodyDimensions.height)
     );
     slideData.background = { type: 'image', path: filePath };
   }
@@ -415,9 +414,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       // Render background DIVs with gradients/shadows as images
       const widthPx = Math.round(el.position.w * PX_PER_IN);
       const heightPx = Math.round(el.position.h * PX_PER_IN);
-      const leftPx = Math.round(el.position.x * PX_PER_IN);
-      const topPx = Math.round(el.position.y * PX_PER_IN);
-      const { filePath, shadowExtent, hasSignificantShadow } = await renderBackground(el.style || {}, widthPx, heightPx, leftPx, topPx);
+      const { filePath, shadowExtent, hasSignificantShadow } = await renderBackground(el.style || {}, widthPx, heightPx);
       el.type = 'image';
       el.src = filePath;
       if (hasSignificantShadow) {
@@ -446,9 +443,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       if (shouldRender) {
         const widthPx = Math.round(el.position.w * PX_PER_IN);
         const heightPx = Math.round(el.position.h * PX_PER_IN);
-        const leftPx = Math.round(el.position.x * PX_PER_IN);
-        const topPx = Math.round(el.position.y * PX_PER_IN);
-        const { filePath, shadowExtent, hasSignificantShadow } = await renderImage(el.src, el.style, widthPx, heightPx, leftPx, topPx);
+        const { filePath, shadowExtent, hasSignificantShadow } = await renderImage(el.src, el.style, widthPx, heightPx);
         el.src = filePath;
         if (hasSignificantShadow) {
           el.position.x -= shadowExtent.left / PX_PER_IN;
@@ -507,9 +502,7 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       // Render inline SVG as PNG image
       const widthPx = Math.round(el.position.w * PX_PER_IN);
       const heightPx = Math.round(el.position.h * PX_PER_IN);
-      const leftPx = Math.round(el.position.x * PX_PER_IN);
-      const topPx = Math.round(el.position.y * PX_PER_IN);
-      const filePath = await renderSvg(el.svg, widthPx, heightPx, leftPx, topPx);
+      const filePath = await renderSvg(el.svg, widthPx, heightPx);
       el.type = 'image';
       el.src = filePath;
       delete el.svg;
@@ -517,17 +510,13 @@ async function rasterizeGradients(page, slideData, bodyDimensions, tmpDir) {
       // Render CSS gradient background as PNG image
       const widthPx = Math.round(el.position.w * PX_PER_IN);
       const heightPx = Math.round(el.position.h * PX_PER_IN);
-      const leftPx = Math.round(el.position.x * PX_PER_IN);
-      const topPx = Math.round(el.position.y * PX_PER_IN);
       const { filePath } = await renderBackground(
         {
           ...(el.style || {}),
           backgroundImage: el.gradient
         },
         widthPx,
-        heightPx,
-        leftPx,
-        topPx
+        heightPx
       );
       el.type = 'image';
       el.src = filePath;
@@ -765,22 +754,28 @@ async function extractSlideData(page) {
       const computed = computedStyle || window.getComputedStyle(el);
       return computed.position === 'absolute';
     };
+    /**
+     * How far a border line is pulled in from the element's own box.
+     *
+     * A CSS border spans the border box: a card with `padding: 24px` and a
+     * `border-top` draws that rule across its full width, not across the
+     * content area. Defaulting the inset to the padding drew every rule
+     * short of its own card, so the accent bars floated free of the boxes
+     * they belong to. The `--pptx-line-inset-*` properties stay as the
+     * explicit way to ask for a shorter rule.
+     */
     const getLineInsets = (computed, rect) => {
       const width = rect.width || (rect.right - rect.left);
       const height = rect.height || (rect.bottom - rect.top);
-      const paddingLeft = parseFloat(computed.paddingLeft) || 0;
-      const paddingRight = parseFloat(computed.paddingRight) || 0;
-      const paddingTop = parseFloat(computed.paddingTop) || 0;
-      const paddingBottom = parseFloat(computed.paddingBottom) || 0;
       const left = parseInsetValue(computed.getPropertyValue('--pptx-line-inset-left'), width);
       const right = parseInsetValue(computed.getPropertyValue('--pptx-line-inset-right'), width);
       const top = parseInsetValue(computed.getPropertyValue('--pptx-line-inset-top'), height);
       const bottom = parseInsetValue(computed.getPropertyValue('--pptx-line-inset-bottom'), height);
       return {
-        left: left !== null ? left : paddingLeft,
-        right: right !== null ? right : paddingRight,
-        top: top !== null ? top : paddingTop,
-        bottom: bottom !== null ? bottom : paddingBottom
+        left: left !== null ? left : 0,
+        right: right !== null ? right : 0,
+        top: top !== null ? top : 0,
+        bottom: bottom !== null ? bottom : 0
       };
     };
     const getLineRanges = (computed, rect) => {
@@ -1519,7 +1514,7 @@ async function extractSlideData(page) {
      * Elements are processed in order: placeholders, images, SVG, tables, lists, text, shapes
      * Uses 'processed' set to track already-handled elements and avoid duplication
      */
-    document.querySelectorAll('*').forEach((el) => {
+    const processElement = (el) => {
       if (processed.has(el)) return;
 
       // Validate text elements don't have backgrounds, borders, or shadows
@@ -1864,6 +1859,7 @@ async function extractSlideData(page) {
 
         const bgImage = computed.backgroundImage;
         const hasBgImage = bgImage && bgImage !== 'none';
+        const hasClipPath = computed.clipPath && computed.clipPath !== 'none';
 
         const borderTop = computed.borderTopWidth;
         const borderRight = computed.borderRightWidth;
@@ -1936,7 +1932,7 @@ async function extractSlideData(page) {
           }
         }
 
-        if (hasBg || hasBorder || hasBgImage) {
+        if (hasBg || hasBorder || hasBgImage || hasClipPath) {
           const rect = el.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             const shadow = parseBoxShadow(computed.boxShadow);
@@ -1944,7 +1940,7 @@ async function extractSlideData(page) {
             const actualWidth = rect.width;
             const actualHeight = rect.height;
 
-            if (!hasBgImage && (hasBg || hasUniformBorder)) {
+            if (!hasBgImage && !hasClipPath && (hasBg || hasUniformBorder)) {
               elements.push({
                 type: 'shape',
                 text: '',  // Shape only - child text elements render on top
@@ -1982,7 +1978,7 @@ async function extractSlideData(page) {
               });
             }
 
-            if (hasBgImage) {
+            if (hasBgImage || hasClipPath) {
               elements.push({
                 type: 'bgImage',
                 position: {
@@ -1998,6 +1994,13 @@ async function extractSlideData(page) {
                   backgroundPosition: computed.backgroundPosition,
                   backgroundColor: computed.backgroundColor,
                   borderRadius: computed.borderRadius,
+                  clipPath: computed.clipPath,
+                  border: hasUniformBorder ? computed.border : undefined,
+                  // getBoundingClientRect reports the rotated bounding box, so
+                  // the untransformed size travels with the transform itself.
+                  transform: computed.transform !== 'none' ? computed.transform : undefined,
+                  layoutWidth: el.offsetWidth,
+                  layoutHeight: el.offsetHeight,
                   boxShadow: computed.boxShadow,
                   opacity: getEffectiveOpacity(el)
                 }
@@ -2819,7 +2822,40 @@ async function extractSlideData(page) {
       }
 
       processed.add(el);
+    };
+
+    /**
+     * Paint order decides what covers what -- document order does not.
+     *
+     * A cover photo written after the template's wedges but given a lower
+     * z-index sits behind them in the browser and in the exported PDF.
+     * Emitting shapes in document order put that photo last, so it covered
+     * the template chrome it was meant to sit under. Elements are collected
+     * in document order, so a stable sort on the stacking level alone
+     * reproduces the browser's ordering, including ties.
+     */
+    const stackingLevel = (el) => {
+      for (let node = el; node && node !== document.body; node = node.parentElement) {
+        const style = window.getComputedStyle(node);
+        if (style.position !== 'static' && style.zIndex !== 'auto') {
+          const value = parseInt(style.zIndex, 10);
+          if (!Number.isNaN(value)) return value;
+        }
+      }
+      return 0;
+    };
+
+    document.querySelectorAll('*').forEach((el) => {
+      const start = elements.length;
+      // Read the level before processing: extraction mutates styles.
+      const level = stackingLevel(el);
+      processElement(el);
+      for (let i = start; i < elements.length; i++) {
+        if (elements[i].zOrder === undefined) elements[i].zOrder = level;
+      }
     });
+
+    elements.sort((a, b) => (a.zOrder || 0) - (b.zOrder || 0));
 
     return { background, elements, placeholders, errors };
   });

@@ -5,7 +5,7 @@ import warnings
 
 import typer
 
-from .commands import clean, config, generate, onboard, serve
+from .commands import clean, config, generate, onboard, serve, template_compile
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*urllib3.*")
@@ -21,6 +21,7 @@ app.command()(serve)
 app.command()(generate)
 app.command()(config)
 app.command()(clean)
+app.command("template-compile")(template_compile)
 
 
 def main():

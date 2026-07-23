@@ -9,7 +9,7 @@ import traceback
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated
 
 import typer
 import yaml
@@ -19,6 +19,17 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from deeppresenter.main import AgentLoop, InputRequest
+from deeppresenter.server.services.template_catalog import bundled_templates_root
+from deeppresenter.templates import (
+    DeepPresenterStructuredVLMClient,
+    DeterministicAnnotator,
+    TemplateCompiler,
+    TemplateContextProvider,
+    TemplateStore,
+    VLMAnnotator,
+    derive_template_id,
+)
+from deeppresenter.templates.ids import sha256_file
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.outline import Outline
 from deeppresenter.utils.webview import PlaywrightConverter
@@ -43,6 +54,7 @@ from .dependency import (
 )
 from .model import (
     LOCAL_BASE_URL,
+    LOCAL_CONTEXT_TOKENS,
     LOCAL_MODEL,
     has_complete_model_config,
     is_local_model_server_running,
@@ -153,7 +165,7 @@ def onboard():
                     local_model_pid = setup_inference()
                 except Exception as e:
                     console.print(
-                        f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c 100000 --port 7811 --log-disable --reasoning-budget 0` manually, or configure another API instead."
+                        f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c {LOCAL_CONTEXT_TOKENS} --port 7811 --log-disable --reasoning-budget 0` manually, or configure another API instead."
                     )
                     console.print(f"[dim]{type(e).__name__}: {e!r}[/dim]")
                     sys.exit(1)
@@ -333,6 +345,18 @@ def generate(
             help="Generate and interactively edit an outline before research",
         ),
     ] = False,
+    template: Annotated[
+        str | None,
+        typer.Option("--template", "-t", help="READY Template IR identifier"),
+    ] = None,
+    template_revision: Annotated[
+        str | None,
+        typer.Option("--template-revision", help="Pin a specific READY revision"),
+    ] = None,
+    templates_root: Annotated[
+        Path | None,
+        typer.Option("--templates-root", help="Additional Template IR root"),
+    ] = None,
 ):
     """Generate a presentation from prompt and optional files."""
     ensure_supported_platform()
@@ -353,12 +377,23 @@ def generate(
                 sys.exit(1)
             attachments.append(str(f.resolve()))
 
+    template_provider = None
+    pinned_revision_id = None
+    if template:
+        roots = [templates_root or (CACHE_DIR / "templates"), bundled_templates_root()]
+        template_provider = TemplateContextProvider(TemplateStore(roots))
+        revision = template_provider.store.resolve(template, template_revision)
+        pinned_revision_id = revision.revision_id
+
     request = InputRequest(
         instruction=prompt,
         attachments=attachments,
         num_pages=pages,
         powerpoint_type=aspect_ratio,
         enable_planner=planner,
+        template=template,
+        template_id=template,
+        template_revision_id=pinned_revision_id,
     )
 
     config = DeepPresenterConfig.load_from_file(str(CONFIG_FILE))
@@ -379,6 +414,14 @@ def generate(
                 workspace=None,
                 language=language,
             )
+            if template_provider and template:
+                context_pack = await asyncio.to_thread(
+                    template_provider.materialize,
+                    template,
+                    loop.workspace,
+                    pinned_revision_id,
+                )
+                request.template_context_path = str(context_pack["context_dir"])
 
             console.print(
                 Panel.fit(
@@ -440,6 +483,97 @@ def generate(
                 os.kill(local_model_pid, signal.SIGTERM)
             except OSError:
                 pass
+
+
+def template_compile(
+    source: Annotated[Path, typer.Argument(help="Source .pptx template")],
+    template_id: Annotated[
+        str | None,
+        typer.Option("--template-id", help="Stable template identifier"),
+    ] = None,
+    name: Annotated[
+        str | None,
+        typer.Option("--name", help="Display name"),
+    ] = None,
+    templates_root: Annotated[
+        Path,
+        typer.Option("--templates-root", help="Template IR output root"),
+    ] = CACHE_DIR / "templates",
+    config_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--config",
+            help=(
+                "DeepPresenter config used for VLM annotation. Defaults to "
+                "DEEPPRESENTER_CONFIG_FILE, the onboarded config, or "
+                "./deeppresenter/config.yaml"
+            ),
+        ),
+    ] = None,
+    deterministic: Annotated[
+        bool,
+        typer.Option(
+            "--deterministic",
+            help="Skip VLM labels and derive semantics from source facts only",
+        ),
+    ] = False,
+) -> None:
+    """Compile a PPTX into Template IR without starting presentation generation."""
+
+    source = source.expanduser().resolve()
+    if not source.is_file() or source.suffix.lower() != ".pptx":
+        raise typer.BadParameter("source must be an existing .pptx file")
+    source_hash = sha256_file(source)
+    resolved_id = template_id or derive_template_id(source_hash, name or source.stem)
+    annotator = DeterministicAnnotator()
+    if not deterministic:
+        if config_path is not None and not config_path.expanduser().is_file():
+            raise typer.BadParameter(f"config file does not exist: {config_path}")
+        config_candidates = [
+            config_path,
+            Path(value).expanduser()
+            if (value := os.getenv("DEEPPRESENTER_CONFIG_FILE"))
+            else None,
+            CONFIG_FILE,
+            Path.cwd() / "deeppresenter" / "config.yaml",
+        ]
+        resolved_config = next(
+            (
+                candidate.expanduser().resolve()
+                for candidate in config_candidates
+                if candidate is not None and candidate.expanduser().is_file()
+            ),
+            None,
+        )
+        if resolved_config is None:
+            raise typer.BadParameter(
+                "no DeepPresenter config found; pass --config, run onboarding, "
+                "or use --deterministic for offline annotation"
+            )
+        config_value = DeepPresenterConfig.load_from_file(str(resolved_config))
+        vision_model = config_value.vision_model or config_value.design_agent
+        if not vision_model.is_multimodal:
+            raise typer.BadParameter(
+                "configured model is not multimodal; use --deterministic or configure vision_model"
+            )
+        annotator = VLMAnnotator(
+            DeepPresenterStructuredVLMClient(vision_model),
+            model_id=vision_model.model_name,
+        )
+
+    target = templates_root.expanduser().resolve() / resolved_id
+    manifest = asyncio.run(
+        TemplateCompiler(annotator=annotator).compile(
+            resolved_id,
+            source,
+            target,
+            name=name or source.stem,
+        )
+    )
+    console.print(
+        f"[bold green]✓[/bold green] Template IR ready: {manifest.template_id} "
+        f"revision={manifest.active_revision_id}\n[dim]{target}[/dim]"
+    )
 
 
 def config():
@@ -530,7 +664,7 @@ def serve():
         pid = setup_inference()
     except Exception as e:
         console.print(
-            f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c 100000 --port 7811 --log-disable --reasoning-budget 0` manually."
+            f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c {LOCAL_CONTEXT_TOKENS} --port 7811 --log-disable --reasoning-budget 0` manually."
         )
         console.print(f"[dim]{e}[/dim]")
         sys.exit(1)

@@ -1,0 +1,94 @@
+{
+  "family_ids": [
+    "family_13e8033f485658336f1c"
+  ],
+  "layout_css_path": "slides/s002/layout.css",
+  "overlay_image_path": "slides/s002/overlay.webp",
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "simple agenda with numbered section list",
+    "layout_pattern": "title_body",
+    "message_pattern": "summary",
+    "modalities": [
+      "text"
+    ],
+    "stage": "agenda",
+    "summary": "A straightforward agenda page presents a prominent top-band heading above a spacious numbered section list.",
+    "title": "Table of Contents"
+  },
+  "reference_image_path": "slides/s002/reference.webp",
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.123232,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.007071
+      },
+      "capacity": {
+        "max_chars": 24,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 10,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r001",
+      "required": true,
+      "role": "title",
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.724937,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.175758
+      },
+      "capacity": {
+        "max_chars": 32,
+        "max_items": 6,
+        "max_lines": 5,
+        "min_chars": 14,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "kind": "text",
+      "region_id": "r002",
+      "required": false,
+      "role": "bullet_group",
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "reusable_asset_ids": [],
+  "schema_version": "2.0",
+  "slide_id": "s002",
+  "theme_tokens": {
+    "--template-accent1": "#2C2CAA",
+    "--template-accent2": "#A94F01",
+    "--template-accent3": "#A5A5A5",
+    "--template-accent4": "#FFC000",
+    "--template-accent5": "#5B9BD5",
+    "--template-accent6": "#70AD47",
+    "--template-bg1": "#FFFFFF",
+    "--template-bg2": "#E7E6E6",
+    "--template-color-1": "#3138AC",
+    "--template-color-2": "#191C56",
+    "--template-color-3": "#252A81",
+    "--template-color-4": "#2C2DA9",
+    "--template-color-5": "#F6ECE2",
+    "--template-folHlink": "#954F72",
+    "--template-font-1": "Microsoft YaHei",
+    "--template-font-2": "Hiragino Sans GB W3",
+    "--template-font-3": "Adobe Heiti Std R",
+    "--template-font-major": "等线 Light",
+    "--template-font-minor": "等线",
+    "--template-hlink": "#0563C1",
+    "--template-tx1": "#000000",
+    "--template-tx2": "#44546A"
+  }
+}

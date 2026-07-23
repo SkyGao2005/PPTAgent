@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-07-22T18:11:03.642941Z",
+  "issues": [],
+  "schema_version": "2.0",
+  "stats": {
+    "assets": 4,
+    "errors": 0,
+    "index_entries": 10,
+    "rendered_slides": 10,
+    "semantics": 10,
+    "slides": 10,
+    "warnings": 0
+  },
+  "valid": true
+}

@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the page needs multiple parallel visuals or data-heavy analysis.",
+    "Avoid when the image is secondary to extensive text."
+  ],
+  "description": "An image-led content page pairs a wide visual with a title and supporting text beneath it.",
+  "digest": "large image with title and description",
+  "family_id": "family_213ee9c49e19bd8196b7",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s007",
+  "selection_hints": [
+    "Choose for a single dominant image supported by a concise heading and description.",
+    "Works well for showcasing a product, scene, example, or visual reference."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "large image with title and description",
+      "page_number": 7,
+      "region_roles": [
+        "body",
+        "photo",
+        "title"
+      ],
+      "slide_id": "s007",
+      "summary": "An image-led content page pairs a wide visual with a title and supporting text beneath it."
+    }
+  ],
+  "stage": "content"
+}

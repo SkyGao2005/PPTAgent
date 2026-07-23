@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid for content-heavy conclusions or detailed recaps.",
+    "Avoid when the closing page needs contact details, calls to action, or multiple links."
+  ],
+  "description": "A formal institutional closing slide centers a thank-you message in a broad blue band, with presenter details below and administrative footer information along the bottom.",
+  "digest": "branded thank-you closing with presenter details",
+  "family_id": "family_16a0060d03cd303745ef",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use as the final thank-you page of an academic or institutional presentation.",
+    "Choose when a simple closing statement and presenter details are sufficient.",
+    "Best suited to a formally branded university deck."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "branded thank-you closing with presenter details",
+      "page_number": 9,
+      "region_roles": [
+        "footer",
+        "subtitle",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A formal institutional closing slide centers a thank-you message in a broad blue band, with presenter details below and administrative footer information along the bottom."
+    }
+  ],
+  "stage": "closing"
+}

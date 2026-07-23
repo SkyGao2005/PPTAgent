@@ -1,0 +1,35 @@
+{
+  "avoid_when": [
+    "Avoid when the visual must remain editable as native diagram elements.",
+    "Avoid when content requires multiple independent charts or dense data tables."
+  ],
+  "description": "A top-titled content slide pairs explanatory bullets on the left with a large comparison diagram on the right.",
+  "digest": "split explanation with supporting comparison diagram",
+  "family_id": "family_e124f99b5d727459d285",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "diagram"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for explaining a concept with concise points and one supporting visual.",
+    "Choose when a large diagram or illustrative comparison complements a short narrative."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "split explanation with supporting comparison diagram",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A top-titled content slide pairs explanatory bullets on the left with a large comparison diagram on the right."
+    }
+  ],
+  "stage": "content"
+}

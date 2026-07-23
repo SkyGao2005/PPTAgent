@@ -1,0 +1,45 @@
+/* Layout scaffold for s006 (closing/hero).
+ * .tpl-* rules are the template's page chrome. Each one paints itself,
+ * imagery included: emit every one as an empty <div> before the
+ * content, add nothing to it, and never restyle or reposition it.
+ * .dec-* rules are the sample slide's own decoration: include them as
+ * empty <div>s by default, but move or drop them when your layout
+ * departs from the sample's.
+ * .r-* rules record how the sample page arranged its content --
+ * geometry, type and colour in one low-specificity rule per region.
+ * They are the default grid, not a constraint: redeclare a region's
+ * class after this import whenever your content needs a different
+ * size, position, colour or count of sibling regions.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#2C2CAA;
+  --template-accent2:#A94F01;
+  --template-accent3:#A5A5A5;
+  --template-accent4:#FFC000;
+  --template-accent5:#5B9BD5;
+  --template-accent6:#70AD47;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#E7E6E6;
+  --template-color-1:#3138AC;
+  --template-color-2:#191C56;
+  --template-color-3:#252A81;
+  --template-color-4:#2C2DA9;
+  --template-color-5:#F6ECE2;
+  --template-folHlink:#954F72;
+  --template-font-1:Microsoft YaHei;
+  --template-font-2:Hiragino Sans GB W3;
+  --template-font-3:Adobe Heiti Std R;
+  --template-font-major:等线 Light;
+  --template-font-minor:等线;
+  --template-hlink:#0563C1;
+  --template-tx1:#000000;
+  --template-tx2:#44546A;
+}
+.slide .tpl-01{position:absolute;left:0%;top:95.347%;width:25.625%;height:4.653%;z-index:1;background-color:#191C56} /* master / 矩形 3 */
+.slide .tpl-02{position:absolute;left:25.625%;top:95.347%;width:48.75%;height:4.653%;z-index:2;background-color:#252A81} /* master / 矩形 4 */
+.slide .tpl-03{position:absolute;left:74.375%;top:95.347%;width:25.625%;height:4.653%;z-index:3;background-color:#3138AC} /* master / 矩形 5 */
+.r-r001{position:absolute;left:16.198%;top:31.944%;width:67.603%;height:22.888%;z-index:4;font-size:8.889vh;font-family:"等线";text-align:center;color:#000000} /* title / text */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

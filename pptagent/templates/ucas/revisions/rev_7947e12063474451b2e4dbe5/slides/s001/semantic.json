@@ -1,0 +1,104 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the opening slide needs a photograph, agenda, or detailed supporting content.",
+    "Avoid for internal content pages requiring multiple sections or data visuals."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [],
+  "judged_decoration_shape_ids": [],
+  "page_number": 1,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "academic cover with title on blue band",
+    "layout_pattern": "hero",
+    "message_pattern": "statement",
+    "modalities": [
+      "text"
+    ],
+    "stage": "cover",
+    "summary": "A formal academic cover uses a prominent blue title band with centered presenter, affiliation, and date details below.",
+    "title": "果壳简约主题PPT模板4:3"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.286089,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.28157
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 20,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 8,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Primary presentation title centered within the large blue banner.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s001-sh0002"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.195801,
+        "width": 0.901575,
+        "x": 0.047638,
+        "y": 0.62036
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 55,
+        "max_items": 1,
+        "max_lines": 4,
+        "min_chars": 23,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Centered presenter details for author name, affiliation, and presentation date.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "subtitle",
+      "source_shape_ids": [
+        "s001-sh0001"
+      ],
+      "style_ref": "text.subtitle"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Choose for a formal academic or institutional presentation cover.",
+    "Use when the title should dominate and presenter details fit beneath it.",
+    "Best suited to concise titles in a traditional 4:3 format."
+  ],
+  "slide_id": "s001",
+  "warnings": []
+}

@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs imagery, charts, or multiple independent sections.",
+    "Avoid for short, high-impact messages that benefit from generous whitespace."
+  ],
+  "description": "A text-heavy explanatory page places a prominent heading above a single large definition-and-supporting-points block on a dark field with green visual accents.",
+  "digest": "Definition and supporting points on dark panel",
+  "family_id": "family_bb3ff0b93a5f77d1cb28",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for defining a concept and expanding it with several supporting points.",
+    "Choose when substantial text must fit beneath a prominent heading in one unified content area."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "Definition and supporting points on dark panel",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A text-heavy explanatory page places a prominent heading above a single large definition-and-supporting-points block on a dark field with green visual accents."
+    }
+  ],
+  "stage": "content"
+}

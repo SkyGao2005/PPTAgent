@@ -1,0 +1,36 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires images, charts, or complex data displays.",
+    "Avoid when more than two distinct content sections must be presented.",
+    "Avoid when the two sides need strongly differentiated comparison styling."
+  ],
+  "description": "A branded content slide organizes two equally weighted titled bullet lists beneath a full-width heading.",
+  "digest": "two-column text with titled bullet lists",
+  "family_id": "family_c97afad575e10ca246b2",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "group"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s009",
+  "selection_hints": [
+    "Use for presenting two parallel categories or complementary topics.",
+    "Use when each column needs a short heading and several concise bullets.",
+    "Works well for bilingual content, paired explanations, or related themes."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "two-column text with titled bullet lists",
+      "page_number": 9,
+      "region_roles": [
+        "body",
+        "title"
+      ],
+      "slide_id": "s009",
+      "summary": "A branded content slide organizes two equally weighted titled bullet lists beneath a full-width heading."
+    }
+  ],
+  "stage": "content"
+}

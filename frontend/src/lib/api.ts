@@ -3,8 +3,11 @@ import type {
   ChatReceipt,
   CreateTaskPayload,
   ExportReceipt,
+  OutlineApproval,
+  OutlineDraft,
   SlideArtifact,
   SlideRevision,
+  TaskHistoryResponse,
   TaskSnapshot,
   TemplateSummary,
 } from "@/types/api"
@@ -53,7 +56,12 @@ interface ApiSurface {
   uploadAttachment: (file: File) => Promise<AttachmentReceipt>
   deleteAttachment: (attachmentId: string) => Promise<void>
   createTask: (payload: CreateTaskPayload) => Promise<TaskSnapshot>
+  createOutline: (payload: CreateTaskPayload) => Promise<OutlineDraft>
+  getOutline: (outlineId: string) => Promise<OutlineDraft>
+  regenerateOutline: (outlineId: string, comment: string) => Promise<OutlineDraft>
+  approveOutline: (outlineId: string) => Promise<OutlineApproval>
   getTask: (taskId: string) => Promise<TaskSnapshot>
+  listTasks: (limit?: number) => Promise<TaskHistoryResponse>
   listSlides: (taskId: string) => Promise<SlideArtifact[]>
   cancelTask: (taskId: string) => Promise<TaskSnapshot>
   resumeTask: (taskId: string) => Promise<TaskSnapshot>
@@ -84,12 +92,29 @@ const realApi: ApiSurface = {
     request(`/api/attachments/${encodeURIComponent(attachmentId)}`, { method: "DELETE" }),
   createTask: (payload) =>
     request("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
+  createOutline: (payload) =>
+    request("/api/outlines", { method: "POST", body: JSON.stringify(payload) }),
+  getOutline: (outlineId) =>
+    request(`/api/outlines/${encodeURIComponent(outlineId)}`),
+  regenerateOutline: (outlineId, comment) =>
+    request(`/api/outlines/${encodeURIComponent(outlineId)}/regenerate`, {
+      method: "POST",
+      body: JSON.stringify({ comment }),
+    }),
+  approveOutline: (outlineId) =>
+    request(`/api/outlines/${encodeURIComponent(outlineId)}/approve`, {
+      method: "POST",
+    }),
   getTask: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}`),
+  listTasks: (limit = 6) => request(`/api/tasks?limit=${limit}`),
   listSlides: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}/slides`),
   cancelTask: (taskId) =>
     request(`/api/tasks/${encodeURIComponent(taskId)}/cancel`, { method: "POST" }),
   resumeTask: (taskId) =>
-    request(`/api/tasks/${encodeURIComponent(taskId)}/retry`, { method: "POST" }),
+    request(`/api/tasks/${encodeURIComponent(taskId)}/retry`, {
+      method: "POST",
+      body: JSON.stringify({ retry_failed_slides_only: true }),
+    }),
   exportTask: (taskId, format) =>
     request(`/api/tasks/${encodeURIComponent(taskId)}/export`, {
       method: "POST",
@@ -146,7 +171,14 @@ const mockApi: ApiSurface = {
   deleteAttachment: (attachmentId) =>
     mock((server) => server.mockDeleteAttachment(attachmentId)),
   createTask: (payload) => mock((server) => server.mockCreateTask(payload)),
+  createOutline: (payload) => mock((server) => server.mockCreateOutline(payload)),
+  getOutline: (outlineId) => mock((server) => server.mockGetOutline(outlineId)),
+  regenerateOutline: (outlineId, comment) =>
+    mock((server) => server.mockRegenerateOutline(outlineId, comment)),
+  approveOutline: (outlineId) =>
+    mock((server) => server.mockApproveOutline(outlineId)),
   getTask: (taskId) => mock((server) => server.mockGetTask(taskId)),
+  listTasks: (limit = 6) => mock((server) => server.mockListTasks(limit)),
   listSlides: (taskId) => mock((server) => server.mockListSlides(taskId)),
   cancelTask: (taskId) => mock((server) => server.mockCancelTask(taskId)),
   resumeTask: (taskId) => mock((server) => server.mockResumeTask(taskId)),

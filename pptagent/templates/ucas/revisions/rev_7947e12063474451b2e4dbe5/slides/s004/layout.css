@@ -1,0 +1,46 @@
+/* Layout scaffold for s004 (content/title_body).
+ * .tpl-* rules are the template's page chrome. Each one paints itself,
+ * imagery included: emit every one as an empty <div> before the
+ * content, add nothing to it, and never restyle or reposition it.
+ * .dec-* rules are the sample slide's own decoration: include them as
+ * empty <div>s by default, but move or drop them when your layout
+ * departs from the sample's.
+ * .r-* rules record how the sample page arranged its content --
+ * geometry, type and colour in one low-specificity rule per region.
+ * They are the default grid, not a constraint: redeclare a region's
+ * class after this import whenever your content needs a different
+ * size, position, colour or count of sibling regions.
+ */
+.slide{position:relative;width:100%;height:100%;overflow:hidden;background:#FFFFFF}
+.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}
+:where(.slide :is(h1,h2,h3,h4,h5,h6)){font-size:inherit;font-weight:inherit;margin:0}
+:root{
+  --template-accent1:#174994;
+  --template-accent2:#AE1324;
+  --template-accent3:#AF5819;
+  --template-accent4:#5A8071;
+  --template-accent5:#A9C37C;
+  --template-accent6:#969FA7;
+  --template-bg1:#FFFFFF;
+  --template-bg2:#EBEBEB;
+  --template-color-1:#2E2E2E;
+  --template-folHlink:#174994;
+  --template-font-1:+mj-ea;
+  --template-font-2:+mn-ea;
+  --template-font-major:Times New Roman;
+  --template-font-minor:Times New Roman;
+  --template-hlink:#007698;
+  --template-tx1:#000000;
+  --template-tx2:#3D3D3D;
+}
+.slide .tpl-01{position:absolute;left:89.269%;top:2.42%;width:7.874%;height:10.499%;z-index:1;background-image:url(../../assets/asset_76133485b54c6190eaae6d06.png);background-size:100% 100%;background-repeat:no-repeat} /* master / 图片 66 */
+.slide .tpl-02{position:absolute;left:0%;top:3.618%;width:3.958%;height:8.102%;z-index:2;background-color:#174994} /* master / 矩形 70 */
+.slide .tpl-03{position:absolute;left:5.044%;top:3.618%;width:1.31%;height:8.102%;z-index:3;background-color:#174994} /* master / 矩形 71 */
+.slide .tpl-04{position:absolute;left:0%;top:91.159%;width:78.74%;height:1.05%;z-index:4;background-color:#174994} /* master / Rectangle 8 */
+.slide .tpl-05{position:absolute;left:-0.101%;top:12.019%;width:89.37%;height:1.05%;z-index:5;background-color:#174994} /* master / Rectangle 8 */
+.r-r001{position:absolute;left:7.493%;top:2.42%;width:79.935%;height:10.499%;z-index:10;font-size:4.444vh;font-family:"Times New Roman";font-weight:700;text-align:left;color:#AE1324} /* title / text */
+.r-r002{position:absolute;left:2.743%;top:28.357%;width:94.554%;height:45.622%;z-index:6;font-size:3.333vh;font-family:"+mj-ea";font-weight:700;text-align:left;color:#3D3D3D} /* bullet_group / text */
+.r-r003{position:absolute;left:2.743%;top:92.685%;width:23.622%;height:5.324%;z-index:7;font-size:2.222vh;font-family:"Times New Roman";text-align:left;color:#969FA7} /* footer / text */
+.r-r004{position:absolute;left:39.173%;top:92.685%;width:21.654%;height:5.324%;z-index:9;font-size:2.222vh;font-family:"Times New Roman";text-align:center;color:#969FA7} /* footer / text */
+.r-r005{position:absolute;left:65.893%;top:92.685%;width:31.364%;height:5.324%;z-index:8;font-size:2.222vh;font-family:"Times New Roman";font-weight:700;text-align:right;color:#969FA7} /* footer / text */
+.safe-area{position:absolute;left:4%;top:4%;width:92%;height:92%}

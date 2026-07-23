@@ -1,7 +1,11 @@
 __pycache__
+.venv
+.local-workspace
+.local-playwright
 tmp
 build
 workspace
+/userdata/
 *ipynb
 .vscode
 oaib.txt

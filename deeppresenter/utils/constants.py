@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 
 # ============ Path ============
-PACKAGE_DIR = Path(__file__).parent.parent
+PACKAGE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = PACKAGE_DIR.parent
+DEFAULT_WORKSPACE_BASE = PROJECT_ROOT / "userdata"
 
 # ============ Logging ===========
 LOGGING_LEVEL = int(os.getenv("DEEPPRESENTER_LOG_LEVEL", logging.INFO))
@@ -13,6 +15,7 @@ MAX_LOGGING_LENGTH = int(os.getenv("DEEPPRESENTER_MAX_LOGGING_LENGTH", 1024))
 
 # ============ Agent  ============
 RETRY_TIMES = int(os.getenv("RETRY_TIMES", 10))
+T2I_RETRY_TIMES = int(os.getenv("T2I_RETRY_TIMES", 3))
 MAX_TOOLCALL_PER_TURN = int(os.getenv("MAX_TOOLCALL_PER_TURN", 7))
 MAX_RETRY_INTERVAL = int(os.getenv("MAX_RETRY_INTERVAL", 60))
 # count in chars, this is about the first 4 page of a dual-column paper
@@ -20,7 +23,7 @@ TOOL_CUTOFF_LEN = int(os.getenv("TOOL_CUTOFF_LEN", 4096))
 ASYNC_TOOL_TIMEOUT = int(os.getenv("ASYNC_TOOL_TIMEOUT", 5))
 MAX_SUBAGENT_TURNS = int(os.getenv("MAX_SUBAGENT_TURNS", 10))
 # count in tokens
-CONTEXT_LENGTH_LIMIT = int(os.getenv("CONTEXT_LENGTH_LIMIT", 200_000))
+CONTEXT_LENGTH_LIMIT = int(os.getenv("CONTEXT_LENGTH_LIMIT", 250_000))
 CUTOFF_WARNING = "NOTE: Output truncated (showing first {line} lines). Use `read_file` with `offset` parameter to continue reading from {resource_id}."
 
 # ============ Environment ============
@@ -30,9 +33,9 @@ MCP_CALL_TIMEOUT = int(os.getenv("MCP_CALL_TIMEOUT", 1800))
 WORKSPACE_BASE = Path(
     os.getenv(
         "DEEPPRESENTER_WORKSPACE_BASE",
-        str(Path.home() / ".cache/deeppresenter"),
+        str(DEFAULT_WORKSPACE_BASE),
     )
-)
+).expanduser()
 TOOL_CACHE = PACKAGE_DIR / ".tools.json"
 
 GLOBAL_ENV_LIST = [
@@ -107,6 +110,7 @@ The subagent tool accepts a minimal `task` and a `context_file`.
 Use `delegate_subagent` when the manuscript contains 3 or more slides, so slide HTML files can be generated in parallel: first create delegation files for each slide containing the design plan, page content, output path, and constraints, then batch call subagents.
 Do not use `delegate_subagent` when the manuscript contains fewer than 3 slides; generate standalone HTML files page by page to `slides/slide_{page_number:02d}.html`, immediately call `inspect_slide` after each generation for quality checks, and fix issues before proceeding to the next page.
 Before calling a subagent, write the shared visual system, manuscript excerpt, slide scope, constraints, output path, and handoff requirements into a local file.
+When Template IR is active, the delegation file must also contain the immutable template revision, selected reference slide IDs, compact reference paths, theme.css path, and allowed logo/background/decoration assets. Never delegate the complete Template IR or rely on inherited template context.
 Keep `task` as a short action such as "Generate slide 1 according to the global visual system".
 </Guide on Subagents>
 """

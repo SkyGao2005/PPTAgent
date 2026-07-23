@@ -1,0 +1,453 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "4:3",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 9144000,
+    "width_inches": 10.0
+  },
+  "inherited_asset_ids": [],
+  "notes": null,
+  "page_number": 4,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319088,
+        "width": 2343150,
+        "x": 0,
+        "y": 6538912
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#191C56",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 3",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.25625,
+        "x": 0.0,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0003",
+      "source_id": 4,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319087,
+        "width": 4457700,
+        "x": 2343150,
+        "y": 6538913
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#252A81",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 4",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.4875,
+        "x": 0.25625,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0004",
+      "source_id": 5,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 319088,
+        "width": 2343150,
+        "x": 6800850,
+        "y": 6538912
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#3138AC",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 5",
+      "normalized_bbox": {
+        "height": 0.046528,
+        "width": 0.25625,
+        "x": 0.74375,
+        "y": 0.953472
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "master",
+      "shape_id": "s004-master-sh0005",
+      "source_id": 6,
+      "text": null,
+      "visible": true,
+      "z_index": 4
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 942109,
+        "width": 9144000,
+        "x": 0,
+        "y": 0
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#2C2DA9",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "矩形 6",
+      "normalized_bbox": {
+        "height": 0.137374,
+        "width": 1.0,
+        "x": 0.0,
+        "y": 0.0
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s004-layout-sh0001",
+      "source_id": 7,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 845127,
+        "width": 7886700,
+        "x": 628650,
+        "y": 48490
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.123232,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.007071
+      },
+      "outline": null,
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s004-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#FFFFFF",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 28.0,
+                  "underline": null
+                },
+                "text": "这页的标题，哎呀呀，标题是什么呢"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#FFFFFF",
+              "font_family": "Microsoft YaHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 28.0,
+              "underline": null
+            },
+            "text": "这页的标题，哎呀呀，标题是什么呢"
+          }
+        ],
+        "text": "这页的标题，哎呀呀，标题是什么呢"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 4351338,
+        "width": 7886700,
+        "x": 628650,
+        "y": 1385889
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "内容占位符 2",
+      "normalized_bbox": {
+        "height": 0.634491,
+        "width": 0.8625,
+        "x": 0.06875,
+        "y": 0.202084
+      },
+      "outline": null,
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s004-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "项目"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "1,"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "我们需要进入一些"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "details"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计。有可能比这还多呢，因为真实场景是很复杂的"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 21.0,
+              "underline": null
+            },
+            "text": "项目1, 我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计。有可能比这还多呢，因为真实场景是很复杂的"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "项目"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "2"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 21.0,
+              "underline": null
+            },
+            "text": "项目2"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "项目"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "3"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 21.0,
+              "underline": null
+            },
+            "text": "项目3"
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "项目"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "等线",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "4"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "等线",
+              "italic": null,
+              "language": null,
+              "size_pt": 21.0,
+              "underline": null
+            },
+            "text": "项目4"
+          }
+        ],
+        "text": "项目1, 我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计。有可能比这还多呢，因为真实场景是很复杂的\n项目2\n项目3\n项目4"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s004"
+}

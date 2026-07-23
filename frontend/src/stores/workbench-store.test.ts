@@ -2,7 +2,7 @@
 // us before: placeholder migration, stale hydrate responses, artifact_url
 // null handling, ghost placeholders, and queued-edit draining.
 
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type {
   GenerationEvent,
@@ -46,6 +46,7 @@ vi.mock("sonner", () => ({
 }))
 
 import { useWorkbenchStore } from "@/stores/workbench-store"
+import { toast } from "sonner"
 
 const stored = new Map<string, string>()
 
@@ -103,7 +104,30 @@ beforeEach(() => {
   useWorkbenchStore.setState(useWorkbenchStore.getInitialState(), true)
 })
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+
 describe("refresh persistence", () => {
+  it("restores the planned slide count from persisted generation parameters", async () => {
+    mockApi.getTask.mockResolvedValue(
+      snapshot({
+        total_slides: 0,
+        generation_params: { num_pages: "12" },
+      }),
+    )
+    mockApi.listSlides.mockResolvedValue([])
+
+    await useWorkbenchStore.getState().hydrate("t1")
+
+    const state = useWorkbenchStore.getState()
+    expect(state.task?.total_slides).toBe(12)
+    expect(state.slideOrder).toHaveLength(12)
+    expect(state.slideOrder[0]).toBe("pending-1")
+    expect(state.slideOrder[11]).toBe("pending-12")
+  })
+
   it("restores the selected slide, chat history, and queued edits", async () => {
     await hydrateTask(2)
     await useWorkbenchStore.getState().sendChat("pending-2", "保留这条排队指令")
@@ -739,6 +763,59 @@ describe("export guard", () => {
 
     await useWorkbenchStore.getState().exportTask("pptx")
     expect(mockApi.exportTask).not.toHaveBeenCalled()
+    expect(useWorkbenchStore.getState().exporting).toBe(false)
+  })
+
+  it("automatically downloads the artifact returned by the export request", async () => {
+    await hydrateTask(0)
+    const { applyEvent } = useWorkbenchStore.getState()
+    applyEvent(
+      event({ type: "slide.started", seq: 1, slide_id: "s1", slide_index: 1 }),
+    )
+    applyEvent(
+      event({
+        type: "slide.completed",
+        seq: 2,
+        slide_id: "s1",
+        payload: { revision: 1, label: "初稿" },
+      }),
+    )
+    applyEvent(event({ type: "task.completed", seq: 3, status: "succeeded" }))
+
+    mockApi.exportTask.mockResolvedValue({
+      task_id: "t1",
+      format: "pptx",
+      artifact_path: "exports/presentation.pptx",
+      artifact_url: "/api/tasks/t1/artifacts/exports/presentation.pptx",
+      download_url: "/api/tasks/t1/artifacts/exports/presentation.pptx",
+      filename: "presentation.pptx",
+      status: "completed",
+    })
+    const click = vi.fn()
+    const anchor = { href: "", download: "", click }
+    const createElement = vi.fn(() => anchor)
+    const fetchDownload = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: vi.fn().mockResolvedValue(new Blob(["pptx"])),
+    })
+    vi.stubGlobal("document", { createElement })
+    vi.stubGlobal("fetch", fetchDownload)
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:download")
+    const revokeObjectUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
+
+    await useWorkbenchStore.getState().exportTask("pptx")
+
+    expect(fetchDownload).toHaveBeenCalledWith(
+      "/api/tasks/t1/artifacts/exports/presentation.pptx",
+    )
+    expect(createElement).toHaveBeenCalledWith("a")
+    expect(anchor.href).toBe("blob:download")
+    expect(anchor.download).toBe("presentation.pptx")
+    expect(click).toHaveBeenCalledOnce()
+    expect(revokeObjectUrl).toHaveBeenCalledWith("blob:download")
+    expect(toast.success).toHaveBeenCalledWith("导出完成，下载已开始", {
+      description: "presentation.pptx",
+    })
     expect(useWorkbenchStore.getState().exporting).toBe(false)
   })
 })

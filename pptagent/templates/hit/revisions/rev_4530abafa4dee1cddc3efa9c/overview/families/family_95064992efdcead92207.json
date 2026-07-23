@@ -1,0 +1,32 @@
+{
+  "avoid_when": [
+    "Avoid when the presentation needs a detailed recap, contact information, or next steps.",
+    "Avoid when a neutral, unbranded closing slide is required."
+  ],
+  "description": "A sparse branded closing page centers one prominent thank-you statement within a wide blue band.",
+  "digest": "branded closing with centered thank-you statement",
+  "family_id": "family_95064992efdcead92207",
+  "layout_pattern": "hero",
+  "modalities": [
+    "text"
+  ],
+  "name": "closing-hero",
+  "representative_slide_id": "s010",
+  "selection_hints": [
+    "Use as the final thank-you page of an institutional or academic presentation.",
+    "Choose when a single concise closing statement is sufficient."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "branded closing with centered thank-you statement",
+      "page_number": 10,
+      "region_roles": [
+        "title"
+      ],
+      "slide_id": "s010",
+      "summary": "A sparse branded closing page centers one prominent thank-you statement within a wide blue band."
+    }
+  ],
+  "stage": "closing"
+}

@@ -1,0 +1,42 @@
+{
+  "assets": [
+    {
+      "alpha_outline": null,
+      "alt_text": null,
+      "asset_id": "asset_2c34104c23f8a6777430b2f0",
+      "browser_media_type": "image/png",
+      "browser_path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "browser_pixel_height": 878,
+      "browser_pixel_width": 784,
+      "browser_sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "byte_size": 70564,
+      "extension": "png",
+      "media_type": "image/png",
+      "occurrences": [
+        {
+          "bbox": {
+            "height": 0.60186,
+            "width": 0.403068,
+            "x": 0.052387,
+            "y": 0.178407
+          },
+          "page_number": 3,
+          "scope": "slide",
+          "shape_id": "s003-sh0003",
+          "slide_id": "s003",
+          "source_name": "图片 1"
+        }
+      ],
+      "path": "assets/asset_2c34104c23f8a6777430b2f0.png",
+      "pixel_height": 878,
+      "pixel_width": 784,
+      "reuse_policy": "reference_only",
+      "role": "content_image",
+      "sha256": "2c34104c23f8a6777430b2f0c936f1edd5469cf10fa1129281bd3f8ed77178b0",
+      "tags": [
+        "content_image"
+      ]
+    }
+  ],
+  "schema_version": "2.0"
+}

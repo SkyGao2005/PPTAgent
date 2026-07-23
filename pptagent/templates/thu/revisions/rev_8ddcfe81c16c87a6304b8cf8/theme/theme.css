@@ -1,0 +1,16 @@
+:root {
+  --template-accent1: #660874;
+  --template-accent2: #660874;
+  --template-accent3: #E6C46D;
+  --template-accent4: #969FA7;
+  --template-accent5: #A9C37C;
+  --template-accent6: #5A8071;
+  --template-bg1: #FFFFFF;
+  --template-bg2: #EBEBEB;
+  --template-folHlink: #43064C;
+  --template-font-major: "Gill Sans MT";
+  --template-font-minor: "Gill Sans MT";
+  --template-hlink: #007698;
+  --template-tx1: #000000;
+  --template-tx2: #3D3D3D;
+}

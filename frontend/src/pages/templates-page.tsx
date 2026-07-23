@@ -37,6 +37,11 @@ import { useFlipLayout } from "@/lib/use-flip-layout"
 import { cn } from "@/lib/utils"
 import { usePageMetadata } from "@/lib/use-page-metadata"
 import { usePresenceList } from "@/lib/use-presence-list"
+import {
+  getTemplatePaletteSwatches,
+  normalizeTemplateLayouts,
+  summarizeTemplateLayouts,
+} from "@/lib/template-metadata"
 import { useCreateTaskStore } from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
 import type { TemplateStatus, TemplateSummary } from "@/types/api"
@@ -86,7 +91,7 @@ function TemplateStatusBadge({ status }: { status: TemplateStatus }) {
 export function TemplatesPage() {
   usePageMetadata("模板库")
   const navigate = useNavigate()
-  const setTemplateId = useCreateTaskStore((state) => state.setTemplateId)
+  const selectTemplate = useCreateTaskStore((state) => state.selectTemplate)
   const selectedTemplateId = useCreateTaskStore((state) => state.templateId)
   const templates = useTemplatesStore((state) => state.templates)
   const loaded = useTemplatesStore((state) => state.loaded)
@@ -105,7 +110,7 @@ export function TemplatesPage() {
       return
     }
     if (rejected.length) {
-      toast.error("仅支持 .pptx / .ppt 模板文件")
+      toast.error("仅支持 .pptx 模板文件")
     }
     const file = accepted[0]
     if (file) {
@@ -128,7 +133,6 @@ export function TemplatesPage() {
       "application/vnd.openxmlformats-officedocument.presentationml.presentation": [
         ".pptx",
       ],
-      "application/vnd.ms-powerpoint": [".ppt"],
     },
   })
 
@@ -163,7 +167,9 @@ export function TemplatesPage() {
       const template = entry.value
       const matchesQuery =
         !normalizedQuery ||
-        `${template.name} ${template.description}`.toLowerCase().includes(normalizedQuery)
+        `${template.name} ${template.description} ${template.layouts.join(" ")}`
+          .toLowerCase()
+          .includes(normalizedQuery)
       const matchesStatus = statusFilter === "all" || template.status === statusFilter
       return matchesQuery && matchesStatus
     })
@@ -176,13 +182,14 @@ export function TemplatesPage() {
   const registerTemplateNode = useFlipLayout(templateLayoutKeys, templateMotionToken)
 
   const previewTemplate = templates.find((template) => template.id === previewId) ?? null
+  const previewLayouts = normalizeTemplateLayouts(previewTemplate?.layouts ?? [])
   const deleteTemplate = templates.find((template) => template.id === deleteId) ?? null
 
   function applyTemplate(template: TemplateSummary): void {
     if (template.status !== "ready") {
       return
     }
-    setTemplateId(template.id)
+    selectTemplate(template.id, template.ratio)
     toast.success(`已选择「${template.name}」`)
     navigate("/")
   }
@@ -265,11 +272,12 @@ export function TemplatesPage() {
               <h2 className="mt-4 text-[15px] font-medium">模板列表加载失败</h2>
               <p className="mt-1 text-[13px] text-hint">{loadError}</p>
               <Button
-                variant="outline"
+                variant="glass"
                 size="sm"
-                className="mt-5 rounded-full bg-white/60"
+                className="mt-5 h-9 px-4 text-[13px]"
                 onClick={() => void useTemplatesStore.getState().fetchTemplates()}
               >
+                <RotateCcwIcon />
                 重新加载
               </Button>
             </div>
@@ -285,6 +293,9 @@ export function TemplatesPage() {
                 <div className="mt-6 grid gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
               {visibleTemplateEntries.map((entry) => {
                 const template = entry.value
+                const normalizedLayouts = normalizeTemplateLayouts(template.layouts)
+                const cardLayouts = summarizeTemplateLayouts(normalizedLayouts, 3)
+                const paletteSwatches = getTemplatePaletteSwatches(template.palette)
                 const isCurrent = template.id === selectedTemplateId
                 const cardPhase = presenceMotionReady ? entry.phase : "present"
                 return (
@@ -302,7 +313,7 @@ export function TemplatesPage() {
                         role="button"
                         tabIndex={cardPhase === "exiting" ? -1 : 0}
                         aria-hidden={cardPhase === "exiting"}
-                        aria-label={`查看模板「${template.name}」，${template.description || "无描述"}，${template.slides} 页，${template.ratio}，状态：${template.status === "ready" ? "已就绪" : template.status === "parsing" ? "解析中" : "解析失败"}${isCurrent ? "，当前使用" : ""}`}
+                        aria-label={`查看模板「${template.name}」，${template.description || "无描述"}，${template.slides} 页，${template.ratio}，支持页面形式：${normalizedLayouts.join("、") || "待解析"}，状态：${template.status === "ready" ? "已就绪" : template.status === "parsing" ? "解析中" : "解析失败"}${isCurrent ? "，当前使用" : ""}`}
                         className={cn(
                           "glass-card overflow-hidden rounded-[20px] text-left",
                           isCurrent && "ring-2 ring-primary",
@@ -330,33 +341,57 @@ export function TemplatesPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center justify-between gap-3 px-3.5 pt-3 pb-3.5">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="truncate text-sm font-semibold tracking-tight">
-                                {template.name}
-                              </span>
-                              <span className="flex shrink-0 gap-1">
-                                {[
-                                  template.palette.bg,
-                                  template.palette.primary,
-                                  template.palette.accent,
-                                  template.palette.ink,
-                                ].map((color, index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-block size-2.5 rounded-full border border-black/10"
-                                    style={{ backgroundColor: color }}
-                                  />
-                                ))}
-                              </span>
-                            </div>
-                            <div className="mt-0.5 truncate text-xs text-hint">
-                              {template.slides} 页 · {template.ratio} ·{" "}
-                              {template.layouts.length} 种版式
-                            </div>
+                        <div className="px-3.5 pt-3 pb-3.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="min-w-0 truncate text-sm font-semibold tracking-tight">
+                              {template.name}
+                            </span>
+                            <TemplateStatusBadge status={template.status} />
                           </div>
-                          <TemplateStatusBadge status={template.status} />
+                          <div className="mt-1 flex items-center justify-between gap-3">
+                            <span className="truncate text-xs text-hint">
+                              {template.slides} 页 · {template.ratio} · {normalizedLayouts.length} 种页面形式
+                            </span>
+                            <span
+                              className="flex shrink-0 gap-1"
+                              aria-label={`主要配色：${paletteSwatches
+                                .map((swatch) => `${swatch.label} ${swatch.color}`)
+                                .join("，")}`}
+                            >
+                              {paletteSwatches.map((swatch) => (
+                                <span
+                                  key={swatch.key}
+                                  className="inline-block size-2.5 rounded-full border border-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]"
+                                  style={{ backgroundColor: swatch.color }}
+                                  title={`${swatch.label}：${swatch.color}`}
+                                />
+                              ))}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex min-h-6 items-center gap-1.5 overflow-hidden">
+                            <span className="shrink-0 text-[10px] font-medium text-hint">
+                              页面形式
+                            </span>
+                            {cardLayouts.visible.length ? (
+                              <>
+                                {cardLayouts.visible.map((layout) => (
+                                  <span
+                                    key={layout}
+                                    className="shrink-0 rounded-full bg-foreground/[0.055] px-2 py-1 text-[10px] leading-none text-foreground/70"
+                                  >
+                                    {layout}
+                                  </span>
+                                ))}
+                                {cardLayouts.remaining > 0 && (
+                                  <span className="shrink-0 text-[10px] text-hint">
+                                    +{cardLayouts.remaining}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-hint">解析完成后展示</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -367,14 +402,14 @@ export function TemplatesPage() {
                 ref={(node) => registerTemplateNode("__upload-template__", node)}
                 type="button"
                 disabled={uploading}
-                className="flex min-h-[200px] flex-col items-center justify-center gap-2.5 rounded-[20px] border-[1.5px] border-dashed border-input bg-white/20 text-hint transition-colors hover:border-foreground/45 hover:bg-white/40 hover:text-foreground"
+                className="flex min-h-[252px] flex-col items-center justify-center gap-2.5 rounded-[20px] border-[1.5px] border-dashed border-input bg-white/20 text-hint transition-colors hover:border-foreground/45 hover:bg-white/40 hover:text-foreground"
                 onClick={openFilePicker}
               >
                 <span className="flex size-9 items-center justify-center rounded-full border-[1.5px] border-current">
                   <PlusIcon className="size-4.5" />
                 </span>
                 <span className="text-[13px] font-medium">上传 PPTX 解析为模板</span>
-                <span className="text-xs opacity-70">.pptx · .ppt</span>
+                <span className="text-xs opacity-70">.pptx</span>
               </button>
                 </div>
               ) : (
@@ -385,9 +420,9 @@ export function TemplatesPage() {
                     换个关键词试试，或上传你自己的 PPTX 模板
                   </p>
                   <Button
-                    variant="outline"
+                    variant="glass"
                     size="sm"
-                    className="mt-5 rounded-full bg-white/60"
+                    className="mt-5 h-9 px-4 text-[13px]"
                     onClick={() => {
                       setQuery("")
                       setStatusFilter("all")
@@ -404,7 +439,7 @@ export function TemplatesPage() {
 
       <Dialog open={previewTemplate !== null} onOpenChange={(open) => !open && setPreviewId(null)}>
         {previewTemplate && (
-          <DialogContent className="max-h-[92svh] gap-0 overflow-visible rounded-[28px] bg-transparent p-0 ring-0 shadow-none sm:max-w-[920px] [&_[data-slot=dialog-close]]:top-5 [&_[data-slot=dialog-close]]:right-5 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:bg-white/35 [&_[data-slot=dialog-close]]:text-foreground/70 [&_[data-slot=dialog-close]]:backdrop-blur-md [&_[data-slot=dialog-close]]:hover:bg-white/60 [&_[data-slot=dialog-close]]:hover:text-foreground">
+          <DialogContent surface={false} className="max-h-[92svh] gap-0 overflow-visible rounded-[28px] sm:max-w-[920px] [&_[data-slot=dialog-close]]:top-5 [&_[data-slot=dialog-close]]:right-5 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:backdrop-blur-md">
             <liquid-glass
               blur-amount="15"
               scale="72"
@@ -442,14 +477,14 @@ export function TemplatesPage() {
                     <div className="glass-card mt-3.5 rounded-[20px] px-4 py-3.5 shadow-[0_8px_24px_rgba(30,32,44,0.08)]">
                       <div className="mb-2.5 flex items-center justify-between gap-3">
                         <h3 className="text-[13px] font-bold text-foreground/80">
-                          包含版式
+                          支持页面形式
                         </h3>
                         <span className="text-xs tabular-nums text-hint">
-                          {previewTemplate.layouts.length} 种
+                          {previewLayouts.length} 种
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {previewTemplate.layouts.map((layout) => (
+                        {previewLayouts.map((layout) => (
                           <Badge
                             key={layout}
                             variant="outline"
@@ -458,6 +493,13 @@ export function TemplatesPage() {
                             {layout}
                           </Badge>
                         ))}
+                        {previewLayouts.length === 0 && (
+                          <span className="text-xs text-hint">
+                            {previewTemplate.status === "ready"
+                              ? "暂未识别出专用页面形式"
+                              : "解析完成后展示"}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </section>
@@ -479,23 +521,28 @@ export function TemplatesPage() {
                     </div>
 
                     <div className="border-t border-foreground/10 px-4 py-4">
-                      <div className="mb-3 text-[11px] font-medium text-hint">配色方案</div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          { label: "背景", color: previewTemplate.palette.bg },
-                          { label: "主色", color: previewTemplate.palette.primary },
-                          { label: "强调", color: previewTemplate.palette.accent },
-                          { label: "文字", color: previewTemplate.palette.ink },
-                        ].map(({ label, color }) => (
-                          <div key={label} className="flex min-w-0 flex-col items-center gap-1.5">
-                            <span
-                              className="size-8 rounded-full border border-black/10 shadow-[0_2px_8px_rgba(30,32,44,0.12),inset_0_1px_1px_rgba(255,255,255,0.45)]"
-                              style={{ backgroundColor: color }}
-                              title={`${label}：${color}`}
-                            />
-                            <span className="text-[10px] text-hint">{label}</span>
-                          </div>
-                        ))}
+                      <div className="mb-3 text-[11px] font-medium text-hint">主要配色</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {getTemplatePaletteSwatches(previewTemplate.palette).map(
+                          ({ key, label, color }) => (
+                            <div
+                              key={key}
+                              className="flex min-w-0 items-center gap-2 rounded-xl bg-white/35 px-2 py-2 ring-1 ring-white/50"
+                            >
+                              <span
+                                className="size-7 shrink-0 rounded-full border border-black/10 shadow-[0_2px_8px_rgba(30,32,44,0.12),inset_0_1px_1px_rgba(255,255,255,0.45)]"
+                                style={{ backgroundColor: color }}
+                                title={`${label}：${color}`}
+                              />
+                              <span className="min-w-0">
+                                <span className="block text-[10px] text-hint">{label}</span>
+                                <span className="font-heading block truncate text-[10px] font-semibold tracking-wide text-foreground/70 uppercase">
+                                  {color}
+                                </span>
+                              </span>
+                            </div>
+                          ),
+                        )}
                       </div>
                     </div>
 
@@ -532,17 +579,19 @@ export function TemplatesPage() {
                           正在解析 · {previewTemplate.progress ?? 0}%
                         </Button>
                       )}
-                      <Button
-                        variant="ghost"
-                        className="mt-1.5 h-9 w-full rounded-full text-[12px] text-hint hover:bg-white/55 hover:text-destructive"
-                        onClick={() => {
-                          setPreviewId(null)
-                          setDeleteId(previewTemplate.id)
-                        }}
-                      >
-                        <Trash2Icon className="size-3.5" />
-                        删除模板
-                      </Button>
+                      {previewTemplate.owner === "user" && (
+                        <Button
+                          variant="ghost"
+                          className="mt-1.5 h-9 w-full rounded-full text-[12px] text-hint hover:bg-white/55 hover:text-destructive"
+                          onClick={() => {
+                            setPreviewId(null)
+                            setDeleteId(previewTemplate.id)
+                          }}
+                        >
+                          <Trash2Icon className="size-3.5" />
+                          删除模板
+                        </Button>
+                      )}
                     </div>
                   </aside>
                 </div>
@@ -566,11 +615,7 @@ export function TemplatesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={deleting}
-              onClick={() => setDeleteId(null)}
-            >
+            <Button variant="glass" disabled={deleting} onClick={() => setDeleteId(null)}>
               取消
             </Button>
             <Button

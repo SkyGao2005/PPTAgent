@@ -9,11 +9,13 @@ import {
   FileTextIcon,
   LoaderCircleIcon,
   PlusIcon,
+  SparklesIcon,
   XIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { AppShell } from "@/components/app-shell"
+import { TaskHistory } from "@/components/task-history"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -27,16 +29,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { useFlipLayout } from "@/lib/use-flip-layout"
 import { usePageMetadata } from "@/lib/use-page-metadata"
 import { usePresenceList } from "@/lib/use-presence-list"
+import {
+  formatTemplateLayoutSummary,
+  getTemplatePaletteSwatches,
+} from "@/lib/template-metadata"
 import { cn } from "@/lib/utils"
-import { MAX_ATTACHMENTS, useCreateTaskStore } from "@/stores/create-task-store"
+import {
+  MAX_ATTACHMENTS,
+  NO_TEMPLATE,
+  useCreateTaskStore,
+} from "@/stores/create-task-store"
 import { useTemplatesStore } from "@/stores/templates-store"
-
-const suggestions = [
-  "2026 半年度经营分析汇报",
-  "新产品发布方案介绍",
-  "团队季度 OKR 复盘",
-  "行业趋势研究分享",
-]
 
 // Setting chips inside the prompt card, per the liquid-glass design
 // ("Template: Meridian ▾", "12 slides ▾").
@@ -76,10 +79,12 @@ export function CreatePage() {
     setTopic,
     setPageCount,
     setRatio,
-    setTemplateId,
+    selectTemplate,
+    useNoTemplate,
+    clearTemplate,
     addAttachments,
     removeAttachment,
-    createTask,
+    createOutline,
   } = useCreateTaskStore()
   const templates = useTemplatesStore((state) => state.templates)
   const templatesLoaded = useTemplatesStore((state) => state.loaded)
@@ -107,16 +112,26 @@ export function CreatePage() {
     if (!templatesLoaded) {
       return
     }
+    // Designing without a template is a choice, not a stale id: leaving it to
+    // the fallback below would silently reinstate a template.
+    if (templateId === NO_TEMPLATE) {
+      return
+    }
     if (readyTemplates.length === 0) {
       if (templateId) {
-        setTemplateId("")
+        clearTemplate()
       }
       return
     }
-    if (!readyTemplates.some((template) => template.id === templateId)) {
-      setTemplateId(readyTemplates[0].id)
+    const currentTemplate = readyTemplates.find(
+      (template) => template.id === templateId,
+    )
+    if (!currentTemplate) {
+      selectTemplate(readyTemplates[0].id, readyTemplates[0].ratio)
+    } else if (ratio !== currentTemplate.ratio) {
+      selectTemplate(currentTemplate.id, currentTemplate.ratio)
     }
-  }, [templatesLoaded, readyTemplates, templateId, setTemplateId])
+  }, [templatesLoaded, readyTemplates, templateId, ratio, selectTemplate, clearTemplate])
 
   const onDrop = useCallback(
     (accepted: File[], rejected: unknown[]) => {
@@ -168,12 +183,10 @@ export function CreatePage() {
       return
     }
     try {
-      const taskId = await createTask()
-      // §8.1: carry the configured page count so the workbench can render
-      // skeleton slides before task.created reports total_slides.
-      navigate(`/workbench/${taskId}`, { state: { requestedPages: pageCount } })
+      const outlineId = await createOutline()
+      navigate(`/outline/${outlineId}`)
     } catch {
-      toast.error("任务创建失败，请重试")
+      toast.error("内容文稿生成失败，请重试")
     }
   }
 
@@ -191,7 +204,7 @@ export function CreatePage() {
             今天要演示什么？
           </h1>
           <p className="mt-2.5 mb-9 max-w-[520px] text-[15px] text-hint text-pretty">
-            描述你的主题、附上参考资料，PPTAgent 负责大纲、版式和每一页内容。
+            描述你的主题、附上参考资料，先审查 Research 内容文稿，再生成每一页。
           </p>
         </div>
 
@@ -274,12 +287,36 @@ export function CreatePage() {
                 >
                   模板:{" "}
                   <strong className="font-semibold text-foreground">
-                    {selectedTemplate?.name ??
-                      (templatesLoaded ? "选择模板" : "载入中…")}
+                    {templateId === NO_TEMPLATE
+                      ? "不使用模板"
+                      : (selectedTemplate?.name ??
+                        (templatesLoaded ? "选择模板" : "载入中…"))}
                   </strong>
                   <ChipChevron />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-72">
+                <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuItem
+                    className={cn(
+                      templateId === NO_TEMPLATE && "bg-foreground/[0.065]",
+                    )}
+                    onClick={useNoTemplate}
+                  >
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground/[0.04]">
+                      <SparklesIcon className="size-3.5 text-hint" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">不使用模板</span>
+                      <span className="block truncate text-[10px] leading-4 text-hint">
+                        由内容自行决定配色与版式
+                      </span>
+                    </span>
+                    {templateId === NO_TEMPLATE && (
+                      <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                        <CheckIcon className="size-3.5" />
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {templatesLoadError ? (
                     <>
                       <DropdownMenuItem disabled>
@@ -296,39 +333,50 @@ export function CreatePage() {
                   ) : readyTemplates.length === 0 ? (
                     <DropdownMenuItem disabled>暂无可用模板</DropdownMenuItem>
                   ) : (
-                    readyTemplates.map((template) => (
-                      <DropdownMenuItem
-                        key={template.id}
-                        className={cn(
-                          template.id === templateId &&
-                            "bg-foreground/[0.065]",
-                        )}
-                        onClick={() => setTemplateId(template.id)}
-                      >
-                        <span className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1">
-                          {[
-                            template.palette.bg,
-                            template.palette.primary,
-                            template.palette.accent,
-                          ].map((color, index) => (
-                            <span
-                              key={index}
-                              className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
-                        </span>
-                        <span className="flex-1 truncate">{template.name}</span>
-                        <span className="font-heading text-[11px] tabular-nums text-hint">
-                          {template.ratio}
-                        </span>
-                        {template.id === templateId && (
-                          <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
-                            <CheckIcon className="size-3.5" />
+                    readyTemplates.map((template) => {
+                      const paletteSwatches = getTemplatePaletteSwatches(
+                        template.palette,
+                      ).slice(0, 3)
+                      return (
+                        <DropdownMenuItem
+                          key={template.id}
+                          className={cn(
+                            template.id === templateId &&
+                              "bg-foreground/[0.065]",
+                          )}
+                          onClick={() => selectTemplate(template.id, template.ratio)}
+                        >
+                          <span
+                            className="flex shrink-0 gap-1 rounded-full bg-foreground/[0.04] p-1"
+                            aria-label={`主要配色：${paletteSwatches
+                              .map((swatch) => swatch.color)
+                              .join("，")}`}
+                          >
+                            {paletteSwatches.map((swatch) => (
+                              <span
+                                key={swatch.key}
+                                className="inline-block size-2.5 rounded-full ring-1 ring-black/10"
+                                style={{ backgroundColor: swatch.color }}
+                              />
+                            ))}
                           </span>
-                        )}
-                      </DropdownMenuItem>
-                    ))
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate">{template.name}</span>
+                            <span className="block truncate text-[10px] leading-4 text-hint">
+                              {formatTemplateLayoutSummary(template.layouts)}
+                            </span>
+                          </span>
+                          <span className="font-heading text-[11px] tabular-nums text-hint">
+                            {template.ratio}
+                          </span>
+                          {template.id === templateId && (
+                            <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                              <CheckIcon className="size-3.5" />
+                            </span>
+                          )}
+                        </DropdownMenuItem>
+                      )
+                    })
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -376,34 +424,45 @@ export function CreatePage() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<button type="button" className={chipClass} aria-label="画面比例" />}
+              {/* With a template the canvas is the template's; without one
+                  there is nothing to inherit, so the ratio becomes a choice. */}
+              {templateId === NO_TEMPLATE ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <button type="button" className={chipClass} aria-label="画面比例" />
+                    }
+                  >
+                    <strong className="font-heading font-semibold text-foreground">
+                      {ratio}
+                    </strong>
+                    <ChipChevron />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    {(["16:9", "4:3"] as const).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        className={cn(ratio === option && "bg-foreground/[0.065]")}
+                        onClick={() => setRatio(option)}
+                      >
+                        <span className="font-heading flex-1">{option}</span>
+                        {ratio === option && <CheckIcon className="size-3.5" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <span
+                  className={cn(chipClass, "cursor-default hover:bg-transparent")}
+                  aria-label={`画面比例 ${ratio}，由模板决定`}
+                  title="画面比例由所选模板决定"
                 >
                   <strong className="font-heading font-semibold text-foreground">
                     {ratio}
                   </strong>
-                  <ChipChevron />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  {(["16:9", "4:3"] as const).map((item) => (
-                    <DropdownMenuItem
-                      key={item}
-                      className={cn(
-                        ratio === item && "bg-foreground/[0.065]",
-                      )}
-                      onClick={() => setRatio(item)}
-                    >
-                      <span className="font-heading flex-1">{item}</span>
-                      {ratio === item && (
-                        <span className="flex size-6 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
-                          <CheckIcon className="size-3.5" />
-                        </span>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <span className="text-[11px] text-hint">模板比例</span>
+                </span>
+              )}
 
             </div>
 
@@ -419,8 +478,8 @@ export function CreatePage() {
                 onClick={() => void handleGenerate()}
               >
                 {creating && <LoaderCircleIcon className="animate-spin" />}
-                开始生成
-                {!creating && <ArrowRightIcon data-icon="inline-end" />}
+                生成内容文稿
+                {!creating && <ArrowRightIcon />}
               </Button>
             </div>
           </div>
@@ -455,18 +514,7 @@ export function CreatePage() {
           </div>
         ) : null}
 
-        <div className={cn("flex flex-wrap justify-center gap-2", templatesLoadError || (templatesLoaded && readyTemplates.length === 0) ? "mt-4" : "mt-5")}>
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              className="glass-chip rounded-full px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground"
-              onClick={() => setTopic(suggestion)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
+        <TaskHistory />
       </main>
     </AppShell>
   )

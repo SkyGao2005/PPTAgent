@@ -1,5 +1,6 @@
 import { CheckIcon, TriangleAlertIcon } from "lucide-react"
 
+import { resolveApiUrl } from "@/lib/api-url"
 import { cn } from "@/lib/utils"
 import type { TemplateSummary } from "@/types/api"
 
@@ -22,6 +23,9 @@ export function TemplateCover({
   const accentColor = palette.dark ? palette.primary : palette.accent
   const blockSoft = `color-mix(in srgb, ${palette.primary} 30%, transparent)`
   const blockStrong = `color-mix(in srgb, ${palette.primary} 60%, transparent)`
+  const thumbnailSrc = template.thumbnail_url
+    ? resolveApiUrl(template.thumbnail_url)
+    : null
 
   // Covers are always 16:9 regardless of the template's slide ratio, so
   // grid cards line up and the card border hugs the thumbnail.
@@ -51,8 +55,21 @@ export function TemplateCover({
         style={{ backgroundColor: blockStrong }}
       />
 
+      {thumbnailSrc && (
+        <img
+          src={thumbnailSrc}
+          alt={`${template.name} 模板首页`}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 z-[1] size-full bg-white object-contain"
+          onError={(event) => {
+            event.currentTarget.hidden = true
+          }}
+        />
+      )}
+
       {selected && (
-        <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+        <span className="absolute top-2 right-2 z-[5] flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
           <CheckIcon className="size-3.5" />
         </span>
       )}

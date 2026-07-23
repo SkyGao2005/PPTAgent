@@ -1,0 +1,103 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the agenda needs more than a few concise sections.",
+    "Avoid when chapter descriptions, timings, or presenters must be shown."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [],
+  "judged_decoration_shape_ids": [],
+  "page_number": 2,
+  "page_semantics": {
+    "density": "sparse",
+    "digest": "agenda with sidebar title and chapter list",
+    "layout_pattern": "split",
+    "message_pattern": "summary",
+    "modalities": [
+      "text"
+    ],
+    "stage": "agenda",
+    "summary": "A dark branded sidebar presents the agenda title while a spacious right panel lists the presentation's main chapters.",
+    "title": "目录"
+  },
+  "reading_order": [
+    "r001",
+    "r002"
+  ],
+  "regions": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.427216,
+        "width": 0.24536,
+        "x": 0.020365,
+        "y": 0.286392
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 12,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 1,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Agenda page heading centered within the dark left sidebar.",
+      "kind": "text",
+      "region_id": "r001",
+      "role": "title",
+      "source_shape_ids": [
+        "s002-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.668313,
+        "width": 0.497582,
+        "x": 0.397906,
+        "y": 0.185493
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 62,
+        "max_items": 5,
+        "max_lines": 4,
+        "min_chars": 26,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Short list of major chapters or presentation sections.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "bullet_group",
+      "source_shape_ids": [
+        "s002-sh0002"
+      ],
+      "style_ref": "text.bullet_group"
+    }
+  ],
+  "replaceable_asset_ids": [],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for a concise presentation agenda with about three major sections.",
+    "Choose when a strong branded sidebar and spacious chapter list are appropriate."
+  ],
+  "slide_id": "s002",
+  "warnings": []
+}

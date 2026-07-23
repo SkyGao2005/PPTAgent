@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the content requires imagery, charts, or multiple parallel sections.",
+    "Avoid for short, high-impact statements better suited to a sparse hero layout."
+  ],
+  "description": "A branded content slide places a prominent banner title above a wide single-column instructional bullet list.",
+  "digest": "branded title with instructional bullet list",
+  "family_id": "family_2481301742307bcc07f5",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s004",
+  "selection_hints": [
+    "Use for instructions, guidance, or explanatory points presented as a straightforward list.",
+    "Choose when a branded heading should sit above one broad text block."
+  ],
+  "slides": [
+    {
+      "density": "medium",
+      "digest": "branded title with instructional bullet list",
+      "page_number": 4,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s004",
+      "summary": "A branded content slide places a prominent banner title above a wide single-column instructional bullet list."
+    }
+  ],
+  "stage": "content"
+}

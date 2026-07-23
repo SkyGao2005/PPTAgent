@@ -1,0 +1,24 @@
+:root {
+  --template-accent1: #2C2CAA;
+  --template-accent2: #A94F01;
+  --template-accent3: #A5A5A5;
+  --template-accent4: #FFC000;
+  --template-accent5: #5B9BD5;
+  --template-accent6: #70AD47;
+  --template-bg1: #FFFFFF;
+  --template-bg2: #E7E6E6;
+  --template-color-1: #3138AC;
+  --template-color-2: #191C56;
+  --template-color-3: #252A81;
+  --template-color-4: #2C2DA9;
+  --template-color-5: #F6ECE2;
+  --template-folHlink: #954F72;
+  --template-font-1: "Microsoft YaHei";
+  --template-font-2: "Hiragino Sans GB W3";
+  --template-font-3: "Adobe Heiti Std R";
+  --template-font-major: "等线 Light";
+  --template-font-minor: "等线";
+  --template-hlink: #0563C1;
+  --template-tx1: #000000;
+  --template-tx2: #44546A;
+}

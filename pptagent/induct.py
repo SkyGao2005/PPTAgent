@@ -1,7 +1,7 @@
 import asyncio
 import os
 from collections import defaultdict
-from functools import partial
+import functools
 from os.path import join
 
 from aiometer import run_all
@@ -50,6 +50,9 @@ class SlideInducter:
         language_model: AsyncLLM,
         vision_model: AsyncLLM,
         use_assert: bool = True,
+        # P0-4: Optional progress callback for structured progress events.
+        # Signature: async def callback(stage_name: str, sub_progress: float) -> None
+        progress_callback: callable = None,
     ):
         """
         Initialize the SlideInducter.
@@ -60,6 +63,8 @@ class SlideInducter:
             template_image_folder (str): The folder containing normalized slide images.
             config (Config): The configuration object.
             image_models (list): A list of image models.
+            progress_callback (callable, optional): Async callback(stage_name, sub_progress)
+                for reporting structured progress events.
         """
         self.prs = prs
         self.config = config
@@ -68,6 +73,7 @@ class SlideInducter:
         self.language_model = language_model
         self.vision_model = vision_model
         self.image_models = image_models
+        self.progress_callback = progress_callback
         self.schema_extractor = Agent(
             "schema_extractor",
             {
@@ -91,6 +97,22 @@ class SlideInducter:
                 f"- PPT images: {num_ppt_images} ({ppt_image_folder})\n"
                 f"All counts must be equal."
             )
+
+    async def _notify_progress(self, stage: str, progress: float) -> None:
+        """Notify progress via callback if configured (P0-4).
+
+        Args:
+            stage: A short machine-readable stage label (e.g. "category_split").
+            progress: Sub-progress in [0.0, 1.0] within the current phase.
+        """
+        if self.progress_callback is None:
+            return
+        try:
+            result = self.progress_callback(stage, progress)
+            if asyncio.iscoroutine(result):
+                await result
+        except Exception:
+            pass  # Never let a progress callback break induction
 
     async def category_split(self):
         """
@@ -154,8 +176,13 @@ class SlideInducter:
         """
         Async version: Perform layout induction for the presentation.
         """
+        await self._notify_progress("category_split", 0.0)
+
         layout_induction = defaultdict(lambda: defaultdict(list))
         content_slides_index, functional_cluster = await self.category_split()
+
+        await self._notify_progress("layout_split", 0.3)
+
         for layout_name, cluster in functional_cluster.items():
             layout_induction[layout_name]["slides"] = cluster
             layout_induction[layout_name]["template_id"] = cluster[0]
@@ -169,6 +196,8 @@ class SlideInducter:
             if i + 1 not in used_slides_index:
                 content_slides_index.add(i + 1)
         await self.layout_split(content_slides_index, layout_induction)
+
+        await self._notify_progress("layout_induction_complete", 1.0)
         layout_induction["functional_keys"] = functional_keys
         return layout_induction
 
@@ -181,7 +210,10 @@ class SlideInducter:
         """
         Async version: Perform content schema extraction for the presentation.
         """
+        await self._notify_progress("content_induction_started", 0.0)
+
         partial_funcs = []
+        layout_names = []
         for layout_name, cluster in layout_induction.items():
             if layout_name == "functional_keys" or "content_schema" in cluster:
                 continue
@@ -191,19 +223,39 @@ class SlideInducter:
                 shape.caption for shape in slide.shape_filter(Picture)
             ]
             partial_funcs.append(
-                partial(
+                functools.partial(
                     self.schema_extractor,
                     slide=slide.to_html(),
                     response_format=SlideSchema.response_model(contents),
                     slide_idx=cluster["template_id"],
                 )
             )
+            layout_names.append(layout_name)
 
-        schemas = await run_all(
-            partial_funcs, max_at_once=max_at_once, max_per_second=max_per_second
-        )
-        for layout_name, (_, schema) in zip(layout_induction.keys(), schemas):
-            layout_induction[layout_name].update(schema)
+        # Run all schema extractions with per-item progress reporting
+        completed_count = 0
+        total_count = len(partial_funcs)
+
+        async def _run_with_progress(func, layout_name):
+            nonlocal completed_count
+            result = await func()
+            completed_count += 1
+            await self._notify_progress(
+                "schema_extracting",
+                completed_count / total_count if total_count > 0 else 1.0,
+            )
+            return layout_name, result
+
+        if total_count > 0:
+            tasks = [
+                functools.partial(_run_with_progress, func, name)
+                for func, name in zip(partial_funcs, layout_names)
+            ]
+            schemas = await run_all(
+                tasks, max_at_once=max_at_once, max_per_second=max_per_second
+            )
+            for layout_name, (_, schema) in schemas:
+                layout_induction[layout_name].update(schema)
 
         layout_induction["language"] = language_id(slide.to_text()).model_dump()
         return layout_induction

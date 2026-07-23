@@ -165,10 +165,10 @@ docker build -t deeppresenter-sandbox -f deeppresenter/docker/SandBox.Dockerfile
 docker build -t deeppresenter-host -f deeppresenter/docker/Host.Dockerfile .
 ```
 
-Start the app:
+Start the API service from source:
 
 ```bash
-python webui.py
+uvicorn deeppresenter.server.app:app --host 0.0.0.0 --port 7861
 ```
 
 ### 3. Server Deployment: Docker Compose
@@ -196,7 +196,9 @@ docker build -t deeppresenter-host -f deeppresenter/docker/Host.Dockerfile .
 docker compose up -d
 ```
 
-The service exposes the web UI on `http://localhost:7861`.
+The host container exposes the FastAPI service on `http://localhost:7861`.
+Its image includes LibreOffice, Poppler, Chromium, and CJK fonts so uploaded
+PPTX templates can be rendered into persistent Template IR reference images.
 
 ## Case Study 💡
 

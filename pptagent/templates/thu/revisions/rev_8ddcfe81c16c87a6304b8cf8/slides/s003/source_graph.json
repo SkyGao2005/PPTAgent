@@ -1,0 +1,240 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_f7f312e5f990403a28feb57e"
+  ],
+  "notes": null,
+  "page_number": 3,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1258827,
+        "width": 11290860,
+        "x": 447817,
+        "y": 5141974
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#660874",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "Rectangle 7",
+      "normalized_bbox": {
+        "height": 0.183556,
+        "width": 0.926088,
+        "x": 0.03673,
+        "y": 0.749777
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s003-layout-sh0001",
+      "source_id": 16,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [
+        "asset_f7f312e5f990403a28feb57e"
+      ],
+      "bbox": {
+        "height": 1019553,
+        "width": 1015763,
+        "x": 10632535,
+        "y": 5261609
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "picture",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "图片 8",
+      "normalized_bbox": {
+        "height": 0.148666,
+        "width": 0.083314,
+        "x": 0.872091,
+        "y": 0.767222
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s003-layout-sh0002",
+      "source_id": 9,
+      "text": null,
+      "visible": true,
+      "z_index": 1
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 1497507,
+        "width": 11029615,
+        "x": 581193,
+        "y": 3043910
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "标题 1",
+      "normalized_bbox": {
+        "height": 0.218359,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.443848
+      },
+      "outline": null,
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": false,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 36.0,
+                  "underline": null
+                },
+                "text": "章节一。我到底是谁啊啊啊"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": false,
+              "color": "#660874",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 36.0,
+              "underline": null
+            },
+            "text": "章节一。我到底是谁啊啊啊"
+          }
+        ],
+        "text": "章节一。我到底是谁啊啊啊"
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 600556,
+        "width": 11029615,
+        "x": 581192,
+        "y": 4553292
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "文本占位符 2",
+      "normalized_bbox": {
+        "height": 0.08757,
+        "width": 0.90466,
+        "x": 0.04767,
+        "y": 0.663939
+      },
+      "outline": null,
+      "placeholder_type": "body",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s003-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 18.0,
+                  "underline": null
+                },
+                "text": "我们需要进入一些"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "ENGLISH_US (1033)",
+                  "size_pt": 18.0,
+                  "underline": null
+                },
+                "text": "details"
+              },
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#660874",
+                  "font_family": "Gill Sans MT",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 18.0,
+                  "underline": null
+                },
+                "text": "，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#660874",
+              "font_family": "Gill Sans MT",
+              "italic": null,
+              "language": null,
+              "size_pt": 18.0,
+              "underline": null
+            },
+            "text": "我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+          }
+        ],
+        "text": "我们需要进入一些details，也许是这么多，也许是那么多，但也有可能有整整这么多，不是吗，我的老伙计"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s003"
+}

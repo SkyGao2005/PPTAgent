@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the topic needs imagery, charts, or side-by-side comparison.",
+    "Avoid when content cannot be condensed into a few substantial bullets."
+  ],
+  "description": "A prominent heading sits above a dense single-column bullet narrative, framed by a dark field and green abstract right-edge artwork.",
+  "digest": "dense bullet narrative with abstract side accent",
+  "family_id": "family_40c3359d4b4bbd9b34f9",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s013",
+  "selection_hints": [
+    "Use for a text-led profile, historical account, or detailed topic explanation.",
+    "Choose when several related narrative points should appear beneath one prominent heading."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "dense bullet narrative with abstract side accent",
+      "page_number": 13,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s013",
+      "summary": "A prominent heading sits above a dense single-column bullet narrative, framed by a dark field and green abstract right-edge artwork."
+    }
+  ],
+  "stage": "content"
+}

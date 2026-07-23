@@ -1,0 +1,400 @@
+{
+  "background_asset_ids": [],
+  "background_fill": "#FFFFFF",
+  "canvas": {
+    "aspect_ratio": "16:9",
+    "height_emu": 6858000,
+    "height_inches": 7.5,
+    "width_emu": 12192000,
+    "width_inches": 13.3333
+  },
+  "inherited_asset_ids": [
+    "asset_aff11db7738f68006ecc4ba8"
+  ],
+  "notes": null,
+  "page_number": 5,
+  "schema_version": "2.0",
+  "shapes": [
+    {
+      "asset_ids": [
+        "asset_aff11db7738f68006ecc4ba8"
+      ],
+      "bbox": {
+        "height": 611217,
+        "width": 4018520,
+        "x": 8173481,
+        "y": 182522
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "picture",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "图片 11",
+      "normalized_bbox": {
+        "height": 0.089125,
+        "width": 0.329603,
+        "x": 0.670397,
+        "y": 0.026614
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s005-layout-sh0001",
+      "source_id": 12,
+      "text": null,
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0,
+        "width": 11469016,
+        "x": 361492,
+        "y": 879000
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "line",
+      "line_color": "#385AA4",
+      "line_width_pt": 2.25,
+      "name": "直接连接符 2",
+      "normalized_bbox": {
+        "height": 0.0,
+        "width": 0.9407,
+        "x": 0.02965,
+        "y": 0.128171
+      },
+      "outline": null,
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s005-layout-sh0003",
+      "source_id": 10,
+      "text": null,
+      "visible": true,
+      "z_index": 2
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 288121,
+        "width": 288121,
+        "x": 11686448,
+        "y": 6499065
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": "#1F497D",
+      "kind": "auto_shape",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "椭圆 13",
+      "normalized_bbox": {
+        "height": 0.042012,
+        "width": 0.023632,
+        "x": 0.958534,
+        "y": 0.947662
+      },
+      "outline": {
+        "corner_radius": null,
+        "ellipse": true,
+        "holes": [],
+        "polygon": null
+      },
+      "placeholder_type": null,
+      "rotation": 0.0,
+      "scope": "layout",
+      "shape_id": "s005-layout-sh0004",
+      "source_id": 14,
+      "text": null,
+      "visible": true,
+      "z_index": 3
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 5413406,
+        "width": 11469016,
+        "x": 361492,
+        "y": 1051562
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "内容占位符 1",
+      "normalized_bbox": {
+        "height": 0.789356,
+        "width": 0.9407,
+        "x": 0.02965,
+        "y": 0.153334
+      },
+      "outline": null,
+      "placeholder_type": "object",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s005-sh0001",
+      "source_id": 2,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "Foundational Stage"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 24.0,
+              "underline": null
+            },
+            "text": "Foundational Stage"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Complex and fragmented real-world slides."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Complex and fragmented real-world slides."
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Requires sophisticated content extraction methods."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Requires sophisticated content extraction methods."
+          },
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 24.0,
+                  "underline": null
+                },
+                "text": "Content Extraction"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 24.0,
+              "underline": null
+            },
+            "text": "Content Extraction"
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "Clustering algorithms for slide categorization."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "Clustering algorithms for slide categorization."
+          },
+          {
+            "bullet": false,
+            "level": 1,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": null,
+                  "color": "#000000",
+                  "font_family": "微软雅黑",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 20.0,
+                  "underline": null
+                },
+                "text": "LLMs and hierarchical clustering for schema extraction."
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": null,
+              "color": "#000000",
+              "font_family": "微软雅黑",
+              "italic": null,
+              "language": null,
+              "size_pt": 20.0,
+              "underline": null
+            },
+            "text": "LLMs and hierarchical clustering for schema extraction."
+          }
+        ],
+        "text": "Foundational Stage\nComplex and fragmented real-world slides.\nRequires sophisticated content extraction methods.\nContent Extraction\nClustering algorithms for slide categorization.\nLLMs and hierarchical clustering for schema extraction."
+      },
+      "visible": true,
+      "z_index": 0
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 774447,
+        "width": 10972800,
+        "x": 361492,
+        "y": 146627
+      },
+      "child_shape_ids": [],
+      "crop": null,
+      "fill": null,
+      "kind": "placeholder",
+      "line_color": null,
+      "line_width_pt": null,
+      "name": "标题 2",
+      "normalized_bbox": {
+        "height": 0.112926,
+        "width": 0.9,
+        "x": 0.02965,
+        "y": 0.02138
+      },
+      "outline": null,
+      "placeholder_type": "title",
+      "rotation": 0.0,
+      "scope": "slide",
+      "shape_id": "s005-sh0002",
+      "source_id": 3,
+      "text": {
+        "paragraphs": [
+          {
+            "bullet": false,
+            "level": 0,
+            "runs": [
+              {
+                "style": {
+                  "alignment": null,
+                  "bold": true,
+                  "color": "#194297",
+                  "font_family": "Microsoft YaHei",
+                  "italic": null,
+                  "language": "SIMPLIFIED_CHINESE (2052)",
+                  "size_pt": 32.0,
+                  "underline": null
+                },
+                "text": "Presentation Analysis"
+              }
+            ],
+            "style": {
+              "alignment": "l",
+              "bold": true,
+              "color": "#194297",
+              "font_family": "Microsoft YaHei",
+              "italic": null,
+              "language": null,
+              "size_pt": 32.0,
+              "underline": null
+            },
+            "text": "Presentation Analysis"
+          }
+        ],
+        "text": "Presentation Analysis"
+      },
+      "visible": true,
+      "z_index": 1
+    }
+  ],
+  "slide_id": "s005"
+}

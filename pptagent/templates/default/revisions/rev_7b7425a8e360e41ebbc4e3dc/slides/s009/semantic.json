@@ -1,0 +1,144 @@
+{
+  "annotator_id": "vlm:gpt-5.6-sol:semantic-v3.1e5ca994",
+  "avoid_when": [
+    "Avoid when the content requires multiple images, comparisons, or data visualizations.",
+    "Avoid when the explanation must be brief or highly scannable."
+  ],
+  "fixed_decoration_shape_ids": [],
+  "judged_asset_ids": [
+    "asset_d0f69f0229186d6022e62a49"
+  ],
+  "judged_decoration_shape_ids": [],
+  "page_number": 9,
+  "page_semantics": {
+    "density": "dense",
+    "digest": "large photo with title and detailed description",
+    "layout_pattern": "title_body",
+    "message_pattern": "explanation",
+    "modalities": [
+      "image",
+      "text"
+    ],
+    "stage": "content",
+    "summary": "A large subject photograph dominates the upper page, followed by a descriptive heading and a dense explanatory paragraph.",
+    "title": "The Lingaraj Temple – Later Orissan Style (Pancharatha plan)"
+  },
+  "reading_order": [
+    "r001",
+    "r002",
+    "r003"
+  ],
+  "regions": [
+    {
+      "asset_ids": [
+        "asset_d0f69f0229186d6022e62a49"
+      ],
+      "bbox": {
+        "height": 0.571528,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.088889
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": null,
+        "max_items": 1,
+        "max_lines": null,
+        "min_chars": null,
+        "min_items": 0,
+        "recommended_aspect_ratio": 1.233722582270685
+      },
+      "confidence": 0.99,
+      "description": "Large rectangular subject photograph illustrating the featured place, structure, or topic.",
+      "kind": "image",
+      "region_id": "r001",
+      "role": "photo",
+      "source_shape_ids": [
+        "s009-sh0002"
+      ],
+      "style_ref": "image.photo"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.060417,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.660417
+      },
+      "behavior": {
+        "can_hide": false,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": true,
+        "required": true
+      },
+      "capacity": {
+        "max_chars": 84,
+        "max_items": 1,
+        "max_lines": 2,
+        "min_chars": 36,
+        "min_items": 1,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.99,
+      "description": "Heading naming the featured subject and optionally its category or defining characteristic.",
+      "kind": "text",
+      "region_id": "r002",
+      "role": "title",
+      "source_shape_ids": [
+        "s009-sh0001"
+      ],
+      "style_ref": "text.title"
+    },
+    {
+      "asset_ids": [],
+      "bbox": {
+        "height": 0.25625,
+        "width": 0.705107,
+        "x": 0.055556,
+        "y": 0.720833
+      },
+      "behavior": {
+        "can_hide": true,
+        "can_reflow": true,
+        "can_resize": true,
+        "preserve_position": false,
+        "required": false
+      },
+      "capacity": {
+        "max_chars": 788,
+        "max_items": 3,
+        "max_lines": 2,
+        "min_chars": 338,
+        "min_items": 0,
+        "recommended_aspect_ratio": null
+      },
+      "confidence": 0.98,
+      "description": "Detailed explanatory paragraph providing context, features, and significance of the pictured subject.",
+      "kind": "text",
+      "region_id": "r003",
+      "role": "body",
+      "source_shape_ids": [
+        "s009-sh0003"
+      ],
+      "style_ref": "text.body"
+    }
+  ],
+  "replaceable_asset_ids": [
+    "asset_d0f69f0229186d6022e62a49"
+  ],
+  "schema_version": "2.0",
+  "selection_hints": [
+    "Use for an image-led profile of a landmark, building, artwork, or other single subject.",
+    "Choose when a large photograph needs a substantial explanatory paragraph beneath it."
+  ],
+  "slide_id": "s009",
+  "warnings": []
+}

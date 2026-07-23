@@ -169,6 +169,15 @@ class CodeExecutor:
                 # only one of clone and del can be used in a row
                 if func.startswith("clone") or func.startswith("del"):
                     tag = func.split("_")[0]
+                    if not self.command_history:
+                        # A command is opened by a `#` comment, which the
+                        # generation prompt always emits. The conversational
+                        # editor sends bare API calls, so there was nothing to
+                        # attribute the tag to and every del_/clone_ call died
+                        # on an IndexError before reaching the slide.
+                        self.command_history.append(
+                            [HistoryMark.COMMENT_CORRECT, "", None]
+                        )
                     if (
                         self.command_history[-1][-1] is None
                         or self.command_history[-1][-1] == tag
@@ -189,7 +198,17 @@ class CodeExecutor:
                 if not isinstance(e, SlideEditError):
                     logger.warning(f"Encountered unknown error: {e}")
 
-                trace_msg = traceback.format_exc()
+                # The exception and the call that raised it lead, because
+                # every consumer truncates this string and a traceback keeps
+                # its useful part at the end. The `<string>` frame is also
+                # worse than useless: linecache resolves it to whatever this
+                # process was started with, so it prints the spawn command
+                # instead of the line that was evaluated.
+                trace_msg = (
+                    f"{type(e).__name__}: {e}\n"
+                    f"Failing call: {line}\n"
+                    f"{traceback.format_exc()}"
+                )
                 if len(self.code_history) != 0:
                     self.code_history[-1][-1] = trace_msg
                 api_lines = (
@@ -467,6 +486,7 @@ def replace_image(slide: SlidePage, doc: Document | None, img_id: int, image_pat
     r = min(shape.width / img_size[0], shape.height / img_size[1])
     new_width = img_size[0] * r
     new_height = img_size[1] * r
+    shape.left = Pt(shape.left + (shape.width - new_width) / 2)
     shape.top = Pt(shape.top + (shape.height - new_height) / 2)
     shape.width = Pt(new_width)
     shape.height = Pt(new_height)

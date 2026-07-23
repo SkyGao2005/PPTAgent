@@ -1,0 +1,50 @@
+{
+  "avoid_when": [
+    "Avoid when the content needs images, charts, comparisons, or multiple independent sections.",
+    "Avoid when only a brief statement or a few short bullets are available.",
+    "Avoid for image-led storytelling or visual comparisons.",
+    "Avoid when the content cannot be organized into several substantial bullet points.",
+    "Avoid for sparse, high-impact statements that need generous whitespace."
+  ],
+  "description": "A large left-aligned title introduces a dense explanatory text block, framed by an angular green decorative background.",
+  "digest": "definition slide with detailed bullet text",
+  "family_id": "family_136f14732691da648829",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "content-title_body",
+  "representative_slide_id": "s003",
+  "selection_hints": [
+    "Use for a concept definition or explanatory topic with several substantial supporting points.",
+    "Choose when the presentation needs a text-heavy educational or contextual slide.",
+    "Use for a detailed overview of one topic.",
+    "Choose when several substantial explanatory points must fit on one slide.",
+    "Works well for contextual, historical, or background information."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "definition slide with detailed bullet text",
+      "page_number": 3,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s003",
+      "summary": "A large left-aligned title introduces a dense explanatory text block, framed by an angular green decorative background."
+    },
+    {
+      "density": "dense",
+      "digest": "title with dense explanatory bullet list",
+      "page_number": 5,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s005",
+      "summary": "A large green title sits above a dense, left-aligned explanatory bullet list on a dark field with decorative green side artwork."
+    }
+  ],
+  "stage": "content"
+}

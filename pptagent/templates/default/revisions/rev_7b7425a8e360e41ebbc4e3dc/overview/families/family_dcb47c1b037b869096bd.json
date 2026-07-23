@@ -1,0 +1,37 @@
+{
+  "avoid_when": [
+    "Avoid when the topic has no meaningful supporting visual.",
+    "Avoid when the copy must be brief or highly scannable.",
+    "Avoid when multiple charts or independent content modules are required."
+  ],
+  "description": "A dense split-layout content page pairs a tall reference diagram with a prominent heading and detailed explanatory bullets.",
+  "digest": "left diagram with detailed explanatory bullets",
+  "family_id": "family_dcb47c1b037b869096bd",
+  "layout_pattern": "split",
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "name": "content-split",
+  "representative_slide_id": "s012",
+  "selection_hints": [
+    "Use for a detailed explanation supported by one large reference diagram.",
+    "Choose when a visual example should occupy roughly two-fifths of the page.",
+    "Suitable for several substantial points accompanying a technical or conceptual image."
+  ],
+  "slides": [
+    {
+      "density": "dense",
+      "digest": "left diagram with detailed explanatory bullets",
+      "page_number": 12,
+      "region_roles": [
+        "bullet_group",
+        "diagram",
+        "title"
+      ],
+      "slide_id": "s012",
+      "summary": "A dense split-layout content page pairs a tall reference diagram with a prominent heading and detailed explanatory bullets."
+    }
+  ],
+  "stage": "content"
+}

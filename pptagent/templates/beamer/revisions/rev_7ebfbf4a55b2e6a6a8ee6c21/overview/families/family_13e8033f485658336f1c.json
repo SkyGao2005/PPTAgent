@@ -1,0 +1,33 @@
+{
+  "avoid_when": [
+    "Avoid when the agenda requires detailed descriptions, nested sections, or visual previews.",
+    "Avoid for ordinary content pages that need charts, images, or explanatory text."
+  ],
+  "description": "A straightforward agenda page presents a prominent top-band heading above a spacious numbered section list.",
+  "digest": "simple agenda with numbered section list",
+  "family_id": "family_13e8033f485658336f1c",
+  "layout_pattern": "title_body",
+  "modalities": [
+    "text"
+  ],
+  "name": "agenda-title_body",
+  "representative_slide_id": "s002",
+  "selection_hints": [
+    "Use for a concise table of contents near the beginning of a presentation.",
+    "Best for roughly three to six short section names in a single vertical list."
+  ],
+  "slides": [
+    {
+      "density": "sparse",
+      "digest": "simple agenda with numbered section list",
+      "page_number": 2,
+      "region_roles": [
+        "bullet_group",
+        "title"
+      ],
+      "slide_id": "s002",
+      "summary": "A straightforward agenda page presents a prominent top-band heading above a spacious numbered section list."
+    }
+  ],
+  "stage": "agenda"
+}
