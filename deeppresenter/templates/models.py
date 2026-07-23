@@ -483,6 +483,12 @@ class Semantic(StrictModel):
     # leaves both empty and the extractor's own reasoning stands.
     judged_asset_ids: list[Identifier] = Field(default_factory=list)
     replaceable_asset_ids: list[Identifier] = Field(default_factory=list)
+    # Slide-scope decoration the annotator was shown, and the subset it judged
+    # to be fixed page furniture rather than artwork drawn around the sample's
+    # content. Same judged/verdict split as assets: an empty verdict from an
+    # annotator that looked means "everything here follows the content".
+    judged_decoration_shape_ids: list[Identifier] = Field(default_factory=list)
+    fixed_decoration_shape_ids: list[Identifier] = Field(default_factory=list)
     annotator_id: str
     warnings: list[str] = Field(default_factory=list)
 
@@ -494,6 +500,12 @@ class Semantic(StrictModel):
         if sorted(self.reading_order) != sorted(region_ids):
             raise ValueError(
                 "reading_order must list every region_id exactly once"
+            )
+        if not set(self.fixed_decoration_shape_ids) <= set(
+            self.judged_decoration_shape_ids
+        ):
+            raise ValueError(
+                "fixed decoration shapes must be a subset of the judged ones"
             )
         return self
 

@@ -113,10 +113,63 @@ The main IR layers are:
   extracted shape. Typical roles include title, body, chart, table, diagram,
   photo, metric, logo, footer, decoration, and background.
 - **Compact context:** the bounded subset required by generation: page
-  semantics, regions, capacities, family IDs, theme tokens, reusable asset IDs,
-  and reference paths.
+  semantics, regions, family IDs, theme tokens, reusable asset IDs, and
+  reference paths. Capacity numbers stay in `semantic.json` as facts about
+  the sample and are deliberately not served to the model: they are measured
+  around placeholder text and read as writing constraints.
 - **Layout families:** groups of semantically and spatially similar pages, with
   a representative page, selection hints, and avoid conditions.
+
+### Layout scaffold contract
+
+Every page compiles to a `layout.css` scaffold with three rule tiers:
+
+- `.tpl-*` chrome rules reproduce the template's identity: decoration the
+  layout and master put on every page (logos, colour bands, the page
+  background), plus slide-drawn artwork promoted by the tier decision below.
+  Exact, written at guarded `.slide .tpl-*` specificity, and generation must
+  emit them verbatim as empty `<div>`s. A region painted from a template
+  asset keeps the same guarded specificity.
+- `.dec-*` rules reproduce the rest of the sample slide's own decoration
+  (card frames, arrows, sample icons). Included by default as empty
+  `<div>`s, but single-class and droppable: they follow the content they
+  were drawn around, and pinning them onto a rearranged page paints sample
+  artwork across new content.
+- `.r-*` region rules record how the *sample* page arranged its content:
+  geometry, typography, and colour in one single-class rule per region. They
+  are defaults, not constraints — a generated page retunes them by
+  redeclaring the class after the import. When the sample's text sat on paint
+  the scaffold does not reproduce (a card fill or photo inside a content
+  region), the colour is omitted and the rule's comment says so, because a
+  colour without its ground is how white-on-white pages happen.
+
+**Tier decision for slide-drawn decoration.** Scope records where an author
+drew a shape, not what it is — brand wedges hand-copied onto the cover and
+the closing page are slide-scope yet template identity. A slide-drawn shape
+is therefore promoted to `.tpl-*` only on converging evidence:
+
+1. *Recurrence* (mechanical): its signature — rounded geometry, kind, fill,
+   line, rotation — appears on at least two pages of the revision. Only a
+   whole-revision pass can observe this, so the compiler calls
+   `recurring_chrome_signatures` once and threads the result into every
+   page's scaffold. The rule lives in `scaffold.py` so that changing it
+   changes `COMPILER_VERSION`, which is fingerprinted from the modules that
+   decide a revision's contents.
+2. *No annotator veto* (semantic): during annotation the VLM receives the
+   slide's decoration shapes under `d1…dN` labels and lists the ones that
+   are fixed page furniture in `fixed_decorations`. The verdict is
+   deliberately conservative toward movable: modular, per-item artwork —
+   capsules behind process steps, card frames, arrows, icon holders — is
+   never fixed, and an unsure annotator omits the label. A judged shape that
+   was not listed stays `.dec-*` even when it recurs; the verdict can veto a
+   promotion but never force one. Legacy revisions without verdicts fall
+   back to recurrence alone.
+
+The hard tier (`.tpl-*` and painted template assets) is exactly the
+template's visual identity; everything sized, coloured, or drawn around
+sample content is soft. Enforcement is mechanical (specificity, omission,
+and the `inspect_slide` lint, which reports missing hard-tier divs and
+template artwork buried under opaque content), not exhortative.
 
 ### Canvas ratio contract
 
@@ -201,11 +254,24 @@ are not exposed.
 
 ## Retrieval tools
 
-The Design agent receives three bounded tools backed only by its verified,
-revision-pinned task context pack:
+The agents receive bounded tools backed only by the verified,
+revision-pinned task context pack, split by stage:
+
+Available from the outline stage onward (Planner, Research, Design):
 
 - `get_template_overview()` returns theme, canvas, family, slide-count, and
   asset-role summaries.
+- `get_family_detail(family_id)` expands one family's structure, selection
+  hints, and member pages.
+
+The outline and manuscript decide each page's structure — how many parallel
+items, whether there is an image slot — and those decisions only fit the
+template when made against its layout families. The Planner records a
+`template_family` per outline page (or `null` when nothing fits), and
+Research cuts each page's content to that family's structure.
+
+Available only to the Design agent:
+
 - `search_template_references(...)` ranks pages by stage, layout pattern,
   message pattern, modalities, density, region roles, families, and keywords.
   It returns at most two compact matches.

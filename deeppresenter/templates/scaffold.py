@@ -1,13 +1,28 @@
 """Generate a CSS layout scaffold from one annotated template page.
 
-Region geometry only guides generation if it is easy to obey. Emitting the
-grid as ready-to-use absolute-positioned classes makes following the template
-the least-effort path, instead of asking a model to transcribe coordinates.
+The scaffold carries two kinds of rules with two different contracts:
+
+- ``.tpl-*`` chrome reproduces the template's identity: decoration the
+  layout and master put on every page (logos, colour bands, the page
+  background), plus slide-drawn artwork that recurs across the revision's
+  pages and that no annotator judged content-coupled. It is deterministic,
+  exact, and deliberately written at ``.slide .tpl-*`` specificity so a
+  page's utility classes cannot disturb it.
+- ``.dec-*`` rules reproduce the rest of the sample slide's own decoration --
+  artwork the designer placed around the sample's content. Included by
+  default, but single-class and droppable, because it follows the content it
+  was drawn around.
+- ``.r-*`` regions describe how the *sample* page arranged its content. They
+  are a starting point, not a cage: the sample's box was sized around sample
+  text, its colour was chosen for the sample's own ground, and neither fact
+  necessarily survives new content. Region rules are therefore single-class,
+  everything-in-one-rule defaults that a page can retune by redeclaring the
+  class after the import.
 """
 
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Mapping, Sequence
 from urllib.parse import quote
 
 from .models import (
@@ -20,6 +35,7 @@ from .models import (
     ShapeKind,
     ShapeNode,
     ShapeOutline,
+    ShapeScope,
     SourceGraph,
     TextStyle,
     Theme,
@@ -112,12 +128,6 @@ def _geometry(box: NormalizedBox, z_index: int) -> list[str]:
     ]
 
 
-# Elements a page puts its text in. Colour has to name them: a value on the
-# container reaches them only by inheritance, and inheritance loses to any
-# direct declaration whatever its specificity.
-_TEXT_ELEMENTS = "p,h1,h2,h3,h4,h5,h6,li,span,strong,em,td,th"
-
-
 def _typography(
     style: TextStyle | None,
     canvas_height_inches: float,
@@ -149,21 +159,36 @@ def alignment_css(alignment: str | None) -> str:
     return _ALIGNMENT_CSS.get(str(alignment).lower(), _DEFAULT_ALIGNMENT)
 
 
-def _text_color_rule(region_id: str, style: TextStyle | None) -> str | None:
-    """Bind a region's text colour to the elements that actually carry text.
+def _sample_ground_dropped(
+    region: Region,
+    shapes: Mapping[str, ShapeNode],
+    assets: Mapping[str, Asset],
+) -> bool:
+    """Whether the sample's text sat on paint this scaffold does not emit.
 
-    Size and wrapping are fitting decisions a page may make; colour is the
-    template's identity. Naming the text elements outranks the page's own
-    ``.r-xxx p`` rule, so restyling the palette has to be deliberate rather
-    than the accidental result of writing a paragraph style.
+    A card fill or a photo inside a content region is sample material, so the
+    scaffold deliberately leaves it out -- but the sample's text colour was
+    chosen against exactly that ground. Handing the colour over without the
+    ground produced white text on a white page. When the ground is gone, the
+    colour is not a fact worth transferring.
     """
 
-    if style is None or not style.color:
-        return None
-    return (
-        f".slide .r-{region_id}, .slide .r-{region_id} :is({_TEXT_ELEMENTS})"
-        f"{{color:{style.color}}}"
-    )
+    if _region_asset(region, assets) is not None:
+        # The rule paints the template's own artwork, so the ground survives.
+        return False
+    if region.asset_ids:
+        # The region binds imagery the rule does not paint -- sample
+        # photography stays reference-only, so its ground is gone.
+        return True
+    stack = list(region.source_shape_ids)
+    while stack:
+        shape = shapes.get(stack.pop())
+        if shape is None:
+            continue
+        if shape.fill or shape.asset_ids:
+            return True
+        stack.extend(shape.child_shape_ids)
+    return False
 
 
 def asset_url_name(asset: Asset) -> str:
@@ -337,19 +362,109 @@ def _paints(shape: ShapeNode) -> bool:
     return min(box.width, box.height) < 0.002
 
 
-def _chrome_rules(graph: SourceGraph, assets: Mapping[str, Asset]) -> list[str]:
+def chrome_signature(shape: ShapeNode) -> tuple[object, ...]:
+    """Identity of a decoration independent of the page that drew it.
+
+    Two pages carrying the same wedge drew the same artwork twice; the
+    signature is what makes that observable across a revision. Geometry is
+    rounded so EMU jitter between hand-copied shapes does not split them.
+    """
+
+    box = shape.normalized_bbox
+    return (
+        round(box.x, 4),
+        round(box.y, 4),
+        round(box.width, 4),
+        round(box.height, 4),
+        shape.kind.value,
+        shape.fill,
+        shape.line_color,
+        shape.line_width_pt,
+        shape.rotation,
+    )
+
+
+def recurring_chrome_signatures(
+    graphs: Sequence[SourceGraph],
+) -> frozenset[tuple[object, ...]]:
+    """Slide-drawn decoration signatures seen on more than one page.
+
+    Scope records where an author drew a shape, not what it is: brand wedges
+    hand-copied onto the cover and the closing page are slide-scope, yet they
+    are the template's identity. Recurrence across pages is the mechanical
+    evidence for that, and only a whole-revision pass can observe it -- so
+    the compiler calls this once and threads the result into every page.
+    """
+
+    pages_by_signature: dict[tuple[object, ...], set[str]] = {}
+    for graph in graphs:
+        for shape in graph.shapes:
+            if shape.is_chrome and shape.scope is ShapeScope.SLIDE:
+                pages_by_signature.setdefault(
+                    chrome_signature(shape), set()
+                ).add(graph.slide_id)
+    return frozenset(
+        signature
+        for signature, pages in pages_by_signature.items()
+        if len(pages) >= 2
+    )
+
+
+def _is_template_tier(
+    shape: ShapeNode,
+    recurring_chrome: frozenset[tuple[object, ...]],
+    judged: frozenset[str],
+    fixed: frozenset[str],
+) -> bool:
+    """Whether a chrome shape is the template's identity or the sample's.
+
+    Scope answers it for layout and master shapes. A slide-drawn shape starts
+    as the sample's, and is promoted only on converging evidence: the same
+    artwork recurs on other pages of the revision (mechanical), and no
+    annotator that looked at the page judged it content-coupled (semantic).
+    The annotator can only veto a promotion, never force one -- a capsule
+    drawn identically behind two sibling pages' cards still recurs, and
+    pinning it is exactly the failure the veto exists for.
+    """
+
+    if shape.scope is not ShapeScope.SLIDE:
+        return True
+    if chrome_signature(shape) not in recurring_chrome:
+        return False
+    return shape.shape_id not in judged or shape.shape_id in fixed
+
+
+def _chrome_rules(
+    graph: SourceGraph,
+    assets: Mapping[str, Asset],
+    *,
+    recurring_chrome: frozenset[tuple[object, ...]] = frozenset(),
+    judged_decorations: frozenset[str] = frozenset(),
+    fixed_decorations: frozenset[str] = frozenset(),
+) -> list[str]:
     """Emit the template's own decoration as reproducible CSS.
 
-    Colour blocks, rules, and logo placement live on the layout and master.
-    Reproducing them exactly is deterministic, so generation never has to
-    approximate them from a reference screenshot. Every rule paints itself,
+    Reproducing decoration exactly is deterministic, so generation never has
+    to approximate it from a reference screenshot. Every rule paints itself,
     including imagery, so an empty ``<div>`` is all the page has to supply.
+
+    Two tiers with two contracts. The template's identity -- layout and
+    master shapes, plus slide-drawn artwork promoted by
+    :func:`_is_template_tier` -- becomes mandatory ``.tpl-*`` rules at
+    guarded specificity. The rest of a slide's own decoration was placed
+    around the *sample's* content -- a capsule per sample card, a pointer at
+    a sample caption -- so it is emitted as ``.dec-*``: single-class,
+    included by default, but movable and droppable once the page's layout
+    departs from the sample. Forcing those onto a rearranged page pinned
+    sample artwork across new content.
     """
 
     order = _paint_order(graph)
     rules: list[str] = []
-    chrome = [shape for shape in graph.shapes if shape.is_chrome and _paints(shape)]
-    for index, shape in enumerate(chrome, start=1):
+    counters = {"tpl": 0, "dec": 0}
+    for shape in graph.shapes:
+        if not (shape.is_chrome and _paints(shape)):
+            continue
         declarations = _geometry(shape.normalized_bbox, order[shape.shape_id])
         declarations.extend(_paint_css(shape, assets))
         if _stroked_outline_svg(shape) is None:
@@ -360,10 +475,27 @@ def _chrome_rules(graph: SourceGraph, assets: Mapping[str, Asset]) -> list[str]:
             )
         if shape.rotation:
             declarations.append(f"transform:rotate({shape.rotation:g}deg)")
-        rules.append(
-            f".slide .tpl-{index:02d}{{{';'.join(declarations)}}}"
-            f" /* {shape.scope.value} / {shape.name} */"
-        )
+        body = ";".join(declarations)
+        if not _is_template_tier(
+            shape, recurring_chrome, judged_decorations, fixed_decorations
+        ):
+            counters["dec"] += 1
+            rules.append(
+                f".dec-{counters['dec']:02d}{{{body}}}"
+                f" /* sample decoration / {shape.name} -- include by default;"
+                " move or drop it when your layout departs from the sample */"
+            )
+        else:
+            counters["tpl"] += 1
+            provenance = (
+                "recurring decoration"
+                if shape.scope is ShapeScope.SLIDE
+                else shape.scope.value
+            )
+            rules.append(
+                f".slide .tpl-{counters['tpl']:02d}{{{body}}}"
+                f" /* {provenance} / {shape.name} */"
+            )
     return rules
 
 
@@ -425,8 +557,15 @@ def build_layout_css(
     graph: SourceGraph,
     theme: Theme,
     assets: Mapping[str, Asset] | None = None,
+    *,
+    recurring_chrome: frozenset[tuple[object, ...]] = frozenset(),
 ) -> str:
-    """Render one page's regions as absolute-positioned CSS classes."""
+    """Render one page's regions as absolute-positioned CSS classes.
+
+    ``recurring_chrome`` carries the revision-wide signatures of slide-drawn
+    decoration seen on more than one page; the compiler computes it because
+    only the compiler sees every page at once.
+    """
 
     shapes = {shape.shape_id: shape for shape in graph.shapes}
     height_inches = graph.canvas.height_inches or 7.5
@@ -437,16 +576,22 @@ def build_layout_css(
         f"/* Layout scaffold for {semantic.slide_id} "
         f"({semantic.page_semantics.stage.value}/"
         f"{semantic.page_semantics.layout_pattern.value}).",
-        " * Position content with these classes so the generated page keeps the",
-        " * template grid. Override a value only when the content demands it.",
-        " * .tpl-* classes reproduce the template's own chrome. Each one paints",
-        " * itself, imagery included, so emit every one as an empty <div> before",
-        " * the content and add nothing to it.",
+        " * .tpl-* rules are the template's page chrome. Each one paints itself,",
+        " * imagery included: emit every one as an empty <div> before the",
+        " * content, add nothing to it, and never restyle or reposition it.",
+        " * .dec-* rules are the sample slide's own decoration: include them as",
+        " * empty <div>s by default, but move or drop them when your layout",
+        " * departs from the sample's.",
+        " * .r-* rules record how the sample page arranged its content --",
+        " * geometry, type and colour in one low-specificity rule per region.",
+        " * They are the default grid, not a constraint: redeclare a region's",
+        " * class after this import whenever your content needs a different",
+        " * size, position, colour or count of sibling regions.",
         " */",
         f".slide{{position:relative;width:100%;height:100%;overflow:hidden;{background}}}",
-        # Chrome geometry is the template's, so a border must not grow the box
-        # it was measured for.
-        '.slide [class^="tpl-"]{box-sizing:border-box}',
+        # Decoration geometry is the template's, so a border must not grow the
+        # box it was measured for.
+        '.slide :is([class^="tpl-"],[class^="dec-"]){box-sizing:border-box}',
         # A region sets its font-size on the container, but the browser's own
         # h1-h6 rules are em-based and would silently multiply it -- an h1
         # renders at 2x and overflows the region it was sized for. :where()
@@ -461,7 +606,15 @@ def build_layout_css(
             f"  {name}:{value};" for name, value in sorted(theme.css_variables.items())
         )
         lines.append("}")
-    lines.extend(_chrome_rules(graph, assets or {}))
+    lines.extend(
+        _chrome_rules(
+            graph,
+            assets or {},
+            recurring_chrome=recurring_chrome,
+            judged_decorations=frozenset(semantic.judged_decoration_shape_ids),
+            fixed_decorations=frozenset(semantic.fixed_decoration_shape_ids),
+        )
+    )
     order = _paint_order(graph)
     for region in semantic.regions:
         style = _dominant_style(region, shapes)
@@ -472,13 +625,13 @@ def build_layout_css(
             (order[shape_id] for shape_id in region.source_shape_ids if shape_id in order),
             default=len(order) + 1,
         )
-        # Geometry is the contract, so it outranks any utility class the page
-        # also applies. Typography stays low-specificity and adjustable.
         declarations = _geometry(region.bbox, depth)
         asset = _region_asset(region, assets or {})
         if asset is not None:
             # The template's own artwork already carries its transparency, so
-            # clipping it again would only trace its letterforms.
+            # clipping it again would only trace its letterforms. This rule
+            # paints template material, so like chrome it keeps the guarded
+            # specificity: nothing a page declares may disturb it.
             declarations.extend(
                 [
                     f"background-image:url({ASSET_URL_PREFIX}/{asset_url_name(asset)})",
@@ -489,23 +642,34 @@ def build_layout_css(
                 ]
             )
             note += " -- painted from the template asset; emit an empty div"
-        else:
-            declarations.extend(
-                _outline_css(
-                    _region_outline(region, shapes, assets or {}),
-                    region.bbox,
-                    graph.canvas,
-                )
+            lines.append(
+                f".slide .r-{region.region_id}{{{';'.join(declarations)}}}{note} */"
             )
-        lines.append(
-            f".slide .r-{region.region_id}{{{';'.join(declarations)}}}{note} */"
+            continue
+        declarations.extend(
+            _outline_css(
+                _region_outline(region, shapes, assets or {}),
+                region.bbox,
+                graph.canvas,
+            )
         )
-        typography = ";".join(_typography(style, height_inches))
-        if typography:
-            lines.append(f".r-{region.region_id}{{{typography}}}")
-        color_rule = _text_color_rule(region.region_id, style)
-        if color_rule:
-            lines.append(color_rule)
+        # One single-class rule per region: the page can retune any of it by
+        # redeclaring the class after the import, and the cascade -- not
+        # specificity -- decides. Colour rides on the container and reaches
+        # the text by inheritance, so it too stays a default, not a mandate.
+        declarations.extend(_typography(style, height_inches))
+        if style is not None and style.color:
+            if _sample_ground_dropped(region, shapes, assets or {}):
+                note += (
+                    " -- sample text sat on its own card/photo paint, which is"
+                    " not reproduced here; pick a readable colour from the"
+                    " theme tokens or add a backing panel"
+                )
+            else:
+                declarations.append(f"color:{style.color}")
+        lines.append(
+            f".r-{region.region_id}{{{';'.join(declarations)}}}{note} */"
+        )
     safe = theme.safe_area
     lines.append(
         ".safe-area{"

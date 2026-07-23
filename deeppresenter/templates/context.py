@@ -637,7 +637,6 @@ class TemplateContextProvider:
                         "role",
                         "bbox",
                         "reading_order",
-                        "capacity",
                         "behavior",
                         "style_ref",
                         "asset_refs",
@@ -647,6 +646,15 @@ class TemplateContextProvider:
                 for region in regions
                 if isinstance(region, Mapping)
             ]
+        # Capacity numbers stay in the IR as facts about the sample, but they
+        # are measured around placeholder text ("单击添加文本" makes max_chars
+        # 12), so serving them reads as a writing constraint and produces
+        # telegram-style copy squeezed into boxes sized for other content.
+        compact_regions = [
+            {key: value for key, value in region.items() if key != "capacity"}
+            for region in compact_regions or []
+            if isinstance(region, Mapping)
+        ]
 
         image_paths: JsonObject = {}
         for kind in ("style_reference", "reference", "overlay"):

@@ -305,6 +305,9 @@ def test_search_scores_semantics_and_bounds_results(tmp_path: Path) -> None:
     # reproducible: prose is dropped before regions and asset bindings.
     assert reference["regions"]
     assert reference["asset_refs"] == ["brand_logo"]
+    # Capacity numbers are measured around the sample's placeholder text, so
+    # serving them turns an artefact of the sample into a writing constraint.
+    assert all("capacity" not in region for region in reference["regions"])
 
 
 def test_materialize_builds_fixed_context_pack_and_assets(tmp_path: Path) -> None:

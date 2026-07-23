@@ -104,6 +104,29 @@ class CallableStructuredVLMClient:
 
 
 ShapeLabel = Annotated[str, Field(pattern=r"^#[0-9]{1,4}$")]
+DecorationLabel = Annotated[str, Field(pattern=r"^d[0-9]{1,3}$")]
+
+
+def decoration_labels(graph: SourceGraph) -> dict[str, ShapeNode]:
+    """Stable short labels for the slide's own decoration shapes.
+
+    Content shapes keep their ``#N`` labels from :func:`overlay_labels`; the
+    slide-scope chrome the scaffold will emit as ``.dec-*`` gets a separate
+    ``dN`` namespace so an annotator can judge it without being able to group
+    it into a content region.
+    """
+
+    labels: dict[str, ShapeNode] = {}
+    for shape in graph.shapes:
+        if (
+            shape.is_chrome
+            and shape.scope is ShapeScope.SLIDE
+            and shape.visible
+            and shape.normalized_bbox.width > 0
+            and shape.normalized_bbox.height > 0
+        ):
+            labels[f"d{len(labels) + 1}"] = shape
+    return labels
 
 
 class AnnotationRegion(StrictModel):
@@ -130,6 +153,7 @@ class SlideAnnotationResponse(StrictModel):
     selection_hints: list[str] = Field(default_factory=list)
     avoid_when: list[str] = Field(default_factory=list)
     replaceable_images: list[ShapeLabel] = Field(default_factory=list)
+    fixed_decorations: list[DecorationLabel] = Field(default_factory=list)
 
 
 def union_bbox(shapes: Sequence[ShapeNode]) -> NormalizedBox:
@@ -358,6 +382,23 @@ cut to a shape that fits the layout around it. A picture that carries part of
 the page's design -- one the composition would look broken without -- is not
 replaceable. If you are unsure for any reason, leave the label out.
 
+The payload may also list "decorations": shapes this slide drew itself, keyed
+by labels like "d1". They are not content slots -- your regions must never
+reference them. Judge each one instead: fixed_decorations lists the labels
+that are page furniture, decoration that frames the page rather than the
+sample's content -- a brand wedge in a corner, an edge band, a rule under the
+page title. Everything you leave out is treated as movable decoration that
+follows the content it was drawn around, which a new page may rearrange or
+drop.
+
+Be deliberately conservative toward movable here: a decoration wrongly marked
+fixed gets pinned across content arranged differently, which ruins the page;
+one wrongly left movable is still included by default, which is safe. Any
+modular, per-item artwork is movable, never fixed: a capsule or pill behind
+each step of a process, card frames, arrows and connectors between items,
+icon holders, number badges -- anything that repeats per content item or sits
+inside the content area. If you are unsure, leave the label out.
+
 Return only JSON for the provided response schema."""
 
 
@@ -389,7 +430,8 @@ class VLMAnnotator:
         labels = overlay_labels(graph)
         if not labels:
             return empty_slide_semantic(graph, self.annotator_id)
-        payload = self._request_payload(request, labels)
+        dec_labels = decoration_labels(graph)
+        payload = self._request_payload(request, labels, dec_labels)
         image_paths = [
             value
             for value in (request.reference_image_path, request.overlay_image_path)
@@ -413,7 +455,7 @@ class VLMAnnotator:
                 response = SlideAnnotationResponse.model_validate_json(
                     json.dumps(raw, ensure_ascii=False)
                 )
-                return self._assemble(graph, labels, response)
+                return self._assemble(graph, labels, dec_labels, response)
             except (ValidationError, ValueError) as exc:
                 last_error = str(exc)
         raise ValueError(
@@ -425,6 +467,7 @@ class VLMAnnotator:
         self,
         graph: SourceGraph,
         labels: Mapping[str, ShapeNode],
+        dec_labels: Mapping[str, ShapeNode],
         response: SlideAnnotationResponse,
     ) -> Semantic:
         regions: list[Region] = []
@@ -461,6 +504,13 @@ class VLMAnnotator:
             if label in labels
             for asset_id in labels[label].asset_ids
         }
+        # An unknown decoration label is dropped rather than retried: omission
+        # is the safe default, so a hallucinated label must not pin anything.
+        fixed_decorations = {
+            dec_labels[label].shape_id
+            for label in response.fixed_decorations
+            if label in dec_labels
+        }
         page_semantics = PageSemantics(
             stage=response.stage,
             layout_pattern=response.layout_pattern,
@@ -481,6 +531,10 @@ class VLMAnnotator:
             avoid_when=response.avoid_when,
             judged_asset_ids=sorted(judged),
             replaceable_asset_ids=sorted(replaceable & judged),
+            judged_decoration_shape_ids=sorted(
+                shape.shape_id for shape in dec_labels.values()
+            ),
+            fixed_decoration_shape_ids=sorted(fixed_decorations),
             annotator_id=self.annotator_id,
         )
 
@@ -488,6 +542,7 @@ class VLMAnnotator:
     def _request_payload(
         request: SlideAnnotationInput,
         labels: Mapping[str, ShapeNode],
+        dec_labels: Mapping[str, ShapeNode],
     ) -> dict[str, Any]:
         graph = request.source_graph
         asset_roles = {asset.asset_id: asset.role for asset in request.assets}
@@ -503,9 +558,35 @@ class VLMAnnotator:
                 for label, shape in labels.items()
             },
         }
+        if dec_labels:
+            payload["decorations"] = {
+                label: _decoration_summary(shape)
+                for label, shape in dec_labels.items()
+            }
         if graph.notes:
             payload["speaker_notes"] = graph.notes
         return payload
+
+
+def _decoration_summary(shape: ShapeNode) -> dict[str, Any]:
+    """Compact view of one slide-drawn decoration for the fixed/movable call."""
+
+    box = shape.normalized_bbox
+    summary: dict[str, Any] = {
+        "name": shape.name,
+        "kind": shape.kind.value,
+        "bbox": [
+            round(box.x, 3),
+            round(box.y, 3),
+            round(box.width, 3),
+            round(box.height, 3),
+        ],
+    }
+    if shape.fill:
+        summary["fill"] = shape.fill
+    if shape.rotation:
+        summary["rotation"] = shape.rotation
+    return summary
 
 
 def _shape_summary(

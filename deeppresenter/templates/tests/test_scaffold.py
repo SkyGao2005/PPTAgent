@@ -42,6 +42,7 @@ from deeppresenter.templates.scaffold import (
     _chrome_rules,
     asset_url_name,
     build_layout_css,
+    chrome_signature,
 )
 from deeppresenter.templates.styles import (
     StyleResolver,
@@ -128,7 +129,7 @@ def test_scaffold_encodes_geometry_and_resolved_typography() -> None:
 
     css = build_layout_css(_semantic(), _graph(), theme)
 
-    assert ".slide .r-r001{" in css
+    assert ".r-r001{" in css
     assert "left:5%" in css
     assert "width:90%" in css
     assert "top:28%" in css
@@ -299,7 +300,7 @@ def test_scaffold_paints_chrome_behind_content() -> None:
         ]
 
     chrome_z = z_values(".slide .tpl-")
-    content_z = z_values(".slide .r-")
+    content_z = z_values(".r-")
     assert chrome_z and content_z
     assert max(chrome_z) < min(content_z)
 
@@ -343,19 +344,25 @@ def test_scaffold_neutralises_the_browser_heading_scale() -> None:
     assert "font-size:inherit" in css
 
 
-def test_geometry_outranks_page_utility_classes() -> None:
-    """A page-level `.fit{width:100%}` must not resize a positioned region."""
+def test_region_rules_are_single_class_defaults() -> None:
+    """A page must be able to retune a region by redeclaring its class.
+
+    Regions describe the sample's arrangement, not a mandate: writing them at
+    `.slide .r-x` specificity silently defeated the page's own `.r-x{width}`
+    override, so every long title stayed wrapped inside a box measured around
+    six characters of placeholder text.
+    """
 
     css = build_layout_css(_semantic(), _graph(), Theme(canvas=_canvas()))
 
-    geometry = next(
-        line for line in css.splitlines() if line.startswith(".slide .r-r001{")
+    assert ".slide .r-r001" not in css
+    region = next(
+        line for line in css.splitlines() if line.startswith(".r-r001{")
     )
-    assert "width:90%" in geometry
-    # Typography stays on the bare class so a page can still tune it.
-    typography = [line for line in css.splitlines() if line.startswith(".r-r001{")]
-    assert typography and "font-size" in typography[0]
-    assert "width" not in typography[0]
+    # Geometry, typography, and colour live in one overridable rule.
+    assert "width:90%" in region
+    assert "font-size" in region
+    assert "color:#FFFFFF" in region
 
 def _chrome_css(template: str, page: int = 0) -> str:
     """Chrome rules a real template compiles to, with browser asset paths."""
@@ -378,6 +385,140 @@ def test_non_rectangular_chrome_keeps_its_silhouette() -> None:
     assert "clip-path:polygon(50% 0%, 100% 100%, 0% 100%)" in css
     assert "clip-path:polygon(68.02% 0%, 100% 0%, 100% 100%, 0% 100%)" in css
     assert css.count("clip-path:") >= 8
+
+
+def test_slide_decoration_is_soft_while_layout_chrome_stays_hard() -> None:
+    """Sample-page artwork follows the content it was drawn around.
+
+    Layout chrome (corner bands, logos) is the template's identity and must
+    stay pinned. Slide-level decoration -- a capsule around a sample card, an
+    arrow at a sample caption -- is not: forcing it onto a rearranged page
+    painted sample artwork across new content.
+    """
+
+    result = PptxExtractor().extract(BUNDLED / "default" / "source.pptx")
+    css = "\n".join(_chrome_rules(result.source_graphs[0], {}))
+
+    # default's identity is master-level triangles and diagonal bands.
+    assert ".slide .tpl-" in css
+    assert ".dec-" not in css
+
+    slide_shape = next(
+        shape
+        for shape in result.source_graphs[0].shapes
+        if shape.scope is ShapeScope.LAYOUT and shape.fill
+    )
+    fake = slide_shape.model_copy(
+        update={"shape_id": "sample-deco", "scope": ShapeScope.SLIDE, "name": "Capsule"}
+    )
+    soft = "\n".join(
+        _chrome_rules(
+            result.source_graphs[0].model_copy(
+                update={"shapes": [*result.source_graphs[0].shapes, fake]}
+            ),
+            {},
+        )
+    )
+    assert ".dec-01{" in soft
+    assert "sample decoration" in soft
+    assert "move or drop" in soft
+    assert ".slide .tpl-01{" in soft
+
+
+def test_recurring_slide_decoration_is_promoted_unless_vetoed() -> None:
+    """Scope records where a shape was drawn, not what it is.
+
+    Brand wedges hand-copied onto the cover and the closing page are
+    slide-scope yet template identity: recurrence across pages promotes them
+    to hard chrome. An annotator that looked at the page can veto the
+    promotion -- a capsule drawn identically behind two sibling pages' cards
+    still recurs -- but can never force one.
+    """
+
+    result = PptxExtractor().extract(BUNDLED / "default" / "source.pptx")
+    graph = result.source_graphs[0]
+    template_shape = next(
+        shape
+        for shape in graph.shapes
+        if shape.scope is ShapeScope.LAYOUT and shape.fill
+    )
+    fake = template_shape.model_copy(
+        update={"shape_id": "wedge", "scope": ShapeScope.SLIDE, "name": "Wedge"}
+    )
+    extended = graph.model_copy(update={"shapes": [*graph.shapes, fake]})
+    recurring = frozenset({chrome_signature(fake)})
+
+    def rules(**kwargs: object) -> str:
+        return "\n".join(_chrome_rules(extended, {}, **kwargs))
+
+    # Recurs, nobody looked: mechanical evidence alone promotes.
+    promoted = rules(recurring_chrome=recurring)
+    assert "recurring decoration / Wedge" in promoted
+    assert ".dec-" not in promoted
+
+    # Recurs, the annotator looked and did not mark it fixed: veto.
+    vetoed = rules(
+        recurring_chrome=recurring,
+        judged_decorations=frozenset({"wedge"}),
+    )
+    assert ".dec-01{" in vetoed
+    assert "recurring decoration" not in vetoed
+
+    # Recurs, the annotator confirmed page furniture: promoted.
+    confirmed = rules(
+        recurring_chrome=recurring,
+        judged_decorations=frozenset({"wedge"}),
+        fixed_decorations=frozenset({"wedge"}),
+    )
+    assert "recurring decoration / Wedge" in confirmed
+
+    # One-off artwork stays soft even when the annotator calls it fixed:
+    # the verdict restricts, it never expands.
+    one_off = rules(
+        judged_decorations=frozenset({"wedge"}),
+        fixed_decorations=frozenset({"wedge"}),
+    )
+    assert ".dec-01{" in one_off
+
+
+def test_layout_css_threads_verdicts_from_the_semantic() -> None:
+    """The compiler's recurrence set and the annotator's veto meet here."""
+
+    graph = _graph()
+    deco = ShapeNode(
+        shape_id="s001-deco",
+        name="Capsule",
+        scope=ShapeScope.SLIDE,
+        kind=ShapeKind.AUTO_SHAPE,
+        z_index=1,
+        bbox=BoundingBox(x=0, y=0, width=40, height=20),
+        normalized_bbox=NormalizedBox(x=0.1, y=0.6, width=0.3, height=0.2),
+        fill="#005EA4",
+    )
+    extended = graph.model_copy(update={"shapes": [*graph.shapes, deco]})
+    recurring = frozenset({chrome_signature(deco)})
+    semantic = _semantic().model_copy(
+        update={
+            "judged_decoration_shape_ids": ["s001-deco"],
+            "fixed_decoration_shape_ids": [],
+        }
+    )
+
+    vetoed = build_layout_css(
+        semantic,
+        extended,
+        Theme(canvas=_canvas()),
+        recurring_chrome=recurring,
+    )
+    assert ".dec-01{" in vetoed
+
+    silent = build_layout_css(
+        _semantic(),
+        extended,
+        Theme(canvas=_canvas()),
+        recurring_chrome=recurring,
+    )
+    assert "recurring decoration / Capsule" in silent
 
 
 def test_ellipse_chrome_is_round() -> None:
@@ -727,6 +868,9 @@ def test_a_logo_region_paints_the_template_asset_itself() -> None:
 
     assert "url(../../assets/asset_logo.png)" in css
     assert "asset_photo" not in css
+    # Painting template material, the rule keeps the guarded specificity a
+    # page cannot disturb; free regions stay single-class.
+    assert ".slide .r-r001{" in css
 
 
 def test_a_masked_photo_slot_clips_whatever_replaces_it() -> None:
@@ -853,35 +997,57 @@ def test_masked_artwork_is_template_material_not_a_sample() -> None:
     assert extractor._asset_role(_record(False), 10) is AssetRole.CONTENT_IMAGE  # noqa: SLF001
 
 
-def test_region_text_colour_reaches_the_text_not_just_the_box() -> None:
-    """Colour on the container reaches the text only by inheritance.
+def test_sample_colour_is_dropped_when_its_ground_is_not_reproduced() -> None:
+    """A colour chosen for a ground the scaffold omits is not a fact.
 
-    Inheritance loses to any direct declaration whatever its specificity, so
-    the moment a page writes `.r-xxx p{color:...}` the template's palette is
-    gone -- which is how a black subtitle came out navy.
+    The sample's white card headers sat on colour pills inside the content
+    group; the scaffold reproduces neither the pill nor the photo behind it.
+    Pinning the white anyway produced white text on a white page -- and the
+    model, forbidden to restyle it, shipped the blank page.
     """
 
-    region = Region(
-        region_id="r001",
-        source_shape_ids=["s001-sh0001"],
-        kind=RegionKind.TEXT,
-        role=RegionRole.SUBTITLE,
-        bbox=NormalizedBox(x=0.05, y=0.28, width=0.9, height=0.29),
+    ground = ShapeNode(
+        shape_id="s001-sh0001",
+        name="Card",
+        scope=ShapeScope.SLIDE,
+        kind=ShapeKind.AUTO_SHAPE,
+        z_index=0,
+        bbox=BoundingBox(x=0, y=0, width=100, height=50),
+        normalized_bbox=NormalizedBox(x=0.05, y=0.28, width=0.9, height=0.29),
+        fill="#005EA4",
+        text=ShapeText(
+            text="Header",
+            paragraphs=[
+                TextParagraph(
+                    text="Header",
+                    style=TextStyle(alignment="center"),
+                    runs=[
+                        TextRun(
+                            text="Header",
+                            style=TextStyle(size_pt=20.0, color="#FFFFFF"),
+                        )
+                    ],
+                )
+            ],
+        ),
     )
-    css = build_layout_css(
-        _semantic().model_copy(update={"regions": [region]}),
-        _graph(),
-        Theme(canvas=_canvas()),
+    graph = SourceGraph(
+        slide_id="s001", page_number=1, canvas=_canvas(), shapes=[ground]
     )
 
-    colour = next(line for line in css.splitlines() if "color:#FFFFFF" in line)
-    # Naming the text elements is what makes the rule apply at all, and it
-    # outranks a page's own `.r-r001 p` rule.
-    assert ".slide .r-r001 :is(" in colour
-    assert "p," in colour
-    # Fitting properties stay on the container, low specificity and adjustable.
-    fitting = next(line for line in css.splitlines() if line.startswith(".r-r001{"))
-    assert "font-size" in fitting and "color" not in fitting
+    css = build_layout_css(_semantic(), graph, Theme(canvas=_canvas()))
+
+    region = next(line for line in css.splitlines() if line.startswith(".r-r001{"))
+    assert "color:#FFFFFF" not in region
+    assert "backing panel" in region
+    # The rest of the sample's typography is still a usable default.
+    assert "font-size" in region
+
+    # The same text on paint the scaffold does reproduce keeps its colour.
+    intact = build_layout_css(_semantic(), _graph(), Theme(canvas=_canvas()))
+    assert "color:#FFFFFF" in next(
+        line for line in intact.splitlines() if line.startswith(".r-r001{")
+    )
 
 
 def test_a_group_never_paints_itself() -> None:

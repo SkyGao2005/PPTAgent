@@ -59,7 +59,7 @@ from .overview import (
     build_index,
     family_detail_path,
 )
-from .scaffold import build_layout_css
+from .scaffold import build_layout_css, recurring_chrome_signatures
 from .rendering import (
     LibreOfficeRenderer,
     RenderedSlide,
@@ -431,6 +431,7 @@ class TemplateCompiler:
     ) -> list[SlideIndexEntry]:
         asset_by_id = {value.asset.asset_id: value.asset for value in extraction.assets}
         graph_by_id = {graph.slide_id: graph for graph in extraction.source_graphs}
+        recurring_chrome = recurring_chrome_signatures(extraction.source_graphs)
         entries: list[SlideIndexEntry] = []
         for semantic in semantics:
             graph = graph_by_id[semantic.slide_id]
@@ -441,6 +442,7 @@ class TemplateCompiler:
                     graph,
                     extraction.theme,
                     asset_by_id,
+                    recurring_chrome=recurring_chrome,
                 ),
                 encoding="utf-8",
             )
@@ -458,9 +460,11 @@ class TemplateCompiler:
                     for asset in asset_by_id.values()
                     if asset.reuse_policy is ReusePolicy.ALWAYS
                 }
-                # The scaffold's chrome rules point at these files, so the
-                # reference must declare them or a task pack would stage a
-                # layout that references images it did not copy.
+                # The scaffold's layout/master chrome rules point at these
+                # files, so the reference must declare them or a task pack
+                # would stage a layout that references images it did not copy.
+                # Slide-scope chrome never carries assets (is_chrome forbids
+                # them), so scope is the whole test.
                 | {
                     asset_id
                     for shape in graph.shapes

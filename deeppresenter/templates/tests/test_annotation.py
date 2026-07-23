@@ -155,6 +155,60 @@ async def test_vlm_annotator_derives_geometry_from_bound_shapes() -> None:
 
 
 @pytest.mark.asyncio
+async def test_vlm_annotator_maps_decoration_verdicts_to_shape_ids() -> None:
+    """Chrome shapes get their own label namespace and a fixed/movable call.
+
+    Omission is the safe default, so a hallucinated label is dropped rather
+    than retried, and everything shown to the model counts as judged.
+    """
+
+    captured: dict[str, Any] = {}
+
+    async def complete(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        response = _response(
+            [{"shape_labels": ["#1", "#2"], "kind": "text", "role": "body"}]
+        )
+        response["fixed_decorations"] = ["d1", "d9"]
+        return response
+
+    graph = _graph()
+    wedge = ShapeNode(
+        shape_id="s001-slide-deco1",
+        name="Wedge",
+        scope=ShapeScope.SLIDE,
+        kind=ShapeKind.AUTO_SHAPE,
+        z_index=2,
+        bbox=BoundingBox(x=0, y=0, width=40, height=20),
+        normalized_bbox=NormalizedBox(x=0.0, y=0.8, width=0.3, height=0.2),
+        fill="#005EA4",
+    )
+    capsule = wedge.model_copy(
+        update={"shape_id": "s001-slide-deco2", "name": "Capsule"}
+    )
+    extended = graph.model_copy(
+        update={"shapes": [*graph.shapes, wedge, capsule]}
+    )
+    annotator = VLMAnnotator(
+        CallableStructuredVLMClient(complete),
+        model_id="vision-test",
+    )
+
+    result = await annotator.annotate(
+        SlideAnnotationInput(source_graph=extended)
+    )
+
+    payload = json.loads(captured["user_prompt"])
+    assert set(payload["decorations"]) == {"d1", "d2"}
+    assert payload["decorations"]["d1"]["name"] == "Wedge"
+    assert result.judged_decoration_shape_ids == [
+        "s001-slide-deco1",
+        "s001-slide-deco2",
+    ]
+    assert result.fixed_decoration_shape_ids == ["s001-slide-deco1"]
+
+
+@pytest.mark.asyncio
 async def test_vlm_annotator_retries_with_error_feedback() -> None:
     prompts: list[dict[str, Any]] = []
 
