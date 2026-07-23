@@ -321,7 +321,9 @@ def test_template_local_tools_only_read_task_context_pack(
     task_context = loop._load_task_template_context(request)
     assert task_context is not None
     shutil.rmtree(ir_root)
-    loop._register_template_tools(RecordingEnv(), task_context)
+    env = RecordingEnv()
+    loop._register_template_overview_tools(env, task_context)
+    loop._register_template_reference_tools(env, task_context)
 
     assert set(registered) == {
         "get_template_overview",

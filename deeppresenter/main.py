@@ -107,6 +107,11 @@ class AgentLoop:
 
             yield ChatMessage(role=Role.SYSTEM, content=hello_message)
 
+            if template_context is not None:
+                # The overview digest shapes the outline and manuscript to
+                # structures the template can actually hold.
+                self._register_template_overview_tools(agent_env, template_context)
+
             # ── Optional Planner phase ────────────────────────────────────
             if request.enable_planner:
                 agent_env.current_stage = StageName.PLAN
@@ -173,7 +178,7 @@ class AgentLoop:
             agent_env.current_stage = StageName.GENERATE
             await self._report_stage_started(StageName.GENERATE)
             if template_context is not None:
-                self._register_template_tools(agent_env, template_context)
+                self._register_template_reference_tools(agent_env, template_context)
             self.designagent = Design(
                 self.config,
                 agent_env,
@@ -242,12 +247,18 @@ class AgentLoop:
             debug(f"DeepPresenter finished, final output at: {msg}")
             yield msg
 
-    def _register_template_tools(
+    def _register_template_overview_tools(
         self,
         agent_env: AgentEnv,
         template_context: TaskTemplateContext,
     ) -> None:
-        """Expose bounded retrieval over one verified task-local snapshot."""
+        """Expose the template's structural digest to every stage.
+
+        The outline and manuscript decide each page's structure -- how many
+        parallel items, whether there is an image slot -- and those decisions
+        only fit the template if they are made against its layout families.
+        Reference retrieval stays a generation-stage tool.
+        """
 
         def get_template_overview() -> str:
             """Return the compact overview for the task's pinned template revision."""
@@ -260,6 +271,16 @@ class AgentLoop:
 
             payload = template_context.get_family_detail(family_id)
             return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+        agent_env.register_tool(get_template_overview)
+        agent_env.register_tool(get_family_detail)
+
+    def _register_template_reference_tools(
+        self,
+        agent_env: AgentEnv,
+        template_context: TaskTemplateContext,
+    ) -> None:
+        """Expose bounded retrieval over one verified task-local snapshot."""
 
         def search_template_references(
             stage: str | None = None,
@@ -311,8 +332,6 @@ class AgentLoop:
                 )
             return CallToolResult(content=content, isError=False)
 
-        agent_env.register_tool(get_template_overview)
-        agent_env.register_tool(get_family_detail)
         agent_env.register_tool(search_template_references)
         agent_env.register_tool(get_template_reference)
 
