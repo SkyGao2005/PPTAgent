@@ -840,6 +840,22 @@ class Agent:
             f"{self.name} done | cost:{self.cost} ctx:{self.context_length} | history:{history_file.name} config:{config_file.name}"
         )
 
+    def load_history(self, history_file: Path) -> None:
+        """Restore a persisted conversation so a later request can continue it."""
+
+        path = history_file.expanduser().resolve(strict=True)
+        with jsonlines.open(path) as reader:
+            messages = [ChatMessage.model_validate(record) for record in reader]
+        if not messages:
+            raise ValueError(f"Agent history is empty: {path}")
+        if messages[0].role != Role.SYSTEM:
+            raise ValueError(f"Agent history has no system message: {path}")
+
+        self.chat_history = messages
+        self._pinned_context = {}
+        self._capture_pinned_context()
+        self._update_context_estimate(self.tools)
+
     def _history_record(self, message: ChatMessage) -> dict[str, Any]:
         """Serialize history without persisting inline base64 image payloads."""
         record = message.model_dump(mode="json")

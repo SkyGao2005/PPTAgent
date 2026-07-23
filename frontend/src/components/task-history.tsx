@@ -30,7 +30,7 @@ const absoluteDate = new Intl.DateTimeFormat("zh-CN", {
 
 const stageLabels: Partial<Record<TaskStage, string>> = {
   prepare: "准备资料",
-  plan: "规划大纲",
+  plan: "整理内容",
   research: "整理内容",
   generate: "生成页面",
   edit: "修改页面",

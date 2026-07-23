@@ -114,7 +114,7 @@ def _get_manager(request: Request) -> TaskManager:
     return manager
 
 
-def _resolve_template(
+def resolve_template(
     body: CreateTaskRequest, request: Request
 ) -> tuple[str | None, str | None, str | None]:
     """Resolve a frontend template id against templates owned by the backend."""
@@ -209,6 +209,7 @@ def _task_response(manager: TaskManager, snapshot) -> dict:
             "stage": stage,
             "template_id": params.get("template_id") or params.get("template") or "",
             "ratio": params.get("powerpoint_type", "16:9"),
+            "manuscript_approved": bool(params.get("manuscript_path")),
             "last_seq": _last_seq(manager, snapshot.task_id),
         }
     )
@@ -332,7 +333,7 @@ async def create_task(
         else resolve_attachment_paths(manager.workspace_base, body.attachment_ids)
     )
     language = "zh" if body.language.lower().startswith("zh") else body.language
-    template, template_id, template_ratio = _resolve_template(body, request)
+    template, template_id, template_ratio = resolve_template(body, request)
     requested_ratio = body.ratio or body.powerpoint_type
     if template_ratio in {"16:9", "4:3"}:
         if requested_ratio is not None and requested_ratio != template_ratio:

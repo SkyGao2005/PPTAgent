@@ -25,9 +25,11 @@ from fastapi import FastAPI
 
 from deeppresenter.server.models.templates import TemplateSettings
 from deeppresenter.server.routes.attachments import router as attachments_router
+from deeppresenter.server.routes.outlines import router as outlines_router
 from deeppresenter.server.routes.slide_editing import router as slide_editing_router
 from deeppresenter.server.routes.templates import router as templates_router
 from deeppresenter.server.routes.tasks import router as tasks_router
+from deeppresenter.server.services.outline_service import OutlineService
 from deeppresenter.server.services.task_manager import TaskManager
 from deeppresenter.server.services.template_catalog import bundled_templates_root
 from deeppresenter.server.services.template_registry import TemplateRegistry
@@ -151,6 +153,13 @@ def create_app(
         template_context_provider=template_context_provider,
     )
     app.state.task_manager = manager
+    app.state.outline_service = OutlineService(
+        workspace_base=base,
+        task_manager=manager,
+        use_placeholder=use_placeholder,
+        config_path=resolved_config_path,
+        template_context_provider=template_context_provider,
+    )
 
     app.state.induction_service = None
     app.state.template_service_lock = asyncio.Lock()
@@ -182,6 +191,7 @@ def create_app(
             if tid not in manager._cancel_events:
                 manager._cancel_events[tid] = evt
 
+    app.include_router(outlines_router)
     app.include_router(tasks_router)
     app.include_router(attachments_router)
     app.include_router(slide_editing_router)

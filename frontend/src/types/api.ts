@@ -96,6 +96,7 @@ export interface TaskSnapshot {
   progress: number
   template_id: string
   ratio: "16:9" | "4:3"
+  manuscript_approved?: boolean
   total_slides: number
   last_seq: number
   created_at: string
@@ -131,6 +132,37 @@ export interface CreateTaskPayload {
   ratio: "16:9" | "4:3"
   language: string
   attachment_ids: string[]
+}
+
+export type OutlineStatus = "generating" | "ready" | "failed" | "approved"
+
+export interface OutlineComment {
+  comment_id: string
+  text: string
+  target_revision: number
+  created_at: string
+}
+
+export interface OutlineDraft {
+  outline_id: string
+  status: OutlineStatus
+  topic: string
+  page_count: number
+  ratio: "16:9" | "4:3"
+  template_id: string | null
+  revision: number
+  manuscript: string
+  comments: OutlineComment[]
+  task_id: string | null
+  error_message: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface OutlineApproval {
+  task_id: string
+  outline_id: string
+  status: string
 }
 
 export interface SlideRevision {

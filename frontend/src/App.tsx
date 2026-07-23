@@ -13,6 +13,11 @@ const TemplatesPage = lazy(() =>
     default: module.TemplatesPage,
   })),
 )
+const OutlineReviewPage = lazy(() =>
+  import("@/pages/outline-review-page").then((module) => ({
+    default: module.OutlineReviewPage,
+  })),
+)
 const WorkbenchPage = lazy(() =>
   import("@/pages/workbench-page").then((module) => ({
     default: module.WorkbenchPage,
@@ -43,6 +48,7 @@ function App() {
         <Routes>
           <Route path="/" element={<CreatePage />} />
           <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/outline/:outlineId" element={<OutlineReviewPage />} />
           <Route path="/workbench/:taskId" element={<WorkbenchPage />} />
           <Route path="/create" element={<Navigate to="/" replace />} />
           <Route path="/tasks/:taskId" element={<LegacyTaskRedirect />} />

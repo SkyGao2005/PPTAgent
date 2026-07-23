@@ -51,6 +51,121 @@ class AgentLoop:
         debug(f"Initialized AgentLoop with workspace={self.workspace}")
         debug(f"Config: {self.config.model_dump_json(indent=2)}")
 
+    async def generate_manuscript(
+        self,
+        request: InputRequest,
+        *,
+        output_path: Path,
+        current_manuscript: Path | None = None,
+        feedback: str | None = None,
+        allow_research: bool = True,
+    ) -> Path:
+        """Run Research only and return a Markdown manuscript for user review.
+
+        A revision restores the prior Research conversation, appends the user's
+        feedback, and continues from that exact context. Network research tools
+        stay unavailable unless the feedback explicitly asks for new evidence.
+        """
+
+        manuscript_request = request.model_copy(deep=True)
+        manuscript_request.copy_to_workspace(self.workspace)
+        workspace = self.workspace.expanduser().resolve(strict=False)
+        output_path = output_path.expanduser().resolve(strict=False)
+        if not output_path.is_relative_to(workspace):
+            raise ValueError("Review manuscript must be inside its workspace")
+
+        current_path: Path | None = None
+        if current_manuscript is None:
+            manuscript_request.instruction = (
+                f"{request.instruction}\n\n"
+                f"Write the complete reviewable Markdown manuscript to `{output_path}` "
+                "and call `finalize` with that exact path."
+            )
+        else:
+            current_path = current_manuscript.expanduser().resolve(strict=True)
+            if not current_path.is_relative_to(workspace):
+                raise ValueError("Current manuscript must be inside its workspace")
+
+        template_context = self._load_task_template_context(manuscript_request)
+        async with AgentEnv(self.workspace, self.config) as agent_env:
+            agent_env.current_stage = StageName.RESEARCH
+            if template_context is not None:
+                self._register_template_overview_tools(agent_env, template_context)
+            research = Research(
+                self.config,
+                agent_env,
+                self.workspace,
+                self.language,
+            )
+            if current_path is not None and not allow_research:
+                research.tools = [
+                    tool
+                    for tool in research.tools
+                    if tool["function"]["name"]
+                    not in {
+                        "search_web",
+                        "search_images",
+                        "fetch_url",
+                        "download_file",
+                    }
+                ]
+
+            if current_path is not None:
+                histories = list(
+                    (self.workspace / ".history").glob("Research-*-history.jsonl")
+                )
+                if not histories:
+                    raise RuntimeError("Research history is missing; cannot continue revision")
+                research.load_history(max(histories, key=lambda path: path.stat().st_mtime_ns))
+                request_text = (feedback or "").strip() or (
+                    "请重新审视当前文稿的叙事和内容组织，生成一版更清晰的完整文稿。"
+                )
+                research.chat_history.append(
+                    ChatMessage(
+                        role=Role.USER,
+                        content=(
+                            f"用户对当前 Markdown 文稿提出了修改/重试请求：\n"
+                            f"{request_text}\n\n"
+                            f"当前文稿：`{current_path}`\n"
+                            f"请保留此前 Research 上下文和已经取得的资料，直接修改文稿。"
+                            + (
+                                "仅在这条请求确实需要新事实时补充必要调研。"
+                                if allow_research
+                                else "不要重新进行网络调研。"
+                            )
+                            + f"\n将完整替代稿写入 `{output_path}`，"
+                            "然后调用 `finalize` 并传入该路径。"
+                        ),
+                    )
+                )
+
+            research_gen = research.loop(manuscript_request)
+            outcome: Path | None = None
+            try:
+                async for message in research_gen:
+                    if not isinstance(message, str):
+                        continue
+                    candidate = Path(message)
+                    if not candidate.is_absolute():
+                        candidate = self.workspace / candidate
+                    outcome = candidate.resolve(strict=True)
+                    if not outcome.is_relative_to(self.workspace.resolve()):
+                        raise ValueError(
+                            "Generated manuscript must be inside the review workspace"
+                        )
+                    break
+            finally:
+                research.save_history()
+                await research_gen.aclose()
+
+        if outcome is None:
+            raise RuntimeError("Research did not produce a Markdown manuscript")
+        if outcome.suffix.lower() not in {".md", ".markdown"}:
+            raise ValueError("Research output must be a Markdown file")
+        self.intermediate_output["manuscript"] = outcome
+        self.save_results()
+        return outcome
+
     @timer("DeepPresenter Loop")
     async def run(
         self,
@@ -142,38 +257,46 @@ class AgentLoop:
                     await self.planner_gen.aclose()
                     self.save_results()
 
-            agent_env.current_stage = StageName.RESEARCH
-            await self._report_stage_started(StageName.RESEARCH)
-            self.research_agent = Research(
-                self.config,
-                agent_env,
-                self.workspace,
-                self.language,
-            )
-            self.agent = self.research_agent
-            try:
-                async for msg in self.research_agent.loop(
-                    request, self.intermediate_output.get("outline", None)
-                ):
-                    if isinstance(msg, str):
-                        md_file = Path(msg)
-                        if not md_file.is_absolute():
-                            md_file = self.workspace / md_file
-                        self.intermediate_output["manuscript"] = md_file
-                        msg = str(md_file)
-                        await self._report_stage_completed(StageName.RESEARCH)
-                        break
-                    yield msg
-            except Exception as e:
-                error_message = (
-                    f"Research agent failed with error: {e}\n{traceback.format_exc()}"
+            reviewed_manuscript = self.intermediate_output.get("manuscript")
+            if reviewed_manuscript is not None:
+                md_file = Path(reviewed_manuscript).expanduser().resolve(strict=True)
+                if not md_file.is_relative_to(self.workspace.resolve()):
+                    raise ValueError(
+                        "Approved manuscript must be inside the task workspace"
+                    )
+            else:
+                agent_env.current_stage = StageName.RESEARCH
+                await self._report_stage_started(StageName.RESEARCH)
+                self.research_agent = Research(
+                    self.config,
+                    agent_env,
+                    self.workspace,
+                    self.language,
                 )
-                error(error_message)
-                await self._report_stage_failed(StageName.RESEARCH, str(e))
-                raise e
-            finally:
-                self.research_agent.save_history()
-                self.save_results()
+                self.agent = self.research_agent
+                try:
+                    async for msg in self.research_agent.loop(
+                        request, self.intermediate_output.get("outline", None)
+                    ):
+                        if isinstance(msg, str):
+                            md_file = Path(msg)
+                            if not md_file.is_absolute():
+                                md_file = self.workspace / md_file
+                            self.intermediate_output["manuscript"] = md_file
+                            msg = str(md_file)
+                            await self._report_stage_completed(StageName.RESEARCH)
+                            break
+                        yield msg
+                except Exception as e:
+                    error_message = (
+                        f"Research agent failed with error: {e}\n{traceback.format_exc()}"
+                    )
+                    error(error_message)
+                    await self._report_stage_failed(StageName.RESEARCH, str(e))
+                    raise e
+                finally:
+                    self.research_agent.save_history()
+                    self.save_results()
 
             agent_env.current_stage = StageName.GENERATE
             await self._report_stage_started(StageName.GENERATE)

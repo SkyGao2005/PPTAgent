@@ -70,7 +70,7 @@ const STARTER_CHIPS = [
 const STAGE_TEXT: Partial<Record<TaskStage, string>> = {
   template: "准备模板中…",
   research: "解析资料中…",
-  plan: "规划大纲中…",
+  plan: "整理内容结构中…",
   generate: "逐页生成中…",
 }
 
@@ -520,26 +520,42 @@ function GenerationSteps({
   done,
   total,
   success,
+  manuscriptApproved,
 }: {
   stage: TaskStage
   done: number
   total: number
   success: boolean
+  manuscriptApproved: boolean
 }) {
-  const order: TaskStage[] = ["research", "plan", "generate"]
   const activeIdx = success
     ? Number.POSITIVE_INFINITY
-    : stage === "template"
-      ? 0
-      : Math.max(order.indexOf(stage), 0)
-  const steps = [
-    { label: "解析参考资料", meta: "主题与素材分析" },
-    { label: "规划大纲结构", meta: `${total} 页` },
-    {
-      label: "逐页生成内容",
-      meta: done > 0 ? `已完成 ${done}/${total} 页` : "等待中",
-    },
-  ]
+    : manuscriptApproved
+      ? stage === "generate" && done > 0
+        ? 2
+        : 1
+      : stage === "research" || stage === "template"
+        ? 0
+        : done > 0
+          ? 2
+          : 1
+  const steps = manuscriptApproved
+    ? [
+        { label: "内容文稿已确认", meta: `${total} 页 · 已锁定` },
+        { label: "准备视觉设计", meta: "模板与版式适配" },
+        {
+          label: "逐页生成内容",
+          meta: done > 0 ? `已完成 ${done}/${total} 页` : "等待中",
+        },
+      ]
+    : [
+        { label: "Research 内容文稿", meta: "资料与叙事整理" },
+        { label: "准备视觉设计", meta: "模板与版式适配" },
+        {
+          label: "逐页生成内容",
+          meta: done > 0 ? `已完成 ${done}/${total} 页` : "等待中",
+        },
+      ]
   return (
     <div className="px-4 pt-1 pb-1.5">
       {steps.map((step, index) => {
@@ -589,11 +605,13 @@ function GenerationPanel({
   stage,
   done,
   total,
+  manuscriptApproved,
 }: {
   status: TaskStatus
   stage: TaskStage
   done: number
   total: number
+  manuscriptApproved: boolean
 }) {
   const running = status === "running"
   const [phase, setPhase] = useState<"hidden" | "running" | "success" | "exit">(
@@ -639,7 +657,13 @@ function GenerationPanel({
       )}
     >
       <GenerationHeader stage={stage} done={done} total={total} success={success} />
-      <GenerationSteps stage={stage} done={done} total={total} success={success} />
+      <GenerationSteps
+        stage={stage}
+        done={done}
+        total={total}
+        success={success}
+        manuscriptApproved={manuscriptApproved}
+      />
     </div>
   )
 }
@@ -1537,6 +1561,7 @@ export function WorkbenchPage() {
                 stage={task.stage}
                 done={doneCount}
                 total={totalSlides}
+                manuscriptApproved={Boolean(task.manuscript_approved)}
               />
               {desktopChat && <ChatPanel slide={selected} />}
             </div>

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mockApi = vi.hoisted(() => ({
   uploadAttachment: vi.fn(),
   deleteAttachment: vi.fn(),
-  createTask: vi.fn(),
+  createOutline: vi.fn(),
 }))
 
 vi.mock("@/lib/api", () => ({ api: mockApi, USE_MOCK: true }))
@@ -23,7 +23,7 @@ beforeEach(() => {
   useCreateTaskStore.setState(useCreateTaskStore.getInitialState(), true)
 })
 
-describe("createTask attachment lifecycle", () => {
+describe("createOutline attachment lifecycle", () => {
   it("reuses successful partial uploads on retry and clears files after success", async () => {
     const store = useCreateTaskStore.getState()
     store.setTopic("季度复盘")
@@ -33,14 +33,14 @@ describe("createTask attachment lifecycle", () => {
     mockApi.uploadAttachment
       .mockResolvedValueOnce({ attachment_id: "att-a" })
       .mockRejectedValueOnce(new Error("network"))
-    await expect(store.createTask()).rejects.toThrow("network")
+    await expect(store.createOutline()).rejects.toThrow("network")
 
     mockApi.uploadAttachment.mockResolvedValueOnce({ attachment_id: "att-b" })
-    mockApi.createTask.mockResolvedValue({ task_id: "t1" })
-    await expect(useCreateTaskStore.getState().createTask()).resolves.toBe("t1")
+    mockApi.createOutline.mockResolvedValue({ outline_id: "o1" })
+    await expect(useCreateTaskStore.getState().createOutline()).resolves.toBe("o1")
 
     expect(mockApi.uploadAttachment).toHaveBeenCalledTimes(3)
-    expect(mockApi.createTask).toHaveBeenCalledWith(
+    expect(mockApi.createOutline).toHaveBeenCalledWith(
       expect.objectContaining({ attachment_ids: ["att-a", "att-b"] }),
     )
     expect(useCreateTaskStore.getState().attachments).toEqual([])
@@ -54,7 +54,7 @@ describe("createTask attachment lifecycle", () => {
     mockApi.uploadAttachment
       .mockResolvedValueOnce({ attachment_id: "att-a" })
       .mockRejectedValueOnce(new Error("network"))
-    await expect(store.createTask()).rejects.toThrow()
+    await expect(store.createOutline()).rejects.toThrow()
 
     const uploaded = useCreateTaskStore.getState().attachments[0]
     useCreateTaskStore.getState().removeAttachment(uploaded.id)

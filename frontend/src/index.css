@@ -237,6 +237,162 @@
 }
 
 @layer components {
+  .manuscript-markdown {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+
+  .manuscript-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .manuscript-markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .manuscript-markdown h1,
+  .manuscript-markdown h2,
+  .manuscript-markdown h3,
+  .manuscript-markdown h4 {
+    color: var(--foreground);
+    font-family: var(--font-serif);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .manuscript-markdown h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+  }
+
+  .manuscript-markdown h2 {
+    margin: 2.25rem 0 0.75rem;
+    font-size: 1.4rem;
+  }
+
+  .manuscript-markdown h3 {
+    margin: 1.6rem 0 0.55rem;
+    font-size: 1.08rem;
+  }
+
+  .manuscript-markdown h4 {
+    margin: 1.25rem 0 0.45rem;
+    font-size: 0.96rem;
+  }
+
+  .manuscript-markdown p,
+  .manuscript-markdown ul,
+  .manuscript-markdown ol,
+  .manuscript-markdown blockquote,
+  .manuscript-markdown pre,
+  .manuscript-markdown table {
+    margin: 0.75rem 0;
+  }
+
+  .manuscript-markdown ul,
+  .manuscript-markdown ol {
+    padding-left: 1.4rem;
+  }
+
+  .manuscript-markdown ul {
+    list-style: disc;
+  }
+
+  .manuscript-markdown ol {
+    list-style: decimal;
+  }
+
+  .manuscript-markdown li {
+    margin: 0.25rem 0;
+    padding-left: 0.2rem;
+  }
+
+  .manuscript-markdown strong {
+    color: var(--foreground);
+    font-weight: 750;
+  }
+
+  .manuscript-markdown a {
+    color: color-mix(in srgb, var(--foreground) 76%, #335ec8);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .manuscript-markdown blockquote {
+    border-left: 3px solid color-mix(in srgb, var(--foreground) 35%, transparent);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: color-mix(in srgb, var(--foreground) 4%, transparent);
+    padding: 0.65rem 1rem;
+    color: var(--muted-foreground);
+  }
+
+  .manuscript-markdown hr {
+    margin: 2.4rem 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .manuscript-markdown img {
+    display: block;
+    max-height: 32rem;
+    width: auto;
+    max-width: 100%;
+    margin: 1.25rem auto;
+    border: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+    border-radius: 1rem;
+    object-fit: contain;
+    box-shadow: 0 14px 36px rgba(30, 32, 44, 0.12);
+  }
+
+  .manuscript-markdown code {
+    border-radius: 0.35rem;
+    background: color-mix(in srgb, var(--foreground) 7%, transparent);
+    padding: 0.12rem 0.35rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.86em;
+  }
+
+  .manuscript-markdown pre {
+    overflow-x: auto;
+    border-radius: 0.9rem;
+    background: var(--foreground);
+    padding: 1rem;
+    color: var(--background);
+  }
+
+  .manuscript-markdown pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+
+  .manuscript-markdown table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .manuscript-markdown th,
+  .manuscript-markdown td {
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .manuscript-markdown th {
+    background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    font-weight: 700;
+  }
+
   .liquid-scene-base {
     transform-origin: center;
     animation: liquid-scene-base-drift 26s ease-in-out infinite alternate;

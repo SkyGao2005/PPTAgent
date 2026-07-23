@@ -30,7 +30,7 @@ interface CreateTaskState {
   /** Returns how many files were actually added (capped at MAX_ATTACHMENTS). */
   addAttachments: (files: File[]) => number
   removeAttachment: (attachmentId: string) => void
-  createTask: () => Promise<string>
+  createOutline: () => Promise<string>
 }
 
 export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
@@ -76,9 +76,9 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
       })
     }
   },
-  async createTask() {
+  async createOutline() {
     if (get().creating) {
-      throw new Error("Task creation is already in progress")
+      throw new Error("Outline creation is already in progress")
     }
     const { topic, templateId, pageCount, ratio, language, attachments } = get()
     set({ creating: true })
@@ -99,7 +99,7 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
         }
         attachmentIds.push(uploadedId)
       }
-      const snapshot = await api.createTask({
+      const outline = await api.createOutline({
         topic: topic.trim(),
         template_id: templateId,
         page_count: pageCount,
@@ -108,9 +108,9 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
         attachment_ids: attachmentIds,
       })
       // Release File/Blob references after a successful handoff. Returning to
-      // the create page must not silently reuse the previous task's files.
+      // the create page must not silently reuse the previous outline's files.
       set({ attachments: [] })
-      return snapshot.task_id
+      return outline.outline_id
     } finally {
       set({ creating: false })
     }

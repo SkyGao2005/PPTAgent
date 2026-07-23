@@ -84,7 +84,7 @@ export function CreatePage() {
     clearTemplate,
     addAttachments,
     removeAttachment,
-    createTask,
+    createOutline,
   } = useCreateTaskStore()
   const templates = useTemplatesStore((state) => state.templates)
   const templatesLoaded = useTemplatesStore((state) => state.loaded)
@@ -178,12 +178,10 @@ export function CreatePage() {
       return
     }
     try {
-      const taskId = await createTask()
-      // §8.1: carry the configured page count so the workbench can render
-      // skeleton slides before task.created reports total_slides.
-      navigate(`/workbench/${taskId}`, { state: { requestedPages: pageCount } })
+      const outlineId = await createOutline()
+      navigate(`/outline/${outlineId}`)
     } catch {
-      toast.error("任务创建失败，请重试")
+      toast.error("内容文稿生成失败，请重试")
     }
   }
 
@@ -201,7 +199,7 @@ export function CreatePage() {
             今天要演示什么？
           </h1>
           <p className="mt-2.5 mb-9 max-w-[520px] text-[15px] text-hint text-pretty">
-            描述你的主题、附上参考资料，PPTAgent 负责大纲、版式和每一页内容。
+            描述你的主题、附上参考资料，先审查 Research 内容文稿，再生成每一页。
           </p>
         </div>
 
@@ -422,7 +420,7 @@ export function CreatePage() {
                 onClick={() => void handleGenerate()}
               >
                 {creating && <LoaderCircleIcon className="animate-spin" />}
-                开始生成
+                生成内容文稿
                 {!creating && <ArrowRightIcon />}
               </Button>
             </div>

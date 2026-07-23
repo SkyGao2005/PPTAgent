@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
+import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,9 +27,60 @@ from deeppresenter.server.services.preview import PreviewService, artifact_url
 from deeppresenter.templates.context import TemplateContextProvider
 from deeppresenter.templates.models import SUPPORTED_ASPECT_RATIOS
 from deeppresenter.templates.store import TemplateAspectRatioMismatchError
+from deeppresenter.utils.markdown import rewrite_markdown_images
 
 # 任务快照文件名
 SNAPSHOT_FILE = "task.json"
+MANUSCRIPT_IMAGE_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+
+
+def _copy_reviewed_manuscript(source: Path, workspace: Path) -> Path:
+    """Copy an approved Markdown file and its local images into a task."""
+
+    source = source.expanduser().resolve(strict=True)
+    source_root = source.parent.resolve()
+    target = workspace / "approved_manuscript.md"
+    copied: dict[Path, Path] = {}
+
+    def rewrite(image_target: str) -> str | None:
+        if (
+            not image_target
+            or image_target.startswith(("#", "//"))
+            or re.match(
+                r"^[a-z][a-z0-9+.-]*:",
+                image_target,
+                flags=re.IGNORECASE,
+            )
+        ):
+            return None
+        image = Path(image_target).expanduser()
+        if not image.is_absolute():
+            image = source_root / image
+        try:
+            image = image.resolve(strict=True)
+        except OSError:
+            return None
+        if (
+            not image.is_relative_to(source_root)
+            or not image.is_file()
+            or image.suffix.lower() not in MANUSCRIPT_IMAGE_SUFFIXES
+        ):
+            return None
+        copied_image = copied.get(image)
+        if copied_image is None:
+            assets = workspace / "manuscript_assets"
+            assets.mkdir(exist_ok=True)
+            copied_image = assets / f"{len(copied) + 1:02d}-{image.name}"
+            shutil.copy2(image, copied_image)
+            copied[image] = copied_image
+        return str(copied_image.resolve())
+
+    markdown = source.read_text(encoding="utf-8")
+    target.write_text(
+        rewrite_markdown_images(markdown, rewrite),
+        encoding="utf-8",
+    )
+    return target
 
 
 class TaskSnapshot:
@@ -173,6 +226,7 @@ class TaskManager:
         convert_type: Optional[str] = None,
         enable_planner: bool = False,
         language: str = "zh",
+        approved_manuscript_path: str | Path | None = None,
     ) -> str:
         """创建新任务，返回 task_id。
 
@@ -214,6 +268,19 @@ class TaskManager:
         task_id = uuid.uuid4().hex[:8]
         workspace = task_dir(self.workspace_base, task_id)
         workspace.mkdir(parents=True, exist_ok=True)
+        manuscript_path: str | None = None
+        if approved_manuscript_path is not None:
+            source_manuscript = (
+                Path(approved_manuscript_path).expanduser().resolve(strict=True)
+            )
+            target_manuscript = _copy_reviewed_manuscript(
+                source_manuscript,
+                workspace,
+            )
+            manuscript_path = str(target_manuscript)
+            # Research already produced the reviewed manuscript. Running either
+            # Planner or Research again would waste work and change approved content.
+            enable_planner = False
         template_context_path: str | None = None
         if resolved_template_id and not self.use_placeholder:
             assert self.template_context_provider is not None
@@ -250,6 +317,7 @@ class TaskManager:
             "convert_type": convert_type,
             "enable_planner": enable_planner,
             "language": language,
+            "manuscript_path": manuscript_path,
         }
         snapshot = TaskSnapshot(
             task_id=task_id,
@@ -273,6 +341,7 @@ class TaskManager:
                 "template_revision_id": template_revision_id,
                 "convert_type": convert_type,
                 "attachments": attachments or [],
+                "manuscript_approved": manuscript_path is not None,
             },
         )
 
@@ -282,6 +351,7 @@ class TaskManager:
                     await self._run_placeholder(
                         task_id=task_id,
                         instruction=instruction,
+                        manuscript_path=manuscript_path,
                     )
                 else:
                     await self._run_agent_loop(
@@ -296,6 +366,7 @@ class TaskManager:
                         convert_type=convert_type,
                         enable_planner=enable_planner,
                         language=language,
+                        manuscript_path=manuscript_path,
                     )
 
         runner = asyncio.create_task(_runner_with_semaphore())
@@ -428,6 +499,7 @@ class TaskManager:
                     convert_type=params.get("convert_type"),
                     enable_planner=params.get("enable_planner", False),
                     language=params.get("language", "zh"),
+                    manuscript_path=params.get("manuscript_path"),
                     skip_slide_ids=skip_ids,
                 )
 
@@ -601,6 +673,7 @@ class TaskManager:
         convert_type: Optional[str],
         enable_planner: bool,
         language: str,
+        manuscript_path: Optional[str] = None,
         skip_slide_ids: Optional[list[str]] = None,
     ) -> None:
         """运行真实 AgentLoop，并把最终结果写回任务快照。"""
@@ -663,6 +736,15 @@ class TaskManager:
                 event_reporter=reporter,
                 preview_service=preview_service,
             )
+            if manuscript_path:
+                approved_manuscript = (
+                    Path(manuscript_path).expanduser().resolve(strict=True)
+                )
+                if not approved_manuscript.is_relative_to(workspace.resolve()):
+                    raise ValueError(
+                        "Approved manuscript must be inside the task workspace"
+                    )
+                loop.intermediate_output["manuscript"] = approved_manuscript
 
             final_artifact: Optional[str] = None
             async for msg in loop.run(request):
@@ -729,7 +811,12 @@ class TaskManager:
 
     # ── 占位执行器 ────────────────────────────────────────────
 
-    async def _run_placeholder(self, task_id: str, instruction: str) -> None:
+    async def _run_placeholder(
+        self,
+        task_id: str,
+        instruction: str,
+        manuscript_path: Optional[str] = None,
+    ) -> None:
         """占位任务执行器 —— 模拟阶段推进，后续替换为 AgentLoop。
 
         当前仅用于验证 TaskManager 和 EventBus 的集成链路。
@@ -746,13 +833,17 @@ class TaskManager:
             await reporter.task_started("任务开始执行（占位模式）")
 
             # 模拟各个阶段
-            stages = [
-                (StageName.PREPARE, 0.0, 5.0, "准备任务环境"),
-                (StageName.PLAN, 5.0, 15.0, "规划大纲"),
-                (StageName.RESEARCH, 15.0, 40.0, "收集资料并生成稿件"),
-                (StageName.GENERATE, 40.0, 90.0, "逐页生成幻灯片"),
-                (StageName.EXPORT, 90.0, 100.0, "导出最终文件"),
-            ]
+            stages = [(StageName.PREPARE, 0.0, 10.0, "准备任务环境")]
+            if manuscript_path is None:
+                stages.append(
+                    (StageName.RESEARCH, 10.0, 40.0, "收集资料并生成内容文稿")
+                )
+            stages.extend(
+                [
+                    (StageName.GENERATE, 40.0, 90.0, "逐页生成幻灯片"),
+                    (StageName.EXPORT, 90.0, 100.0, "导出最终文件"),
+                ]
+            )
 
             for stage, progress_start, progress_end, msg in stages:
                 if cancel_evt and cancel_evt.is_set():

@@ -146,6 +146,27 @@ toolset:
     )
 
 
+def test_agent_history_round_trip_restores_conversation_context(
+    tmp_path: Path,
+) -> None:
+    original = _make_agent(tmp_path, context_limit_tokens=4_000)
+    original.chat_history.append(
+        ChatMessage(role=Role.USER, content="第一版 Research 已完成")
+    )
+    history_dir = tmp_path / "history"
+    original.save_history(history_dir, message_only=True)
+
+    restored = _make_agent(tmp_path, context_limit_tokens=4_000)
+    restored.load_history(history_dir / "_BudgetAgent-00-history.jsonl")
+    restored.chat_history.append(
+        ChatMessage(role=Role.USER, content="请删除重复章节并重试")
+    )
+
+    assert restored.chat_history[-2].text == "第一版 Research 已完成"
+    assert restored.chat_history[-1].text == "请删除重复章节并重试"
+    assert restored.chat_history[0].role == Role.SYSTEM
+
+
 @pytest.mark.asyncio
 async def test_preflight_folds_before_sending_and_preserves_pinned(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch

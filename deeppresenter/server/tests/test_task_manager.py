@@ -225,8 +225,34 @@ class TestTaskCreate:
                 "convert_type": "deeppresenter",
                 "enable_planner": True,
                 "language": "zh",
+                "manuscript_path": None,
             }
         ]
+
+    @pytest.mark.asyncio
+    async def test_approved_manuscript_is_copied_and_skips_research(
+        self, tmp_workspace
+    ):
+        source = tmp_workspace / "reviewed.md"
+        image = tmp_workspace / "chart.png"
+        image.write_bytes(b"png")
+        source.write_text("# 封面\n\n开场\n\n![图表](chart.png)", encoding="utf-8")
+        manager = TaskManager(tmp_workspace, use_placeholder=True)
+
+        task_id = await manager.create(
+            instruction="测试任务",
+            enable_planner=True,
+            approved_manuscript_path=source,
+        )
+
+        snapshot = manager.get_snapshot(task_id)
+        copied = task_dir(tmp_workspace, task_id) / "approved_manuscript.md"
+        assert snapshot is not None
+        assert snapshot.generation_params["enable_planner"] is False
+        assert snapshot.generation_params["manuscript_path"] == str(copied)
+        copied_image = task_dir(tmp_workspace, task_id) / "manuscript_assets" / "01-chart.png"
+        assert copied_image.read_bytes() == b"png"
+        assert str(copied_image.resolve()) in copied.read_text(encoding="utf-8")
 
 
 # ═══════════════════════════════════════════════════════════════════════

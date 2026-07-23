@@ -12,6 +12,10 @@ import type {
   CreateTaskPayload,
   ExportReceipt,
   GenerationEvent,
+  OutlineApproval,
+  OutlineComment,
+  OutlineDraft,
+  OutlineStatus,
   SlideArtifact,
   SlideRevision,
   SlideStatus,
@@ -24,6 +28,7 @@ import type {
 } from "@/types/api"
 
 const STORAGE_KEY = "pptagent.mock.tasks.v1"
+const OUTLINE_STORAGE_KEY = "pptagent.mock.outlines.v1"
 const SPEED = Number(import.meta.env.VITE_MOCK_SPEED ?? "1") || 1
 
 type Listener = (event: GenerationEvent) => void
@@ -60,9 +65,25 @@ interface MockTask {
   events: GenerationEvent[]
   listeners: Set<Listener>
   timers: ReturnType<typeof setTimeout>[]
+  reviewedManuscript: boolean
+}
+
+interface MockOutline {
+  id: string
+  payload: CreateTaskPayload
+  status: OutlineStatus
+  revision: number
+  deck: DeckSlide[]
+  manuscript: string
+  comments: OutlineComment[]
+  taskId: string | null
+  errorMessage: string | null
+  created_at: string
+  updated_at: string
 }
 
 const tasks = new Map<string, MockTask>()
+const outlines = new Map<string, MockOutline>()
 let templates: TemplateSummary[] = structuredClone(seedTemplates)
 const templateListeners = new Set<Listener>()
 const templateEvents: GenerationEvent[] = []
@@ -120,6 +141,7 @@ function persist(): void {
     created_at: task.created_at,
     updated_at: task.updated_at,
     seq: task.seq,
+    reviewedManuscript: task.reviewedManuscript,
     slides: task.slides.map((slide) => ({
       slide_id: slide.slide_id,
       index: slide.index,
@@ -144,6 +166,7 @@ function restore(): void {
   for (const stored of parsed) {
     const task: MockTask = {
       ...stored,
+      reviewedManuscript: stored.reviewedManuscript ?? false,
       events: [],
       listeners: new Set(),
       timers: [],
@@ -158,6 +181,30 @@ function restore(): void {
     if (task.status === "running") {
       setTimeout(() => resumePipeline(task), delay(900))
     }
+  }
+}
+
+function persistOutlines(): void {
+  localStorage.setItem(
+    OUTLINE_STORAGE_KEY,
+    JSON.stringify([...outlines.values()].slice(-5)),
+  )
+}
+
+function restoreOutlines(): void {
+  const raw = localStorage.getItem(OUTLINE_STORAGE_KEY)
+  if (!raw) {
+    return
+  }
+  const stored = JSON.parse(raw) as MockOutline[]
+  for (const outline of stored) {
+    outline.manuscript ||= markdownFromDeck(outline.deck)
+    // A browser refresh may interrupt the short mock regeneration timer.
+    // Keep the last usable revision reviewable instead of stranding the page.
+    if (outline.status === "generating" && outline.revision > 0) {
+      outline.status = "ready"
+    }
+    outlines.set(outline.id, outline)
   }
 }
 
@@ -226,32 +273,14 @@ function runResearch(task: MockTask): void {
       status: "succeeded",
       message: "资料解析完成",
     })
-    runPlan(task)
+    startGeneration(task)
   }, jitter(1500, 500))
 }
 
-function runPlan(task: MockTask): void {
-  task.stage = "plan"
-  emit(task, { type: "stage.started", stage: "plan", message: "规划大纲结构" })
-  later(task, () => {
-    if (task.status !== "running") return
-    emit(task, {
-      type: "stage.completed",
-      stage: "plan",
-      status: "succeeded",
-      message: `大纲规划完成，共 ${task.totalSlides} 页`,
-      payload: {
-        outline: task.slides.map((slide) => ({
-          slide_id: slide.slide_id,
-          index: slide.index,
-          title: slide.deck.title,
-        })),
-      },
-    })
-    task.stage = "generate"
-    emit(task, { type: "stage.started", stage: "generate", message: "开始逐页生成内容" })
-    generateSlide(task, 0)
-  }, jitter(1400, 600))
+function startGeneration(task: MockTask): void {
+  task.stage = "generate"
+  emit(task, { type: "stage.started", stage: "generate", message: "开始逐页生成内容" })
+  generateSlide(task, 0)
 }
 
 function generateSlide(task: MockTask, index: number): void {
@@ -350,10 +379,6 @@ function resumePipeline(task: MockTask): void {
   task.status = "running"
   if (task.stage === "research") {
     runResearch(task)
-    return
-  }
-  if (task.stage === "plan") {
-    runPlan(task)
     return
   }
   task.stage = "generate"
@@ -498,6 +523,7 @@ function snapshotOf(task: MockTask): TaskSnapshot {
     progress: task.totalSlides ? Math.round((done / task.totalSlides) * 100) : 0,
     template_id: task.templateId,
     ratio: task.ratio,
+    manuscript_approved: task.reviewedManuscript,
     total_slides: task.totalSlides,
     last_seq: task.seq,
     created_at: task.created_at,
@@ -545,15 +571,65 @@ function artifactOf(task: MockTask, slide: MockSlide): SlideArtifact {
   }
 }
 
-export function mockUploadAttachment(file: File): AttachmentReceipt {
-  return { attachment_id: `att-${Date.now().toString(36)}-${file.size.toString(36)}` }
+function markdownFromDeck(deck: DeckSlide[]): string {
+  return deck
+    .map((slide, index) => {
+      const lines = [`${index === 0 ? "#" : "##"} ${slide.title}`]
+      if (slide.subtitle) lines.push(slide.subtitle)
+      if (slide.quote) lines.push(`> ${slide.quote}`)
+      if (slide.bullets?.length) {
+        lines.push(slide.bullets.map((item) => `- ${item}`).join("\n"))
+      }
+      if (slide.items?.length) {
+        lines.push(slide.items.map((item) => `- ${item}`).join("\n"))
+      }
+      if (slide.left && slide.right) {
+        lines.push(
+          `### ${slide.left.t}\n${slide.left.items.map((item) => `- ${item}`).join("\n")}`,
+          `### ${slide.right.t}\n${slide.right.items.map((item) => `- ${item}`).join("\n")}`,
+        )
+      }
+      if (slide.steps?.length) {
+        lines.push(
+          slide.steps.map((step) => `1. **${step.q} ${step.t}**`).join("\n"),
+        )
+      }
+      if (slide.kpis?.length) {
+        lines.push(
+          "| 指标 | 数值 |\n| --- | --- |\n" +
+            slide.kpis.map((item) => `| ${item.k} | ${item.v} |`).join("\n"),
+        )
+      }
+      return lines.join("\n\n")
+    })
+    .join("\n\n---\n\n")
 }
 
-export function mockDeleteAttachment(_attachmentId: string): void {}
+function outlineOf(outline: MockOutline): OutlineDraft {
+  return {
+    outline_id: outline.id,
+    status: outline.status,
+    topic: outline.payload.topic,
+    page_count: outline.deck.length,
+    ratio: outline.payload.ratio,
+    template_id: outline.payload.template_id || null,
+    revision: outline.revision,
+    manuscript: outline.manuscript,
+    comments: structuredClone(outline.comments),
+    task_id: outline.taskId,
+    error_message: outline.errorMessage,
+    created_at: outline.created_at,
+    updated_at: outline.updated_at,
+  }
+}
 
-export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
+function createTaskFromDeck(
+  payload: CreateTaskPayload,
+  sourceDeck: DeckSlide[],
+  reviewedManuscript: boolean,
+): TaskSnapshot {
   const id = `t${Date.now().toString(36)}`
-  const deck = buildDeck(payload.topic, payload.page_count)
+  const deck = structuredClone(sourceDeck)
   const task: MockTask = {
     id,
     topic: payload.topic,
@@ -561,7 +637,7 @@ export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
     ratio: payload.ratio,
     totalSlides: deck.length,
     status: "running",
-    stage: "research",
+    stage: reviewedManuscript ? "generate" : "research",
     created_at: now(),
     updated_at: now(),
     seq: 0,
@@ -577,16 +653,128 @@ export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
     events: [],
     listeners: new Set(),
     timers: [],
+    reviewedManuscript,
   }
   tasks.set(id, task)
   emit(task, {
     type: "task.created",
     message: payload.topic,
-    payload: { template_id: payload.template_id, ratio: payload.ratio },
+    payload: {
+      template_id: payload.template_id,
+      ratio: payload.ratio,
+      manuscript_approved: reviewedManuscript,
+    },
   })
   emit(task, { type: "task.started", message: "任务开始执行" })
-  later(task, () => runResearch(task), delay(500))
+  later(
+    task,
+    () => (reviewedManuscript ? startGeneration(task) : runResearch(task)),
+    delay(500),
+  )
   return snapshotOf(task)
+}
+
+export function mockUploadAttachment(file: File): AttachmentReceipt {
+  return { attachment_id: `att-${Date.now().toString(36)}-${file.size.toString(36)}` }
+}
+
+export function mockDeleteAttachment(_attachmentId: string): void {}
+
+export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
+  const deck = buildDeck(payload.topic, payload.page_count)
+  return createTaskFromDeck(payload, deck, false)
+}
+
+export function mockCreateOutline(payload: CreateTaskPayload): OutlineDraft {
+  const id = `o${Date.now().toString(36)}`
+  const timestamp = now()
+  const deck = buildDeck(payload.topic, payload.page_count)
+  const outline: MockOutline = {
+    id,
+    payload: structuredClone(payload),
+    status: "ready",
+    revision: 1,
+    deck,
+    manuscript: markdownFromDeck(deck),
+    comments: [],
+    taskId: null,
+    errorMessage: null,
+    created_at: timestamp,
+    updated_at: timestamp,
+  }
+  outlines.set(id, outline)
+  persistOutlines()
+  return outlineOf(outline)
+}
+
+export function mockGetOutline(outlineId: string): OutlineDraft {
+  const outline = outlines.get(outlineId)
+  if (!outline) {
+    throw new Error(`Mock outline not found: ${outlineId}`)
+  }
+  return outlineOf(outline)
+}
+
+export function mockRegenerateOutline(
+  outlineId: string,
+  comment: string,
+): OutlineDraft {
+  const outline = outlines.get(outlineId)
+  if (!outline) {
+    throw new Error(`Mock outline not found: ${outlineId}`)
+  }
+  if (outline.status === "generating" || outline.status === "approved") {
+    throw new Error(`Mock outline cannot regenerate from ${outline.status}`)
+  }
+  const feedback = comment.trim()
+  const nextRevision = outline.revision + 1
+  if (feedback) {
+    outline.comments.push({
+      comment_id: `oc${Date.now().toString(36)}`,
+      text: feedback,
+      target_revision: nextRevision,
+      created_at: now(),
+    })
+  }
+  outline.status = "generating"
+  outline.errorMessage = null
+  outline.updated_at = now()
+  persistOutlines()
+  setTimeout(() => {
+    const nextDeck = structuredClone(outline.deck)
+    if (nextDeck.length > 5) {
+      ;[nextDeck[3], nextDeck[4]] = [nextDeck[4], nextDeck[3]]
+    }
+    if (feedback && nextDeck[2]) {
+      nextDeck[2].subtitle = `本版优先响应：${feedback.slice(0, 48)}`
+    }
+    outline.deck = nextDeck
+    outline.manuscript = markdownFromDeck(nextDeck)
+    outline.revision = nextRevision
+    outline.status = "ready"
+    outline.updated_at = now()
+    persistOutlines()
+  }, delay(950))
+  return outlineOf(outline)
+}
+
+export function mockApproveOutline(outlineId: string): OutlineApproval {
+  const outline = outlines.get(outlineId)
+  if (!outline) {
+    throw new Error(`Mock outline not found: ${outlineId}`)
+  }
+  if (outline.status === "approved" && outline.taskId) {
+    return { task_id: outline.taskId, outline_id: outline.id, status: "queued" }
+  }
+  if (outline.status !== "ready") {
+    throw new Error(`Mock outline cannot be approved from ${outline.status}`)
+  }
+  const snapshot = createTaskFromDeck(outline.payload, outline.deck, true)
+  outline.taskId = snapshot.task_id
+  outline.status = "approved"
+  outline.updated_at = now()
+  persistOutlines()
+  return { task_id: snapshot.task_id, outline_id: outline.id, status: "queued" }
 }
 
 export function mockGetTask(taskId: string): TaskSnapshot {
@@ -934,3 +1122,4 @@ export function mockSubscribeTemplates(afterSeq: number, onEvent: Listener): () 
 }
 
 restore()
+restoreOutlines()
