@@ -9,11 +9,13 @@ from pathlib import Path
 from typing import Literal
 
 from fastmcp import FastMCP
-from mcp.types import ImageContent
+from mcp.types import ImageContent, TextContent
 
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.log import info, set_logger
+from deeppresenter.utils.slide_lint import lint_slide
 from deeppresenter.utils.webview import (
+    ASPECT_RATIOS,
     PlaywrightConverter,
     convert_html_to_pptx,
     playwright_lifespan,
@@ -45,13 +47,14 @@ def _detect_language(markdown: str) -> str:
 async def inspect_slide(
     html_file: str,
     aspect_ratio: Literal["16:9", "4:3", "A1", "A2", "A3", "A4"] = "16:9",
-) -> ImageContent | str:
+) -> list[TextContent | ImageContent] | str:
     """
-    Read the HTML file as an image.
+    Validate the slide and read it back as an image.
 
-    Returns:
-        ImageContent: The slide as an image content
-        str: Error message if inspection fails
+    Returns a deterministic lint report (invisible text, canvas overflow,
+    unreadable font sizes, near-empty pages) and, when a multimodal design
+    model is configured, the rendered slide as an image. Fix every reported
+    issue and inspect again before moving to the next slide.
     """
     html_path = Path(html_file).absolute()
     assert html_path.is_file() and html_path.suffix == ".html", (
@@ -59,24 +62,39 @@ async def inspect_slide(
     )
     await convert_html_to_pptx(html_path, aspect_ratio=aspect_ratio)
 
-    if REFLECTIVE_DESIGN:
-        pdf_path = Path(tempfile.mkdtemp()) / "slide.pdf"
-        async with PlaywrightConverter() as converter:
+    viewport = ASPECT_RATIOS[aspect_ratio]
+    async with PlaywrightConverter() as converter:
+        warnings = await lint_slide(
+            converter.context,
+            html_path,
+            int(viewport["width"].removesuffix("px")),
+            int(viewport["height"].removesuffix("px")),
+        )
+        image_dir = None
+        if REFLECTIVE_DESIGN:
+            pdf_path = Path(tempfile.mkdtemp()) / "slide.pdf"
             image_dir = await converter.convert_to_pdf(
                 [html_path], pdf_path, aspect_ratio
             )
-        image_path = image_dir / "slide_01.jpg"
-        image_data = image_path.read_bytes()
-        base64_data = (
-            f"data:image/jpeg;base64,{base64.b64encode(image_data).decode('utf-8')}"
-        )
-        return ImageContent(
-            type="image",
-            data=base64_data,
-            mimeType="image/jpeg",
+
+    if warnings:
+        report = "Automated checks found issues that must be fixed:\n" + "\n".join(
+            f"{index}. {warning}" for index, warning in enumerate(warnings, start=1)
         )
     else:
-        return "This slide is valid."
+        report = "Automated checks passed."
+
+    if image_dir is None:
+        return report
+
+    image_data = (image_dir / "slide_01.jpg").read_bytes()
+    base64_data = (
+        f"data:image/jpeg;base64,{base64.b64encode(image_data).decode('utf-8')}"
+    )
+    return [
+        TextContent(type="text", text=report),
+        ImageContent(type="image", data=base64_data, mimeType="image/jpeg"),
+    ]
 
 
 @mcp.tool()
