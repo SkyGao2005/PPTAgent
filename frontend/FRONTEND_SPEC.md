@@ -109,6 +109,7 @@ demo 是"暖纸色轻工作台"风格。**不要使用 shadcn 默认的中性灰
 - 主题为空时禁用开始按钮；点击示例胶囊填充 textarea。
 - 上传文件展示文件名 + 大小 + 移除按钮；类型/大小校验失败 toast 提示。
 - 点击"开始生成"→ `POST /api/tasks` → 拿到 `task_id` 立即 `navigate(/workbench/:taskId)`，不等生成。
+- 示例主题下方展示"最近对话"：`GET /api/tasks?limit=6`，按最近更新时间排序，显示首页预览、状态、进度、页数、比例与相对时间；点击整行继续进入对应工作台。列表需覆盖加载、空、失败和刷新状态，并延续主页的 liquid-glass 材质。
 
 ### 5.2 模板库页 `/templates`（基准：`Templates.dc.html`）
 

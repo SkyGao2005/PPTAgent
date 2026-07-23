@@ -15,8 +15,16 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from deeppresenter.server.models.artifacts import revision_dir, task_dir
+from deeppresenter.server.services.design_context import (
+    SlideDesignContext,
+    load_design_context,
+    render_context_prompt,
+)
 from deeppresenter.server.services.preview import PreviewService
+from deeppresenter.utils.constants import PACKAGE_DIR
 
 
 @dataclass
@@ -200,13 +208,30 @@ class PptxSlideEditService:
 
 
 class HtmlSlideEditService:
-    """Revisioned editor for C2 HTML slide artifacts."""
+    """Revisioned editor for C2 HTML slide artifacts.
 
-    def __init__(self, workspace_base: Path, preview_service: PreviewService, task_id: str, slide_id: str):
+    Edits are written back to the page's canonical file rather than to a copy
+    inside the revision directory. A generated page reaches its template
+    through relative references (``global.css``, ``../template_context/.../
+    layout.css``); rendering a copy three directories deeper resolved none of
+    them, so the first edit silently stripped the whole template. Revisions
+    are kept as snapshots beside the preview and restored into the canonical
+    path on undo, which also means an edit survives into the export.
+    """
+
+    def __init__(
+        self,
+        workspace_base: Path,
+        preview_service: PreviewService,
+        task_id: str,
+        slide_id: str,
+        llm: Any | None = None,
+    ):
         self.workspace_base = workspace_base
         self.preview_service = preview_service
         self.task_id = task_id
         self.slide_id = slide_id
+        self.llm = llm
         self._last_instruction: str | None = None
         self._last_element_id: int | None = None
 
@@ -234,30 +259,61 @@ class HtmlSlideEditService:
             )
 
         before = source.read_text(encoding="utf-8")
-        after, summary = self._apply_instruction(before, instruction)
+        context = load_design_context(
+            task_dir(self.workspace_base, self.task_id),
+            source,
+            current.index,
+        )
+        after, summary = await self._edit(before, instruction, context)
         if after == before:
             return HtmlEditResult(
                 "no_change",
                 self.slide_id,
                 current.revision,
-                "指令已收到，但页面内容未发生变化",
+                summary or "指令已收到，但页面内容未发生变化",
                 preview_path=current.preview_path,
             )
 
-        next_revision = (current.revision or 1) + 1
-        edited_rel = Path("slides") / self.slide_id / "revisions" / str(next_revision) / "edited.html"
-        edited_abs = task_dir(self.workspace_base, self.task_id) / edited_rel
-        edited_abs.parent.mkdir(parents=True, exist_ok=True)
-        edited_abs.write_text(after, encoding="utf-8")
+        current_revision = current.revision or 1
+        # The page as it stands is revision N; record it before overwriting so
+        # undo has something to restore.
+        self._write_snapshot(current_revision, before)
+        next_revision = current_revision + 1
+        self._write_snapshot(next_revision, after)
+        source.write_text(after, encoding="utf-8")
 
         artifact = await self.preview_service.render_html_slide(
             self.task_id,
-            edited_abs,
+            source,
             aspect_ratio=self._aspect_ratio(),
             slide_index=current.index,
             slide_id=self.slide_id,
             revision=next_revision,
         )
+        violations = await self._violations(source, context)
+        if violations:
+            # Hard constraints are not advice. An edit that broke one is
+            # rolled back so the deck never holds a page that contradicts its
+            # own template.
+            source.write_text(before, encoding="utf-8")
+            await self.preview_service.render_html_slide(
+                self.task_id,
+                source,
+                aspect_ratio=self._aspect_ratio(),
+                slide_index=current.index,
+                slide_id=self.slide_id,
+                revision=current_revision,
+            )
+            self._discard_snapshot(next_revision)
+            return HtmlEditResult(
+                "failed",
+                self.slide_id,
+                current_revision,
+                "修改违反了模板约束，已回滚：\n" + "\n".join(violations),
+                preview_path=current.preview_path,
+                error="template_contract_violation",
+            )
+
         self._write_meta(
             next_revision,
             {
@@ -265,7 +321,7 @@ class HtmlSlideEditService:
                 "instruction": instruction,
                 "message": summary,
                 "status": "success",
-                "source_path": str(edited_rel),
+                "source_path": current.source_path,
                 "preview_path": artifact.preview_path,
                 "created_at": artifact.updated_at,
             },
@@ -282,10 +338,13 @@ class HtmlSlideEditService:
         )
 
     async def apply_revision(self, number: int) -> HtmlEditResult:
-        meta = self._read_meta(number)
-        if meta is None:
-            current = self.preview_service.get_slide(self.task_id, self.slide_id)
-            if current and number == current.revision:
+        current = self.preview_service.get_slide(self.task_id, self.slide_id)
+        if current is None:
+            return HtmlEditResult("failed", self.slide_id, None, "页面不存在", error="slide_not_found")
+
+        snapshot = self._snapshot_path(number)
+        if not snapshot.exists():
+            if number == current.revision:
                 return HtmlEditResult(
                     "success",
                     self.slide_id,
@@ -295,17 +354,16 @@ class HtmlSlideEditService:
                 )
             return HtmlEditResult("failed", self.slide_id, None, f"版本 {number} 不存在", error="revision_not_found")
 
-        source = self._source_path(meta.get("source_path"))
-        if not source.exists():
-            return HtmlEditResult("failed", self.slide_id, number, "版本源文件不存在", error="source_missing")
-
-        current = self.preview_service.get_slide(self.task_id, self.slide_id)
-        slide_index = current.index if current else 1
+        # Restoring into the canonical page keeps every relative reference --
+        # and therefore the template -- resolving exactly as it did at
+        # generation time.
+        canonical = self._source_path(current.source_path)
+        canonical.write_text(snapshot.read_text(encoding="utf-8"), encoding="utf-8")
         artifact = await self.preview_service.render_html_slide(
             self.task_id,
-            source,
+            canonical,
             aspect_ratio=self._aspect_ratio(),
-            slide_index=slide_index,
+            slide_index=current.index,
             slide_id=self.slide_id,
             revision=number,
         )
@@ -376,6 +434,19 @@ class HtmlSlideEditService:
     def _meta_path(self, number: int) -> Path:
         return revision_dir(self.workspace_base, self.task_id, self.slide_id, number) / "edit.json"
 
+    def _snapshot_path(self, number: int) -> Path:
+        return revision_dir(self.workspace_base, self.task_id, self.slide_id, number) / "source.html"
+
+    def _write_snapshot(self, number: int, html: str) -> None:
+        path = self._snapshot_path(number)
+        if path.exists():
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(html, encoding="utf-8")
+
+    def _discard_snapshot(self, number: int) -> None:
+        self._snapshot_path(number).unlink(missing_ok=True)
+
     def _write_meta(self, number: int, payload: dict[str, Any]) -> None:
         path = self._meta_path(number)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -390,24 +461,155 @@ class HtmlSlideEditService:
         except (OSError, ValueError, TypeError):
             return None
 
-    def _apply_instruction(self, html: str, instruction: str) -> tuple[str, str]:
-        target = _extract_target_text(instruction)
-        lowered = instruction.lower()
-        if target and ("标题" in instruction or "title" in lowered):
-            updated = _replace_first_tag_text(html, ("h1", "h2", "h3"), target)
-            if updated != html:
-                return updated, f"已将标题修改为：{target}"
+    async def _edit(
+        self,
+        html: str,
+        instruction: str,
+        context: SlideDesignContext,
+    ) -> tuple[str, str]:
+        """Apply one instruction under the page's own design-time contract."""
 
-        if target:
-            updated = _replace_first_tag_text(html, ("p", "li", "h1", "h2", "h3"), target)
-            if updated != html:
-                return updated, f"已将文本修改为：{target}"
+        if self.llm is not None:
+            return await self._edit_with_model(instruction, context)
+        return _edit_text_only(html, instruction)
 
-        styled = _apply_style_instruction(html, instruction)
-        if styled != html:
-            return styled, "已根据指令调整页面样式"
+    async def _edit_with_model(
+        self,
+        instruction: str,
+        context: SlideDesignContext,
+    ) -> tuple[str, str]:
+        response = await self.llm.run(
+            [
+                {"role": "system", "content": _edit_system_prompt(instruction)},
+                {"role": "user", "content": render_context_prompt(context, instruction)},
+            ]
+        )
+        text = response.choices[0].message.content or ""
+        html = _extract_html_block(text)
+        if html is None:
+            return context.html, "模型没有返回可用的页面 HTML，页面保持原样"
+        summary = _extract_summary(text) or "已按指令修改页面"
+        return html, summary
 
-        return _append_edit_note(html, instruction), "已把修改说明添加到页面"
+    async def _violations(
+        self,
+        source: Path,
+        context: SlideDesignContext,
+    ) -> list[str]:
+        """Hard-constraint breaches an edit must not be allowed to keep.
+
+        Losing a stylesheet reference applies to both generation modes: it
+        strips the template scaffold, or the deck's shared design system,
+        while leaving the markup intact -- which no class-level check would
+        notice. The rest is the template's own contract: chrome that went
+        missing and colours invented outside a fixed palette. Softer findings
+        (overlap, contrast) are reported by ``inspect_slide`` during
+        generation and are not grounds to throw an edit away.
+        """
+
+        edited = source.read_text(encoding="utf-8")
+        problems: list[str] = []
+        dropped = [
+            reference
+            for reference in context.stylesheet_refs
+            if reference not in edited
+        ]
+        if dropped:
+            problems.append(
+                "删除了样式表引用：" + "、".join(dropped) + "，页面会失去全部样式。"
+            )
+        if not context.has_template:
+            return problems
+        missing = [
+            name
+            for name in context.hard_classes
+            if not re.search(rf'class="[^"]*\b{re.escape(name)}\b', edited)
+        ]
+        if missing:
+            problems.append(
+                "缺少模板固定元素："
+                + "、".join(f".{name}" for name in missing)
+                + "，它们必须以空 div 原样保留。"
+            )
+        if context.palette:
+            allowed = {value.lower() for value in context.palette.values()}
+            allowed |= {value.lower() for value in _hex_colors(context.html)}
+            invented = sorted(
+                {
+                    value.lower()
+                    for value in _hex_colors(edited)
+                    if value.lower() not in allowed
+                }
+            )
+            if invented:
+                problems.append(
+                    "使用了模板色板之外的颜色：" + "、".join(invented) + "。"
+                )
+        return problems
+
+
+_TEXT_TARGET_RE = re.compile(
+    r"标题|副标题|正文|文字|文案|措辞|title|subtitle|text|heading|caption|wording",
+    re.IGNORECASE,
+)
+_HEX_COLOR_RE = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b")
+_HTML_BLOCK_RE = re.compile(r"```html\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+_SUMMARY_RE = re.compile(r"^\s*SUMMARY\s*[:：]\s*(.+)$", re.MULTILINE)
+
+
+def _hex_colors(html: str) -> set[str]:
+    return set(_HEX_COLOR_RE.findall(html))
+
+
+def _extract_html_block(text: str) -> str | None:
+    match = _HTML_BLOCK_RE.search(text)
+    if match:
+        return match.group(1).strip()
+    stripped = text.strip()
+    return stripped if stripped.lower().startswith("<!doctype") else None
+
+
+def _extract_summary(text: str) -> str | None:
+    match = _SUMMARY_RE.search(text)
+    return match.group(1).strip() if match else None
+
+
+def _edit_system_prompt(instruction: str) -> str:
+    """The editing contract, kept in ``roles/`` with every other prompt."""
+
+    with open(PACKAGE_DIR / "roles" / "SlideEdit.yaml", encoding="utf-8") as handle:
+        prompts = yaml.safe_load(handle)["system"]
+    language = "zh" if re.search(r"[一-鿿]", instruction) else "en"
+    return prompts.get(language, prompts["en"])
+
+
+def _edit_text_only(html: str, instruction: str) -> tuple[str, str]:
+    """Deterministic fallback when no model is configured.
+
+    Substituting a new string into the element that already holds text is the
+    only edit that cannot violate the template: it touches no class, no
+    colour, and no geometry. Anything broader is refused rather than
+    approximated -- the previous fallbacks injected an off-template palette
+    and a floating note div, which is exactly the damage the tier contract
+    exists to prevent.
+
+    The instruction has to name a text target. "把配色换成蓝色" parses to the
+    same "换成 X" shape as "把标题换成 X", so without that check a request to
+    restyle the page silently overwrote its title with the colour name.
+    """
+
+    target = _extract_target_text(instruction)
+    if target is None or not _TEXT_TARGET_RE.search(instruction):
+        return html, "当前未配置编辑模型，只能处理明确指定标题或正文文字的改写指令。"
+    lowered = instruction.lower()
+    if "标题" in instruction or "title" in lowered or "heading" in lowered:
+        updated = _replace_first_tag_text(html, ("h1", "h2", "h3"), target)
+        if updated != html:
+            return updated, f"已将标题修改为：{target}"
+    updated = _replace_first_tag_text(html, ("p", "li", "h1", "h2", "h3"), target)
+    if updated != html:
+        return updated, f"已将文本修改为：{target}"
+    return html, "页面中没有找到可替换的文本元素。"
 
 
 def _extract_target_text(instruction: str) -> str | None:
@@ -428,42 +630,3 @@ def _replace_first_tag_text(html: str, tags: tuple[str, ...], text: str) -> str:
         if pattern.search(html):
             return pattern.sub(lambda m: f"{m.group(1)}{escaped}{m.group(3)}", html, count=1)
     return html
-
-
-def _apply_style_instruction(html: str, instruction: str) -> str:
-    palette = None
-    if "蓝" in instruction or "科技" in instruction:
-        palette = ("#0f172a", "#2563eb", "#dbeafe")
-    elif "绿" in instruction or "自然" in instruction:
-        palette = ("#052e2b", "#059669", "#dcfce7")
-    elif "红" in instruction or "醒目" in instruction:
-        palette = ("#3f1111", "#dc2626", "#fee2e2")
-    elif "黑" in instruction or "深色" in instruction:
-        palette = ("#111827", "#f59e0b", "#f9fafb")
-    if palette is None:
-        return html
-
-    bg, accent, ink = palette
-    style = f"""
-<style id="c2-html-edit-style">
-  body {{ background: {bg} !important; color: {ink} !important; }}
-  h1, h2, h3 {{ color: {ink} !important; }}
-  h1, h2, h3, .accent {{ border-color: {accent} !important; }}
-  a, strong {{ color: {accent} !important; }}
-</style>
-"""
-    if "</head>" in html.lower():
-        return re.sub(r"</head>", style + "</head>", html, count=1, flags=re.IGNORECASE)
-    return style + html
-
-
-def _append_edit_note(html: str, instruction: str) -> str:
-    note = (
-        "<div class=\"c2-edit-note\" style=\"position:absolute;right:40px;bottom:32px;"
-        "max-width:45%;padding:12px 16px;border-radius:8px;background:rgba(0,0,0,.72);"
-        "color:#fff;font:18px Arial,sans-serif;z-index:9999;\">"
-        f"{escape(instruction)}</div>"
-    )
-    if "</body>" in html.lower():
-        return re.sub(r"</body>", note + "</body>", html, count=1, flags=re.IGNORECASE)
-    return html + note

@@ -272,11 +272,12 @@ export function TemplatesPage() {
               <h2 className="mt-4 text-[15px] font-medium">模板列表加载失败</h2>
               <p className="mt-1 text-[13px] text-hint">{loadError}</p>
               <Button
-                variant="outline"
+                variant="glass"
                 size="sm"
-                className="mt-5 rounded-full bg-white/60"
+                className="mt-5 h-9 px-4 text-[13px]"
                 onClick={() => void useTemplatesStore.getState().fetchTemplates()}
               >
+                <RotateCcwIcon />
                 重新加载
               </Button>
             </div>
@@ -419,9 +420,9 @@ export function TemplatesPage() {
                     换个关键词试试，或上传你自己的 PPTX 模板
                   </p>
                   <Button
-                    variant="outline"
+                    variant="glass"
                     size="sm"
-                    className="mt-5 rounded-full bg-white/60"
+                    className="mt-5 h-9 px-4 text-[13px]"
                     onClick={() => {
                       setQuery("")
                       setStatusFilter("all")
@@ -438,7 +439,7 @@ export function TemplatesPage() {
 
       <Dialog open={previewTemplate !== null} onOpenChange={(open) => !open && setPreviewId(null)}>
         {previewTemplate && (
-          <DialogContent className="max-h-[92svh] gap-0 overflow-visible rounded-[28px] bg-transparent p-0 ring-0 shadow-none sm:max-w-[920px] [&_[data-slot=dialog-close]]:top-5 [&_[data-slot=dialog-close]]:right-5 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:bg-white/35 [&_[data-slot=dialog-close]]:text-foreground/70 [&_[data-slot=dialog-close]]:backdrop-blur-md [&_[data-slot=dialog-close]]:hover:bg-white/60 [&_[data-slot=dialog-close]]:hover:text-foreground">
+          <DialogContent surface={false} className="max-h-[92svh] gap-0 overflow-visible rounded-[28px] sm:max-w-[920px] [&_[data-slot=dialog-close]]:top-5 [&_[data-slot=dialog-close]]:right-5 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:backdrop-blur-md">
             <liquid-glass
               blur-amount="15"
               scale="72"
@@ -614,11 +615,7 @@ export function TemplatesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={deleting}
-              onClick={() => setDeleteId(null)}
-            >
+            <Button variant="glass" disabled={deleting} onClick={() => setDeleteId(null)}>
               取消
             </Button>
             <Button

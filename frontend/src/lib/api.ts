@@ -5,6 +5,7 @@ import type {
   ExportReceipt,
   SlideArtifact,
   SlideRevision,
+  TaskHistoryResponse,
   TaskSnapshot,
   TemplateSummary,
 } from "@/types/api"
@@ -54,6 +55,7 @@ interface ApiSurface {
   deleteAttachment: (attachmentId: string) => Promise<void>
   createTask: (payload: CreateTaskPayload) => Promise<TaskSnapshot>
   getTask: (taskId: string) => Promise<TaskSnapshot>
+  listTasks: (limit?: number) => Promise<TaskHistoryResponse>
   listSlides: (taskId: string) => Promise<SlideArtifact[]>
   cancelTask: (taskId: string) => Promise<TaskSnapshot>
   resumeTask: (taskId: string) => Promise<TaskSnapshot>
@@ -85,6 +87,7 @@ const realApi: ApiSurface = {
   createTask: (payload) =>
     request("/api/tasks", { method: "POST", body: JSON.stringify(payload) }),
   getTask: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}`),
+  listTasks: (limit = 6) => request(`/api/tasks?limit=${limit}`),
   listSlides: (taskId) => request(`/api/tasks/${encodeURIComponent(taskId)}/slides`),
   cancelTask: (taskId) =>
     request(`/api/tasks/${encodeURIComponent(taskId)}/cancel`, { method: "POST" }),
@@ -147,6 +150,7 @@ const mockApi: ApiSurface = {
     mock((server) => server.mockDeleteAttachment(attachmentId)),
   createTask: (payload) => mock((server) => server.mockCreateTask(payload)),
   getTask: (taskId) => mock((server) => server.mockGetTask(taskId)),
+  listTasks: (limit = 6) => mock((server) => server.mockListTasks(limit)),
   listSlides: (taskId) => mock((server) => server.mockListSlides(taskId)),
   cancelTask: (taskId) => mock((server) => server.mockCancelTask(taskId)),
   resumeTask: (taskId) => mock((server) => server.mockResumeTask(taskId)),

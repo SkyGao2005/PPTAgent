@@ -18,7 +18,7 @@ from deeppresenter.server.models.artifacts import SlideArtifact, is_path_safe, t
 from deeppresenter.server.models.templates import TemplateStatus
 from deeppresenter.server.routes.attachments import resolve_attachment_paths
 from deeppresenter.server.services.preview import artifact_url
-from deeppresenter.server.services.task_manager import TaskManager
+from deeppresenter.server.services.task_manager import TaskManager, TaskSnapshot
 from deeppresenter.server.services.template_catalog import is_bundled_template
 from deeppresenter.server.services.template_catalog import bundled_template_summary
 from deeppresenter.templates.store import (
@@ -69,6 +69,32 @@ class CreateTaskResponse(BaseModel):
     task_id: str
     status: str
     created_at: str
+
+
+class TaskHistoryItem(BaseModel):
+    """主页“最近对话”所需的轻量任务摘要。"""
+
+    task_id: str
+    topic: str
+    instruction: str
+    status: str
+    stage: Optional[str] = None
+    progress: float
+    template_id: str
+    ratio: str
+    total_slides: int
+    completed_slides: int
+    failed_slides: int
+    preview_url: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+class TaskHistoryResponse(BaseModel):
+    """按最近更新时间倒序返回的任务历史。"""
+
+    tasks: list[TaskHistoryItem]
+    total: int
 
 
 class ErrorResponse(BaseModel):
@@ -199,6 +225,67 @@ def _task_response(manager: TaskManager, snapshot) -> dict:
     return d
 
 
+def _requested_slide_count(snapshot: TaskSnapshot) -> int:
+    """Return the configured page count while a task has no generated slides yet."""
+    value = snapshot.generation_params.get("num_pages")
+    if isinstance(value, int):
+        return max(value, 0)
+    if not isinstance(value, str):
+        return 0
+    first = value.split("-", 1)[0].strip()
+    return int(first) if first.isdigit() else 0
+
+
+def _task_history_item(
+    manager: TaskManager,
+    snapshot: TaskSnapshot,
+) -> TaskHistoryItem:
+    """Project a full task snapshot into the homepage history contract."""
+    params = snapshot.generation_params
+    status = (
+        snapshot.status.value
+        if hasattr(snapshot.status, "value")
+        else str(snapshot.status)
+    )
+    stage = (
+        snapshot.current_stage.value
+        if hasattr(snapshot.current_stage, "value")
+        else snapshot.current_stage
+    )
+    total_slides = snapshot.total_slides or _requested_slide_count(snapshot)
+
+    preview_url = None
+    service = manager.get_preview_service(snapshot.task_id)
+    if service is not None:
+        first_preview = next(
+            (
+                slide
+                for slide in service.list_slides(snapshot.task_id)
+                if slide.preview_path
+            ),
+            None,
+        )
+        if first_preview is not None:
+            preview_url = artifact_url(snapshot.task_id, first_preview.preview_path)
+
+    return TaskHistoryItem(
+        task_id=snapshot.task_id,
+        topic=snapshot.instruction.strip() or "未命名演示",
+        instruction=snapshot.instruction,
+        status=status,
+        stage=stage,
+        progress=snapshot.progress,
+        template_id=params.get("template_id") or params.get("template") or "",
+        ratio=params.get("powerpoint_type") or "16:9",
+        total_slides=total_slides,
+        completed_slides=snapshot.completed_slides,
+        failed_slides=snapshot.failed_slides,
+        preview_url=preview_url,
+        created_at=snapshot.created_at,
+        updated_at=snapshot.updated_at,
+    )
+
+
 def _task_heartbeat(task_id: str, seq: int) -> dict:
     return {
         "task_id": task_id,
@@ -286,22 +373,30 @@ async def create_task(
     return _task_response(manager, snapshot)
 
 
-@router.get("")
-async def list_tasks(request: Request):
-    """列出所有任务。"""
+@router.get("", response_model=TaskHistoryResponse)
+async def list_tasks(
+    request: Request,
+    limit: Optional[int] = Query(
+        default=None,
+        ge=1,
+        le=50,
+        description="最多返回的最近任务数；省略时返回全部",
+    ),
+) -> TaskHistoryResponse:
+    """列出最近任务，供主页恢复历史对话。"""
     manager = _get_manager(request)
-    tasks = manager.list_tasks()
-    return {
-        "tasks": [
-            {
-                "task_id": t.task_id,
-                "status": t.status.value if hasattr(t.status, "value") else t.status,
-                "instruction": t.instruction,
-                "created_at": t.created_at,
-            }
-            for t in tasks
-        ]
-    }
+    tasks = sorted(
+        manager.list_tasks(),
+        key=lambda task: (task.updated_at or task.created_at, task.created_at),
+        reverse=True,
+    )
+    return TaskHistoryResponse(
+        tasks=[
+            _task_history_item(manager, task)
+            for task in (tasks[:limit] if limit is not None else tasks)
+        ],
+        total=len(tasks),
+    )
 
 
 @router.get("/{task_id}")

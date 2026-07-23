@@ -15,6 +15,8 @@ import type {
   SlideArtifact,
   SlideRevision,
   SlideStatus,
+  TaskHistoryItem,
+  TaskHistoryResponse,
   TaskSnapshot,
   TaskStage,
   TaskStatus,
@@ -503,6 +505,31 @@ function snapshotOf(task: MockTask): TaskSnapshot {
   }
 }
 
+function historyOf(task: MockTask): TaskHistoryItem {
+  const snapshot = snapshotOf(task)
+  const firstPreview = task.slides.find(
+    (slide) => slide.revisions.length > 0 || slide.status === "completed",
+  )
+  return {
+    task_id: task.id,
+    topic: task.topic,
+    instruction: task.topic,
+    status: task.status,
+    stage: task.stage,
+    progress: snapshot.progress,
+    template_id: task.templateId,
+    ratio: task.ratio,
+    total_slides: task.totalSlides,
+    completed_slides: task.slides.filter(
+      (slide) => slide.status === "completed",
+    ).length,
+    failed_slides: task.slides.filter((slide) => slide.status === "failed").length,
+    preview_url: firstPreview ? previewOf(task, firstPreview) : null,
+    created_at: task.created_at,
+    updated_at: task.updated_at,
+  }
+}
+
 function artifactOf(task: MockTask, slide: MockSlide): SlideArtifact {
   const done = slide.status === "completed" || slide.status === "editing"
   return {
@@ -564,6 +591,17 @@ export function mockCreateTask(payload: CreateTaskPayload): TaskSnapshot {
 
 export function mockGetTask(taskId: string): TaskSnapshot {
   return snapshotOf(requireTask(taskId))
+}
+
+export function mockListTasks(limit = 6): TaskHistoryResponse {
+  const boundedLimit = Math.max(1, Math.min(50, Math.trunc(limit)))
+  const ordered = [...tasks.values()].sort((left, right) =>
+    right.updated_at.localeCompare(left.updated_at),
+  )
+  return {
+    tasks: ordered.slice(0, boundedLimit).map(historyOf),
+    total: ordered.length,
+  }
 }
 
 export function mockListSlides(taskId: string): SlideArtifact[] {

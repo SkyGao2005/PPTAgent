@@ -1,7 +1,9 @@
 import { lazy, Suspense } from "react"
 import { Navigate, Route, Routes, useParams } from "react-router-dom"
+import { LoaderCircleIcon } from "lucide-react"
 
 import { AppErrorBoundary } from "@/components/app-error-boundary"
+import { SceneBackground } from "@/components/scene-background"
 
 const CreatePage = lazy(() =>
   import("@/pages/create-page").then((module) => ({ default: module.CreatePage })),
@@ -19,8 +21,12 @@ const WorkbenchPage = lazy(() =>
 
 function RouteFallback() {
   return (
-    <div className="flex min-h-svh items-center justify-center bg-background text-sm text-muted-foreground">
-      正在加载工作台……
+    <div className="relative flex min-h-svh items-center justify-center">
+      <SceneBackground />
+      <span className="glass-card relative z-10 flex items-center gap-2.5 rounded-full px-5 py-3 text-[13px] font-medium text-muted-foreground">
+        <LoaderCircleIcon className="size-4 animate-spin" />
+        正在加载工作台…
+      </span>
     </div>
   )
 }

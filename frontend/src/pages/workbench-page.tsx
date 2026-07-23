@@ -74,6 +74,14 @@ const STAGE_TEXT: Partial<Record<TaskStage, string>> = {
   generate: "逐页生成中…",
 }
 
+// Sizing for the pills in the top bar; the material comes from the button
+// variant, so the whole bar reads as one surface.
+const TOOLBAR_PILL = "h-9 gap-1.5 rounded-full px-3.5 text-[13px]"
+const TOOLBAR_PILL_ACCENT = cn(
+  TOOLBAR_PILL,
+  "border-primary/25 text-foreground hover:border-primary/45",
+)
+
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
   useEffect(() => {
@@ -369,7 +377,8 @@ function SlideCanvas({
           内容引擎响应超时，不影响其他页面
         </div>
         <Button
-          className="relative mt-3.5 h-10 rounded-full bg-destructive px-5 text-white shadow-[0_10px_26px_color-mix(in_srgb,var(--destructive)_40%,transparent)] hover:bg-destructive/85"
+          variant="destructive"
+          className="relative mt-3.5 h-10 rounded-full px-5"
           onClick={onRetry}
         >
           <RotateCcwIcon />
@@ -864,42 +873,55 @@ function RunLogSheet() {
   return (
     <Sheet>
       <SheetTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 rounded-full px-3 text-[13px] text-muted-foreground"
-          />
-        }
+        render={<Button variant="glass" size="sm" className={TOOLBAR_PILL} />}
       >
-        <FileClockIcon data-icon="inline-start" />
+        <FileClockIcon />
         运行详情
       </SheetTrigger>
-      <SheetContent className="w-[min(94vw,480px)] gap-0 sm:max-w-[480px]">
-        <SheetHeader className="border-b">
+      <SheetContent className="w-[min(94vw,480px)] gap-0 p-0 sm:max-w-[480px]">
+        <SheetHeader className="border-b border-foreground/10 pr-14">
           <SheetTitle>运行详情</SheetTitle>
           <SheetDescription>
             结构化事件流按时间排列，仅用于排查，不影响主界面进度展示。
           </SheetDescription>
         </SheetHeader>
-        <div ref={viewportRef} className="min-h-0 flex-1 overflow-y-auto bg-muted/40 px-4 py-3">
-          <ol className="space-y-1 font-mono text-[11px] leading-5 text-muted-foreground">
-            {logs.map((entry) => (
-              <li key={entry.seq} className="flex gap-2">
-                <span className="shrink-0 tabular-nums text-hint/80">{entry.time}</span>
-                <span className="shrink-0 font-semibold text-foreground/70">{entry.type}</span>
-                <span className="min-w-0 break-all text-foreground/80">{entry.message}</span>
-              </li>
-            ))}
-            {logs.length === 0 && <li className="text-hint">暂无事件</li>}
-          </ol>
+        <div ref={viewportRef} className="min-h-0 flex-1 overflow-y-auto px-2.5 py-2.5">
+          {logs.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+              <FileClockIcon className="size-7 text-hint/60" />
+              <span className="text-[13px] text-hint">暂无事件</span>
+            </div>
+          ) : (
+            <ol className="flex flex-col gap-0.5">
+              {logs.map((entry) => (
+                <li
+                  key={entry.seq}
+                  className="flex gap-2.5 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-white/60"
+                >
+                  <span className="font-heading shrink-0 pt-0.5 text-[10.5px] tabular-nums text-hint">
+                    {entry.time}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="inline-flex rounded-full bg-foreground/[0.06] px-2 py-0.5 text-[10px] font-semibold text-foreground/70">
+                      {entry.type}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[11px] leading-[17px] break-all text-muted-foreground">
+                      {entry.message}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
-        <div className="flex items-center justify-between border-t px-4 py-2.5">
-          <span className="text-[11px] text-hint">{logs.length} 条事件</span>
+        <div className="flex items-center justify-between border-t border-foreground/10 bg-white/25 px-4 py-3">
+          <span className="font-heading text-[11px] tabular-nums text-hint">
+            {logs.length} 条事件
+          </span>
           <Button
-            variant="outline"
-            size="xs"
-            className="rounded-full"
+            variant="glass"
+            size="sm"
+            className={cn(TOOLBAR_PILL, "h-8 px-3.5")}
             onClick={() => setAutoScroll((value) => !value)}
           >
             {autoScroll ? "暂停滚动" : "恢复滚动"}
@@ -1035,11 +1057,11 @@ export function WorkbenchPage() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="relative flex h-svh items-center justify-center text-sm text-muted-foreground outline-none"
+        className="relative flex h-svh items-center justify-center outline-none"
       >
         <SceneBackground />
-        <span className="relative z-10 flex items-center">
-          <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+        <span className="glass-card relative z-10 flex items-center gap-2.5 rounded-full px-5 py-3 text-[13px] font-medium text-muted-foreground">
+          <LoaderCircleIcon className="size-4 animate-spin" />
           正在载入任务…
         </span>
       </main>
@@ -1054,24 +1076,40 @@ export function WorkbenchPage() {
         className="relative flex h-svh flex-col items-center justify-center gap-3 outline-none"
       >
         <SceneBackground />
-        <div className="glass-card relative z-10 flex flex-col items-center gap-3 rounded-[24px] px-10 py-8">
-          <TriangleAlertIcon className="size-8 text-hint" />
-          <div role="alert" className="text-sm font-medium">{loadError ?? "任务不存在"}</div>
-          <div className="flex gap-2">
-            {taskId && (
+        <liquid-glass
+          blur-amount="12"
+          className="glass-panel relative z-10 w-[min(92vw,400px)] rounded-[28px] shadow-[0_24px_70px_rgba(30,32,44,0.16),inset_0_1px_1px_rgba(255,255,255,0.8)]"
+        >
+          <div className="flex flex-col items-center px-8 py-9 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-foreground/[0.06] text-hint">
+              <TriangleAlertIcon className="size-6" />
+            </span>
+            <h1 className="mt-4 font-serif text-[22px] font-black tracking-tight">
+              {loadError ? "任务载入失败" : "任务不存在"}
+            </h1>
+            <p role="alert" className="mt-1.5 text-[13px] leading-5 text-hint">
+              {loadError ?? "这个任务可能已被删除，或者链接已经失效。"}
+            </p>
+            <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+              {taskId && (
+                <Button
+                  className="h-10 rounded-full px-5 text-[13px] font-semibold shadow-[0_10px_26px_rgba(27,28,32,0.28)]"
+                  onClick={() => void hydrate(taskId, requestedPages)}
+                >
+                  <RotateCcwIcon />
+                  重新加载
+                </Button>
+              )}
               <Button
-                size="sm"
-                className="rounded-full"
-                onClick={() => void hydrate(taskId, requestedPages)}
+                variant="glass"
+                className={cn(TOOLBAR_PILL, "h-10 px-5")}
+                render={<Link to="/" />}
               >
-                重新加载
+                返回新建任务
               </Button>
-            )}
-            <Button variant="outline" size="sm" className="rounded-full" render={<Link to="/" />}>
-              返回新建任务
-            </Button>
+            </div>
           </div>
-        </div>
+        </liquid-glass>
       </main>
     )
   }
@@ -1201,12 +1239,12 @@ export function WorkbenchPage() {
               )}
               {!followLatest && running && (
                 <Button
-                  variant="outline"
-                  size="xs"
-                  className="rounded-full bg-white/60"
+                  variant="glass"
+                  size="sm"
+                  className={cn(TOOLBAR_PILL, "h-8 px-3")}
                   onClick={resumeFollow}
                 >
-                  <ListStartIcon data-icon="inline-start" />
+                  <ListStartIcon />
                   回到最新
                 </Button>
               )}
@@ -1218,37 +1256,37 @@ export function WorkbenchPage() {
               </div>
               {(running || isBooting) && (
                 <Button
-                  variant="outline"
+                  variant="destructive"
                   size="sm"
-                  className="h-9 rounded-full bg-white/50 px-3.5 text-[13px] text-muted-foreground hover:border-destructive/50 hover:bg-white hover:text-destructive"
+                  className={TOOLBAR_PILL}
                   onClick={() => setCancelOpen(true)}
                   aria-label="取消生成"
                 >
-                  <PauseIcon data-icon="inline-start" />
+                  <PauseIcon />
                   <span className="hidden sm:inline">取消生成</span>
                 </Button>
               )}
               {cancelled && (
                 <Button
-                  variant="outline"
+                  variant="glass"
                   size="sm"
-                  className="h-9 rounded-full border-primary/40 bg-white/60 px-3.5 text-[13px] hover:bg-white"
+                  className={TOOLBAR_PILL_ACCENT}
                   onClick={() => void resumeTask()}
                   aria-label="继续生成"
                 >
-                  <PlayIcon data-icon="inline-start" />
+                  <PlayIcon />
                   <span className="hidden sm:inline">继续生成</span>
                 </Button>
               )}
               {task.status === "failed" && (
                 <Button
-                  variant="outline"
+                  variant="glass"
                   size="sm"
-                  className="h-9 rounded-full border-primary/40 bg-white/60 px-3.5 text-[13px] hover:bg-white"
+                  className={TOOLBAR_PILL_ACCENT}
                   onClick={() => void resumeTask()}
                   aria-label="重试生成"
                 >
-                  <RotateCcwIcon data-icon="inline-start" />
+                  <RotateCcwIcon />
                   <span className="hidden sm:inline">重试生成</span>
                 </Button>
               )}
@@ -1306,24 +1344,26 @@ export function WorkbenchPage() {
             </div>
             </header>
           </liquid-glass>
-          <div className="pointer-events-none absolute top-[calc(100%+0.5rem)] left-1/2 z-20 w-[min(34rem,calc(100%-2rem))] -translate-x-1/2">
+          <div className="pointer-events-none absolute top-[calc(100%+0.5rem)] left-1/2 z-20 flex w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 justify-center">
+            {/* Same material as the toasts: a dropped connection is feedback,
+                not an error state of its own. */}
             <div
               role="status"
               data-visible={connection === "reconnecting"}
               aria-hidden={connection !== "reconnecting"}
-              className="reconnect-status flex h-9 items-center justify-center gap-2 rounded-2xl border border-amber-300/60 bg-amber-50/85 text-xs text-amber-800 shadow-[0_10px_28px_rgba(120,83,12,0.12)] backdrop-blur-md"
+              className="reconnect-status glass-surface flex h-9 w-fit max-w-full items-center gap-2 rounded-full px-4 text-[12px] font-medium text-foreground/80 ring-1 ring-foreground/[0.09]"
             >
-              <WifiOffIcon className="size-3.5" />
-              连接中断，正在重连…任务仍在后台继续
+              <WifiOffIcon className="size-3.5 shrink-0 text-hint" />
+              <span className="truncate">连接中断，正在重连…任务仍在后台继续</span>
             </div>
           </div>
         </div>
 
         <div className="glass-card flex h-10 flex-none items-center gap-2 rounded-2xl px-2 xl:hidden">
           <Button
-            variant="outline"
-            size="xs"
-            className="rounded-full bg-white/60 lg:hidden"
+            variant="glass"
+            size="sm"
+            className={cn(TOOLBAR_PILL, "h-7 px-3 text-xs lg:hidden")}
             onClick={() => setSlidesOpen(true)}
           >
             <PanelLeftIcon />
@@ -1333,9 +1373,9 @@ export function WorkbenchPage() {
             {selected ? `第 ${selected.index} 页 · ${selected.title}` : task.topic}
           </span>
           <Button
-            variant="outline"
-            size="xs"
-            className="rounded-full bg-white/60"
+            variant="glass"
+            size="sm"
+            className={cn(TOOLBAR_PILL, "h-7 px-3 text-xs")}
             onClick={() => setChatOpen(true)}
           >
             <MessageSquareIcon />
@@ -1547,7 +1587,11 @@ export function WorkbenchPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+            <Button
+              variant="glass"
+              className={TOOLBAR_PILL}
+              onClick={() => setCancelOpen(false)}
+            >
               继续生成
             </Button>
             <Button

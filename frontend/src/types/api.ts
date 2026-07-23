@@ -39,6 +39,7 @@ export type TaskStatus =
 
 export type TaskStage =
   | "template"
+  | "prepare"
   | "plan"
   | "research"
   | "generate"
@@ -99,6 +100,28 @@ export interface TaskSnapshot {
   last_seq: number
   created_at: string
   updated_at: string
+}
+
+export interface TaskHistoryItem {
+  task_id: string
+  topic: string
+  instruction: string
+  status: TaskStatus
+  stage: TaskStage | null
+  progress: number
+  template_id: string
+  ratio: "16:9" | "4:3"
+  total_slides: number
+  completed_slides: number
+  failed_slides: number
+  preview_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskHistoryResponse {
+  tasks: TaskHistoryItem[]
+  total: number
 }
 
 export interface CreateTaskPayload {

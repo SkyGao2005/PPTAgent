@@ -133,13 +133,19 @@ def _service(manager: TaskManager, task_id: str, slide_id: str):
     if svc is not None:
         return svc
 
-    pptx_svc = _pptx_service(manager, task_id, slide_id)
-    if pptx_svc is not None:
-        return pptx_svc
-
     preview_service = manager.get_preview_service(task_id)
-    if preview_service is None or preview_service.get_slide(task_id, slide_id) is None:
+    slide = preview_service.get_slide(task_id, slide_id) if preview_service else None
+    if slide is None:
         return None
+
+    # An HTML page is its own source of truth: it carries the template
+    # scaffold the deck was generated against, and the export re-renders it.
+    # Routing those edits through the PPTX editor would change the artifact
+    # while leaving the page that produced it untouched.
+    if slide.mode != "html":
+        pptx_svc = _pptx_service(manager, task_id, slide_id)
+        if pptx_svc is not None:
+            return pptx_svc
 
     key = (id(manager), task_id, slide_id)
     html_svc = _HTML_SERVICES.get(key)
@@ -149,9 +155,28 @@ def _service(manager: TaskManager, task_id: str, slide_id: str):
             preview_service,
             task_id,
             slide_id,
+            llm=_edit_llm(manager),
         )
         _HTML_SERVICES[key] = html_svc
     return html_svc
+
+
+def _edit_llm(manager: TaskManager):
+    """The model that generated the deck also edits it, or None if unset.
+
+    Placeholder mode never generated with a model, so it must not edit with
+    one either: that is the switch that keeps the server, and its tests,
+    from reaching the network.
+    """
+
+    if manager.use_placeholder:
+        return None
+    try:
+        from deeppresenter.utils.config import DeepPresenterConfig
+
+        return DeepPresenterConfig.load_from_file(manager.config_path).design_agent
+    except (OSError, ValueError, KeyError):
+        return None
 
 
 def _pptx_service(manager: TaskManager, task_id: str, slide_id: str):

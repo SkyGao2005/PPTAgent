@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner"
 
 import { AppShell } from "@/components/app-shell"
+import { TaskHistory } from "@/components/task-history"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -422,7 +423,7 @@ export function CreatePage() {
               >
                 {creating && <LoaderCircleIcon className="animate-spin" />}
                 开始生成
-                {!creating && <ArrowRightIcon data-icon="inline-end" />}
+                {!creating && <ArrowRightIcon />}
               </Button>
             </div>
           </div>
@@ -469,6 +470,8 @@ export function CreatePage() {
             </button>
           ))}
         </div>
+
+        <TaskHistory />
       </main>
     </AppShell>
   )

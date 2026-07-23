@@ -15,8 +15,12 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+        // Secondary control on a glass surface: a pill of the same material,
+        // used across the top bar, drawers and dialogs.
+        glass:
+          "rounded-full border-white/55 bg-white/45 text-muted-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] hover:border-white/80 hover:bg-white/80 hover:text-foreground aria-expanded:bg-white/80 aria-expanded:text-foreground",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-white shadow-[0_10px_26px_color-mix(in_srgb,var(--destructive)_35%,transparent)] hover:bg-destructive/85 focus-visible:border-destructive/40 focus-visible:ring-destructive/25",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -33,6 +37,9 @@ const buttonVariants = cva(
         "icon-lg": "size-9",
       },
     },
+    // Sizes carry their own radius and are applied after the variants, so the
+    // glass pill has to reclaim its shape here or `size` squares it off.
+    compoundVariants: [{ variant: "glass", class: "rounded-full" }],
     defaultVariants: {
       variant: "default",
       size: "default",

@@ -13,6 +13,7 @@
 | POST | `/api/attachments` **[新增]** | 上传参考资料（PDF/Word/Excel），multipart `file` 字段 | `FormData{file}` | `{attachment_id}` |
 | DELETE | `/api/attachments/{id}` **[新增]** | 清理尚未绑定任务的临时参考资料 | — | — |
 | POST | `/api/tasks` | 创建任务 | `CreateTaskPayload` | `TaskSnapshot` |
+| GET | `/api/tasks?limit={n}` **[新增]** | 主页最近对话，按 `updated_at` 倒序；`limit` 可选且为 1–50，省略时保持返回全部任务 | — | `{tasks: TaskHistoryItem[], total: number}` |
 | GET | `/api/tasks/{id}` | 任务快照（含 `last_seq`） | — | `TaskSnapshot` |
 | GET | `/api/tasks/{id}/events` | SSE 事件流，支持 `?last_seq=`，事件 `id:` 字段即 `seq` | — | `GenerationEvent` 流 |
 | POST | `/api/tasks/{id}/cancel` | 取消（已完成页保留） | — | `TaskSnapshot` |
@@ -40,7 +41,7 @@ interface GenerationEvent {
   task_id: string
   seq: number                 // 单调递增，SSE 的 id: 字段；客户端按 seq 去重
   type: string                // 见下方事件类型
-  stage: "template" | "plan" | "research" | "generate" | "edit" | "export"
+  stage: "template" | "prepare" | "plan" | "research" | "generate" | "edit" | "export"
   status: "queued" | "running" | "succeeded" | "failed" | "cancelled"
   progress: number | null     // 0-100
   message: string             // 展示用文案
@@ -83,7 +84,7 @@ interface GenerationEvent {
 
 ## 4. 实体类型
 
-完整定义见 `frontend/src/types/api.ts`：`TaskSnapshot`、`SlideArtifact`、`SlideRevision`、`TemplateSummary`（含解析失败原因 `error` 和固定到 `revision_id` 的 `thumbnail_url`）、`CreateTaskPayload`（`attachment_ids` 来自 `POST /api/attachments` 回执）、`ChatReceipt`、`AttachmentReceipt`、`ExportReceipt`。
+完整定义见 `frontend/src/types/api.ts`：`TaskSnapshot`、`TaskHistoryItem`、`TaskHistoryResponse`、`SlideArtifact`、`SlideRevision`、`TemplateSummary`（含解析失败原因 `error` 和固定到 `revision_id` 的 `thumbnail_url`）、`CreateTaskPayload`（`attachment_ids` 来自 `POST /api/attachments` 回执）、`ChatReceipt`、`AttachmentReceipt`、`ExportReceipt`。
 
 ## 5. 约定
 

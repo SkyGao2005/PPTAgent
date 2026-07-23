@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from deeppresenter.server.models.artifacts import task_dir
 from deeppresenter.server.models.events import TaskStatus
 from deeppresenter.server.models.templates import TemplateManifest, TemplateStatus
+from deeppresenter.server.services.task_manager import TaskSnapshot
 from deeppresenter.server.services.template_catalog import bundled_templates_root
 
 
@@ -36,6 +37,68 @@ def _create_test_app(tmp_workspace: Path):
     from deeppresenter.server.app import create_app
 
     return create_app(tmp_workspace, use_placeholder=True)
+
+
+def test_task_history_returns_recent_rich_summaries(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    manager = app.state.task_manager
+    manager._snapshots["older"] = TaskSnapshot(
+        task_id="older",
+        status=TaskStatus.COMPLETED,
+        instruction="上周经营复盘",
+        progress=100,
+        total_slides=8,
+        completed_slides=8,
+        generation_params={
+            "template_id": "minimal",
+            "powerpoint_type": "16:9",
+        },
+        created_at="2026-07-20T08:00:00+00:00",
+        updated_at="2026-07-20T08:05:00+00:00",
+    )
+    manager._snapshots["latest"] = TaskSnapshot(
+        task_id="latest",
+        status=TaskStatus.RUNNING,
+        instruction="新品发布方案",
+        progress=42,
+        completed_slides=4,
+        failed_slides=1,
+        generation_params={
+            "num_pages": "12",
+            "template_id": "meridian",
+            "powerpoint_type": "4:3",
+        },
+        created_at="2026-07-23T08:00:00+00:00",
+        updated_at="2026-07-23T08:02:00+00:00",
+    )
+
+    client = TestClient(app)
+    response = client.get("/api/tasks?limit=1")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 2
+    assert len(body["tasks"]) == 1
+    assert body["tasks"][0] == {
+        "task_id": "latest",
+        "topic": "新品发布方案",
+        "instruction": "新品发布方案",
+        "status": "running",
+        "stage": None,
+        "progress": 42.0,
+        "template_id": "meridian",
+        "ratio": "4:3",
+        "total_slides": 12,
+        "completed_slides": 4,
+        "failed_slides": 1,
+        "preview_url": None,
+        "created_at": "2026-07-23T08:00:00+00:00",
+        "updated_at": "2026-07-23T08:02:00+00:00",
+    }
+    assert [task["task_id"] for task in client.get("/api/tasks").json()["tasks"]] == [
+        "latest",
+        "older",
+    ]
 
 
 def test_list_and_get_slide_preview_routes(tmp_workspace):
@@ -91,6 +154,8 @@ def test_list_and_get_slide_preview_routes(tmp_workspace):
     assert "last_seq" in task_body
     assert task_body["slides"][0]["slide_id"] == artifact.slide_id
     assert task_body["slides"][0]["preview_url"].endswith("/preview.png")
+    history_body = client.get("/api/tasks?limit=1").json()
+    assert history_body["tasks"][0]["preview_url"].endswith("/preview.png")
 
 
 def test_template_slide_preview_is_visible_via_routes(tmp_workspace):
