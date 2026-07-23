@@ -321,7 +321,7 @@ Compilation and generation are separate commands:
 # Parse and publish a revision. Uses VLM annotation by default.
 pptagent template-compile template.pptx \
   --template-id corporate \
-  --templates-root ~/.cache/deeppresenter/templates
+  --templates-root ./userdata/templates
 
 # Use deterministic annotations when no multimodal model is configured.
 pptagent template-compile template.pptx --template-id corporate --deterministic

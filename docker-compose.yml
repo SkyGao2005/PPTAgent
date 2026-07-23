@@ -12,11 +12,11 @@ services:
     ports:
       - "7861:7861"
     environment:
-      DEEPPRESENTER_HOST_WORKSPACE_BASE: ${PWD}/workspace
-      DEEPPRESENTER_WORKSPACE_BASE: /opt/workspace
+      DEEPPRESENTER_HOST_WORKSPACE_BASE: ${PWD}/userdata
+      DEEPPRESENTER_WORKSPACE_BASE: /usr/src/pptagent/userdata
       DEEPPRESENTER_LOG_LEVEL: 0 # 0: debug, 10: info, 20: warning
     volumes:
-      - ./workspace:/opt/workspace
+      - ./userdata:/usr/src/pptagent/userdata
       - ./deeppresenter:/usr/src/pptagent/deeppresenter
       - /usr/src/pptagent/deeppresenter/html2pptx/node_modules
       - /var/run/docker.sock:/var/run/docker.sock

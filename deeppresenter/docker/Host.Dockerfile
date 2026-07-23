@@ -60,7 +60,7 @@ RUN npm install --prefix deeppresenter/html2pptx --ignore-scripts && \
 ENV PATH="/opt/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV="/opt/.venv" \
-    DEEPPRESENTER_WORKSPACE_BASE="/opt/workspace" \
+    DEEPPRESENTER_WORKSPACE_BASE="/usr/src/pptagent/userdata" \
     DEEPPRESENTER_SOFFICE="/usr/bin/libreoffice"
 
 # Create Python virtual environment and install packages

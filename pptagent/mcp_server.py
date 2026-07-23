@@ -10,6 +10,7 @@ from typing import Optional
 from fastmcp import FastMCP
 from mistune import html as markdown_to_html
 
+from deeppresenter.utils.constants import WORKSPACE_BASE as DEEPPRESENTER_WORKSPACE_BASE
 from pptagent.llms import AsyncLLM
 from pptagent.multimodal import ImageLabler
 from pptagent.pptgen import PPTAgent, get_length_factor
@@ -121,13 +122,13 @@ class PPTAgentServer(PPTAgent):
                     if p.is_dir() and (p / "manifest.json").exists():
                         templates.add(p.name)
 
-        # 3. DeepPresenter cache templates (uploaded via API)
-        cache_base = os.getenv(
+        # 3. DeepPresenter workspace templates (uploaded via API)
+        workspace_base = os.getenv(
             "DEEPPRESENTER_WORKSPACE_BASE",
-            str(Path.home() / ".cache" / "deeppresenter"),
+            str(DEEPPRESENTER_WORKSPACE_BASE),
         )
         for suffix in ("templates_api/templates", "workspace/templates_api/templates"):
-            dp_templates = Path(cache_base) / suffix
+            dp_templates = Path(workspace_base) / suffix
             if dp_templates.exists():
                 for p in dp_templates.iterdir():
                     if p.is_dir() and (p / "manifest.json").exists():
@@ -153,7 +154,7 @@ class PPTAgentServer(PPTAgent):
                     continue
                 self._load_single_template(manifest.template_id)
 
-        # 2. Also discover templates from workspace/cache directories
+        # 2. Also discover templates from workspace directories
         #    (covers templates uploaded via API when registry is not attached)
         discovered = set(self.templates.keys())  # already loaded via registry
 
@@ -162,13 +163,13 @@ class PPTAgentServer(PPTAgent):
         workspace = os.getenv("WORKSPACE", None)
         if workspace:
             search_dirs.append(Path(workspace) / "templates")
-        # DeepPresenter cache
-        cache_base = os.getenv(
+        # DeepPresenter workspace
+        workspace_base = os.getenv(
             "DEEPPRESENTER_WORKSPACE_BASE",
-            str(Path.home() / ".cache" / "deeppresenter"),
+            str(DEEPPRESENTER_WORKSPACE_BASE),
         )
         for suffix in ("templates_api/templates", "workspace/templates_api/templates"):
-            search_dirs.append(Path(cache_base) / suffix)
+            search_dirs.append(Path(workspace_base) / suffix)
 
         for search_dir in search_dirs:
             if not search_dir.exists():
@@ -216,7 +217,7 @@ class PPTAgentServer(PPTAgent):
         if self._registry is not None:
             template_dir = self._registry.templates_dir / template_id
         else:
-            # Fallback: search workspace + DP cache directories
+            # Fallback: search workspace directories
             template_dir = None
             candidates: list[Path] = []
 
@@ -224,15 +225,15 @@ class PPTAgentServer(PPTAgent):
             if workspace:
                 candidates.append(Path(workspace) / "templates" / template_id)
 
-            cache_base = os.getenv(
+            workspace_base = os.getenv(
                 "DEEPPRESENTER_WORKSPACE_BASE",
-                str(Path.home() / ".cache" / "deeppresenter"),
+                str(DEEPPRESENTER_WORKSPACE_BASE),
             )
             for suffix in (
                 "templates_api/templates",
                 "workspace/templates_api/templates",
             ):
-                candidates.append(Path(cache_base) / suffix / template_id)
+                candidates.append(Path(workspace_base) / suffix / template_id)
 
             for c in candidates:
                 if c.is_dir():

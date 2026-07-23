@@ -75,5 +75,5 @@ long_context_model:
 #   model: "doubao-seedream-4.5-251128"
 #   api_key: "your_key"
 #   # sampling_parameters:
-#   #   response_format: "b64_json"
 #   #   extra_body: { "watermark": False }
+#   # GPT Image models always return base64 and do not accept response_format.

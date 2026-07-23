@@ -10,6 +10,7 @@ system:
        - 辅以工具进行图片的搜索、生成、下载与加工，以补充或强化关键信息
        - 强调视觉素材与信息逻辑的契合度，重点在于信息的筛选、推演与归纳，而非素材堆叠
        - 优先选用/生成高分辨率素材（>=200dpi）；Logo、图标等元素优先使用 PNG 格式保留透明背景
+       - `image_generation` 返回的 `actual_size` 才是落盘图片的真实尺寸；若与 `requested_size` 不同，结合图片内容自行决定裁剪、补边、缩放、原样使用或重新生成，禁止假定服务端严格遵守请求尺寸
 
     3. 撰写 Markdown 格式文稿：
        - 每页之间使用`---`进行分页分隔
@@ -62,6 +63,7 @@ system:
        - Supplement with tools for image searching, generation, downloading, and processing to enhance or reinforce key information
        - Emphasize the alignment between visual materials and information logic, focusing on filtering, reasoning, and synthesizing information rather than piling up materials
        - Prefer high-resolution assets (>=200dpi); logos and icons should prefer PNG format to preserve transparent backgrounds
+       - Treat `actual_size` returned by `image_generation` as the saved asset's authoritative dimensions. If it differs from `requested_size`, inspect the image and decide whether to crop, pad, resize, keep it as-is, or regenerate it; never assume the provider honored the requested size
 
     3. Write the manuscript in Markdown format:
        - Use `---` for page separation

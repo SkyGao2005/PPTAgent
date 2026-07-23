@@ -21,6 +21,7 @@ from deeppresenter.utils.constants import (
     PACKAGE_DIR,
     PIXEL_MULTIPLE,
     RETRY_TIMES,
+    T2I_RETRY_TIMES,
 )
 from deeppresenter.utils.log import debug, logging_openai_exceptions
 
@@ -135,6 +136,28 @@ def is_context_overflow_error(error: BaseException) -> bool:
         "request too large",
     )
     return any(marker in message for marker in markers)
+
+
+def is_retryable_image_error(error: BaseException) -> bool:
+    """Whether retrying an image request can plausibly succeed unchanged."""
+
+    status_code = getattr(error, "status_code", None)
+    try:
+        status = int(status_code) if status_code is not None else None
+    except (TypeError, ValueError):
+        status = None
+    if status is not None:
+        return status in {408, 409, 425, 429} or status >= 500
+
+    error_name = type(error).__name__.lower()
+    return any(
+        marker in error_name
+        for marker in ("connection", "timeout", "temporarilyunavailable")
+    ) or isinstance(error, (ConnectionError, TimeoutError))
+
+
+def _image_model_id(model: str) -> str:
+    return model.lower().rsplit("/", 1)[-1]
 
 
 class ContextBudgetConfig(BaseModel):
@@ -741,6 +764,7 @@ class LLM(ContextBudgetConfig):
     )
     min_image_size: int | None = Field(
         default=None,
+        gt=0,
         description="Minimum image size (width * height) for generation, smaller images will be resized proportionally",
     )
     secret_logging: bool = Field(
@@ -788,6 +812,62 @@ class LLM(ContextBudgetConfig):
                 self.is_multimodal = False
 
         return super().model_post_init(context)
+
+    def image_request_size(
+        self,
+        width: int,
+        height: int,
+        pixel_multiple: int = PIXEL_MULTIPLE,
+    ) -> tuple[int, int]:
+        """Validate and, when required, enlarge an image request safely."""
+
+        if (
+            not isinstance(width, int)
+            or isinstance(width, bool)
+            or not isinstance(height, int)
+            or isinstance(height, bool)
+        ):
+            raise TypeError("Image width and height must be integers")
+        if width <= 0 or height <= 0:
+            raise ValueError("Image width and height must be positive")
+        if pixel_multiple <= 0:
+            raise ValueError("pixel_multiple must be positive")
+        if width % pixel_multiple or height % pixel_multiple:
+            raise ValueError(
+                f"Image width and height must be a multiple of {pixel_multiple}"
+            )
+
+        is_gpt_image_2 = _image_model_id(self._endpoints[0].model).startswith(
+            "gpt-image-2"
+        )
+        minimum_pixels = self.min_image_size or 0
+        if is_gpt_image_2:
+            minimum_pixels = max(minimum_pixels, 655_360)
+
+        if width * height < minimum_pixels:
+            ratio = (minimum_pixels / (width * height)) ** 0.5
+            width = math.ceil(width * ratio / pixel_multiple) * pixel_multiple
+            height = math.ceil(height * ratio / pixel_multiple) * pixel_multiple
+
+        if is_gpt_image_2:
+            if max(width, height) > 3_840:
+                raise ValueError("GPT Image 2 edge length cannot exceed 3840px")
+            if max(width, height) / min(width, height) > 3:
+                raise ValueError("GPT Image 2 aspect ratio cannot exceed 3:1")
+            if width * height > 8_294_400:
+                raise ValueError(
+                    "GPT Image 2 requests cannot exceed 8,294,400 pixels"
+                )
+        return width, height
+
+    @staticmethod
+    def _image_sampling_parameters(endpoint: Endpoint) -> dict[str, Any]:
+        parameters = dict(endpoint.sampling_parameters)
+        if _image_model_id(endpoint.model).startswith("gpt-image-"):
+            # GPT Image always returns base64. response_format is a legacy
+            # DALL-E parameter and some compatibility gateways mishandle it.
+            parameters.pop("response_format", None)
+        return parameters
 
     async def run(
         self,
@@ -854,26 +934,26 @@ class LLM(ContextBudgetConfig):
         prompt: str,
         width: int,
         height: int,
-        retry_times: int = RETRY_TIMES,
+        retry_times: int = T2I_RETRY_TIMES,
         pixel_multiple: int = PIXEL_MULTIPLE,
     ) -> ImagesResponse:
         """Unified interface for image generation"""
-        if self.min_image_size is not None and (width * height) < int(
-            self.min_image_size
-        ):
-            ratio = (int(self.min_image_size) / (width * height)) ** 0.5
-            width = int(width * ratio)
-            height = int(height * ratio)
-        assert (width % pixel_multiple == 0) and (height % PIXEL_MULTIPLE == 0), (
-            f"Image width and height must be a multiple of {pixel_multiple}"
-        )
+        width, height = self.image_request_size(width, height, pixel_multiple)
+        if retry_times <= 0:
+            raise ValueError("retry_times must be positive")
+
         async with self._semaphore:
-            errors = []
-            random.shuffle(self._endpoints)
-            for retry_idx in range(retry_times):
+            errors: list[str] = []
+            endpoints = list(self._endpoints)
+            random.shuffle(endpoints)
+            attempts = 0
+            endpoint_index = 0
+            while attempts < retry_times and endpoints:
                 # t2i is stateless
-                endpoint = self._endpoints[retry_idx % len(self._endpoints)]
+                endpoint = endpoints[endpoint_index % len(endpoints)]
+                attempts += 1
                 try:
+                    sampling_parameters = self._image_sampling_parameters(endpoint)
                     if endpoint.provider == "litellm":
                         import litellm
 
@@ -893,7 +973,7 @@ class LLM(ContextBudgetConfig):
                                 if endpoint.base_url
                                 else {}
                             ),
-                            **endpoint.sampling_parameters,
+                            **sampling_parameters,
                         )
                     else:
                         response = await endpoint._client.images.generate(
@@ -901,15 +981,14 @@ class LLM(ContextBudgetConfig):
                             model=endpoint.model,
                             size=f"{width}x{height}",
                             timeout=MCP_CALL_TIMEOUT // 5,
-                            **endpoint.sampling_parameters,
+                            **sampling_parameters,
                         )
-                    assert len(response.data) >= 1, (
-                        f"Expected at least an image response, got {response}"
-                    )
+                    if not response.data:
+                        raise ValueError(
+                            f"Expected at least one image from {endpoint.model}"
+                        )
                     return response
 
-                except (AssertionError, ValidationError) as e:
-                    errors.append(f"[{endpoint.model}] {e}")
                 except Exception as e:
                     errors.append(f"[{endpoint.model}] {e}")
                     if self.secret_logging:
@@ -917,7 +996,20 @@ class LLM(ContextBudgetConfig):
                     else:
                         identifider = endpoint.model
                     logging_openai_exceptions(identifider, e)
-            raise ValueError(f"All models failed after {retry_times} retries: {errors}")
+                    if is_retryable_image_error(e):
+                        endpoint_index += 1
+                        continue
+
+                    # A bad key or request will not improve by sending the same
+                    # payload again. Disable only that endpoint so configured
+                    # fallbacks still get one chance.
+                    endpoints.remove(endpoint)
+                    if endpoints:
+                        endpoint_index %= len(endpoints)
+
+            raise ValueError(
+                f"All image models failed after {attempts} attempt(s): {errors}"
+            )
 
     async def validate(self):
         endpoint = self._endpoints[0]

@@ -14,7 +14,7 @@ Last commit is still `cf50718`. **Everything since is uncommitted** and spans
 uv run pytest deeppresenter/templates/tests/ deeppresenter/server/tests/ deeppresenter/test/ -q
 ```
 
-The user's uploaded template in `~/.cache/deeppresenter/templates_api/` is
+The user's uploaded template in `<project-root>/userdata/templates_api/` is
 compiled and current (`rev_0fc5b536473958f08ebb0c8a`).
 
 **The six bundled templates in `pptagent/templates/` are badly stale.** Their
@@ -134,13 +134,13 @@ from deeppresenter.templates import (
     DeepPresenterStructuredVLMClient, LibreOfficeRenderer,
     TemplateCompiler, VLMAnnotator)
 from deeppresenter.utils.config import DeepPresenterConfig
-from pathlib import Path
+from deeppresenter.utils.constants import PROJECT_ROOT
 import asyncio
 
 config = DeepPresenterConfig.load_from_file("deeppresenter/config.yaml")
 model = config.vision_model or config.design_agent
 service = TemplateInductionService(
-    workspace=Path.home() / ".cache/deeppresenter/templates_api",
+    workspace=PROJECT_ROOT / "userdata/templates_api",
     compiler=TemplateCompiler(
         renderer=LibreOfficeRenderer(required=True),
         annotator=VLMAnnotator(
@@ -160,7 +160,7 @@ wiring as above.
 Always verify the recompile actually landed rather than reusing a revision:
 
 ```bash
-R=~/.cache/deeppresenter/templates_api/templates/tpl_template_fb2fe79e8ab436e4/revisions/<rev>
+R=<project-root>/userdata/templates_api/templates/tpl_template_fb2fe79e8ab436e4/revisions/<rev>
 grep -c 'clip-path' $R/slides/*/layout.css
 ```
 

@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 
 # ============ Path ============
-PACKAGE_DIR = Path(__file__).parent.parent
+PACKAGE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = PACKAGE_DIR.parent
+DEFAULT_WORKSPACE_BASE = PROJECT_ROOT / "userdata"
 
 # ============ Logging ===========
 LOGGING_LEVEL = int(os.getenv("DEEPPRESENTER_LOG_LEVEL", logging.INFO))
@@ -13,6 +15,7 @@ MAX_LOGGING_LENGTH = int(os.getenv("DEEPPRESENTER_MAX_LOGGING_LENGTH", 1024))
 
 # ============ Agent  ============
 RETRY_TIMES = int(os.getenv("RETRY_TIMES", 10))
+T2I_RETRY_TIMES = int(os.getenv("T2I_RETRY_TIMES", 3))
 MAX_TOOLCALL_PER_TURN = int(os.getenv("MAX_TOOLCALL_PER_TURN", 7))
 MAX_RETRY_INTERVAL = int(os.getenv("MAX_RETRY_INTERVAL", 60))
 # count in chars, this is about the first 4 page of a dual-column paper
@@ -30,9 +33,9 @@ MCP_CALL_TIMEOUT = int(os.getenv("MCP_CALL_TIMEOUT", 1800))
 WORKSPACE_BASE = Path(
     os.getenv(
         "DEEPPRESENTER_WORKSPACE_BASE",
-        str(Path.home() / ".cache/deeppresenter"),
+        str(DEFAULT_WORKSPACE_BASE),
     )
-)
+).expanduser()
 TOOL_CACHE = PACKAGE_DIR / ".tools.json"
 
 GLOBAL_ENV_LIST = [

@@ -36,13 +36,7 @@ from deeppresenter.server.services.template_registry import TemplateRegistry
 from deeppresenter.server.services.template_service import TemplateInductionService
 from deeppresenter.templates.context import TemplateContextProvider
 from deeppresenter.templates.store import TemplateStore
-
-WORKSPACE_BASE = Path(
-    os.getenv(
-        "DEEPPRESENTER_WORKSPACE_BASE",
-        str(Path.home() / ".cache" / "deeppresenter"),
-    )
-)
+from deeppresenter.utils.constants import WORKSPACE_BASE
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -108,7 +102,7 @@ def create_app(
     """创建并配置 FastAPI 应用。
 
     Args:
-        workspace_base: 任务工作区根目录，默认使用环境变量或 ~/.cache/deeppresenter
+        workspace_base: 任务工作区根目录，默认使用环境变量或项目根目录下的 userdata
         use_placeholder: 是否使用占位执行器，默认由环境变量控制
         config_path: DeepPresenter 配置文件路径，默认读取 DEEPPRESENTER_CONFIG_FILE
     """

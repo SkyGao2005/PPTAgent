@@ -2,13 +2,17 @@ import base64
 import os
 from pathlib import Path
 
-import httpx
 from binaryornot.check import is_binary
 from fastmcp import FastMCP
 from PIL import Image
 
 from deeppresenter.utils.config import DeepPresenterConfig
 from deeppresenter.utils.constants import PIXEL_MULTIPLE
+from deeppresenter.utils.image_generation import (
+    image_bytes_from_response,
+    image_generation_result,
+    save_image_payload,
+)
 from deeppresenter.utils.log import debug, set_logger
 
 mcp = FastMCP(name="ToolAgents")
@@ -24,38 +28,36 @@ if LLM_CONFIG.t2i_model is not None:
         f"    prompt: Text description of the image to generate. Should be detailed and specific, but do not include aspect ratio.\n"
         f"    width: Width of the image in pixels, must be a multiple of {PIXEL_MULTIPLE}\n"
         f"    height: Height of the image in pixels, must be a multiple of {PIXEL_MULTIPLE}\n"
-        f"    path: Full path where the image should be saved"
+        f"    path: Full path ending in .png, .jpg, .jpeg, or .webp\n\n"
+        f"Returns the requested, submitted, and actual image dimensions. Providers may return a different size; use the returned actual_size to decide whether to crop, pad, resize, keep, or regenerate the image."
     )
-    async def image_generation(prompt: str, width: int, height: int, path: str) -> str:
+    async def image_generation(
+        prompt: str,
+        width: int,
+        height: int,
+        path: str,
+    ) -> dict[str, object]:
+        requested_size = (width, height)
+        submitted_size = LLM_CONFIG.t2i_model.image_request_size(width, height)
         response = await LLM_CONFIG.t2i_model.generate_image(
-            prompt=prompt, width=width, height=height
+            prompt=prompt,
+            width=submitted_size[0],
+            height=submitted_size[1],
         )
-
-        image_b64 = response.data[0].b64_json
-        image_url = response.data[0].url
-
-        # Create directory if it doesn't exist
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-
-        if image_b64:
-            # Decode base64 image data
-            image_bytes = base64.b64decode(image_b64)
-        elif image_url:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(image_url)
-                response.raise_for_status()
-                image_bytes = response.content
-        else:
-            raise ValueError("Empty Response")
-
-        # Save image to specified path
-        with open(path, "wb") as file:
-            file.write(image_bytes)
+        image_bytes = await image_bytes_from_response(response)
+        saved = save_image_payload(image_bytes, path)
+        result = image_generation_result(
+            requested_size=requested_size,
+            submitted_size=submitted_size,
+            saved=saved,
+        )
 
         debug(
-            f"Image generated: prompt='{prompt}', size=({width}x{height}), saved to '{path}'"
+            f"Image generated: prompt='{prompt}', requested={requested_size}, "
+            f"submitted={submitted_size}, actual=({saved['width']}, {saved['height']}), "
+            f"saved to '{saved['path']}'"
         )
-        return "Image generated successfully, saved to " + path
+        return result
 
 
 _CAPTION_SYSTEM = """
