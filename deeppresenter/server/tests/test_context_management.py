@@ -10,6 +10,7 @@ from openai.types.chat.chat_completion_message_function_tool_call import (
 from deeppresenter.agents.agent import Agent
 from deeppresenter.agents.design import Design
 from deeppresenter.utils.config import (
+    ContextBudgetConfig,
     ContextWindowExceededError,
     DeepPresenterConfig,
     Endpoint,
@@ -17,6 +18,21 @@ from deeppresenter.utils.config import (
     estimate_chat_tokens,
 )
 from deeppresenter.utils.typings import ChatMessage, ContextLayer, InputRequest, Role
+
+
+def test_default_context_budget_is_scaled_to_250k() -> None:
+    budget = ContextBudgetConfig()
+
+    assert budget.context_limit_tokens == 250_000
+    assert budget.reserved_output_tokens == 12_500
+    assert budget.context_safety_margin_tokens == 2_500
+    assert budget.template_context_max_tokens == 30_000
+    assert budget.template_overview_max_tokens == 7_500
+    assert budget.template_reference_max_tokens == 7_500
+    assert budget.template_search_result_max_tokens == 3_750
+    assert budget.compaction_input_max_tokens == 15_000
+    assert budget.compaction_summary_max_tokens == 2_500
+    assert budget.input_token_budget == 235_000
 
 
 class _AgentEnv:

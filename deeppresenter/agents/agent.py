@@ -114,6 +114,9 @@ class Agent:
         self.template_context_max_tokens = self.llm.template_context_max_tokens
         self.max_template_reference_images = self.llm.max_template_reference_images
         self.compaction_input_max_tokens = self.llm.compaction_input_max_tokens
+        self.compaction_summary_max_tokens = (
+            self.llm.compaction_summary_max_tokens
+        )
         self._setup_toolset()
         if language not in self.role_config.system:
             raise ValueError(f"Language '{language}' not found in system prompts")
@@ -702,7 +705,10 @@ class Agent:
         )
         self._record_usage(response.usage)
         summary_text = response.choices[0].message.content or ""
-        summary_limit = max(128, min(2_000, target_tokens // 4))
+        summary_limit = max(
+            128,
+            min(self.compaction_summary_max_tokens, target_tokens // 4),
+        )
         summary_text = self._truncate_to_estimated_tokens(summary_text, summary_limit)
 
         self.research_iter += 1

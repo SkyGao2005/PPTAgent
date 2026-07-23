@@ -23,7 +23,7 @@ async def test_task_events(tmp_workspace):
     bus = EventBus(tmp_workspace)
     reporter = EventReporter("abc12345", bus.publish)
 
-    await reporter.task_created()
+    await reporter.task_created(total_slides=12)
     await reporter.task_started()
     await reporter.task_completed("exports/latest.pptx")
 
@@ -34,6 +34,7 @@ async def test_task_events(tmp_workspace):
         EventType.TASK_COMPLETED.value,
     ]
     assert events[0]["status"] == TaskStatus.QUEUED.value
+    assert events[0]["total_slides"] == 12
     assert events[-1]["status"] == "completed"
     assert events[-1]["progress"] == 100
     assert events[-1]["artifact_url"] == "exports/latest.pptx"

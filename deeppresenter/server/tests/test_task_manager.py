@@ -29,6 +29,7 @@ from deeppresenter.server.services.task_manager import (
     SNAPSHOT_FILE,
     TaskManager,
     TaskSnapshot,
+    planned_slide_count,
 )
 from deeppresenter.server.services.preview import PreviewService
 
@@ -70,6 +71,19 @@ class RecordingRetryManager(TaskManager):
 
 
 class TestTaskSnapshot:
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            ("12", 12),
+            ("5-10", 5),
+            (8, 8),
+            (None, 0),
+            ("unknown", 0),
+        ],
+    )
+    def test_planned_slide_count(self, value, expected):
+        assert planned_slide_count(value) == expected
+
     def test_defaults(self):
         s = TaskSnapshot(task_id="abc", instruction="test")
         assert s.task_id == "abc"
@@ -114,6 +128,17 @@ class TestTaskSnapshot:
 
         assert s.status == TaskStatus.COMPLETED
         assert s.to_dict()["status"] == "completed"
+
+    def test_from_dict_recovers_planned_total_from_generation_params(self):
+        s = TaskSnapshot.from_dict(
+            {
+                "task_id": "abc",
+                "total_slides": 0,
+                "generation_params": {"num_pages": "12"},
+            }
+        )
+
+        assert s.total_slides == 12
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -713,6 +738,30 @@ class TestRestoreSnapshots:
         assert "异常重启" in (restored._snapshots[task_id].error_message or "")
 
     @pytest.mark.asyncio
+    async def test_restore_migrates_legacy_zero_total(self, tmp_workspace):
+        task_id = "legacy-total"
+        workspace = task_dir(tmp_workspace, task_id)
+        workspace.mkdir(parents=True, exist_ok=True)
+        snapshot_path = workspace / SNAPSHOT_FILE
+        snapshot_path.write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "total_slides": 0,
+                    "generation_params": {"num_pages": "12"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        restored = await TaskManager.restore_snapshots(tmp_workspace)
+
+        assert restored._snapshots[task_id].total_slides == 12
+        persisted = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        assert persisted["total_slides"] == 12
+
+    @pytest.mark.asyncio
     async def test_empty_workspace(self, tmp_workspace):
         restored = await TaskManager.restore_snapshots(tmp_workspace)
         assert len(restored._snapshots) == 0
@@ -739,6 +788,7 @@ class TestRetryParams:
         )
         snap = manager.get_snapshot(task_id)
         assert snap is not None
+        assert snap.total_slides == 5
         params = snap.generation_params
         assert params["instruction"] == "模板测试"
         assert params["num_pages"] == "5"

@@ -128,4 +128,15 @@ describe("generating without a template", () => {
     useCreateTaskStore.getState().selectTemplate("tpl", "16:9")
     expect(useCreateTaskStore.getState().ratio).toBe("16:9")
   })
+
+  it("returns to the default ratio when the template is dropped", () => {
+    const store = useCreateTaskStore.getState()
+    store.selectTemplate("tpl-4x3", "4:3")
+    expect(useCreateTaskStore.getState().ratio).toBe("4:3")
+
+    // The 4:3 came from the template; without one it would linger unexplained.
+    useCreateTaskStore.getState().useNoTemplate()
+
+    expect(useCreateTaskStore.getState().ratio).toBe("16:9")
+  })
 })

@@ -59,9 +59,10 @@ export const useCreateTaskStore = create<CreateTaskState>((set, get) => ({
   setLanguage: (language) => set({ language }),
   setRatio: (ratio) => set({ ratio }),
   selectTemplate: (templateId, ratio) => set({ templateId, ratio }),
-  // Without a template nothing dictates the canvas, so the ratio the user
-  // picks is kept rather than overwritten.
-  useNoTemplate: () => set({ templateId: NO_TEMPLATE }),
+  // Dropping the template drops what dictated the canvas with it. Keeping the
+  // old template's ratio would leave a 4:3 deck behind with nothing on screen
+  // explaining why, so the choice resets to the default and stays editable.
+  useNoTemplate: () => set({ templateId: NO_TEMPLATE, ratio: "16:9" }),
   clearTemplate: () => set({ templateId: "" }),
   addAttachments: (files) => {
     const room = Math.max(0, MAX_ATTACHMENTS - get().attachments.length)

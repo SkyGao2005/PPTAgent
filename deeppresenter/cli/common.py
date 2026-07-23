@@ -5,7 +5,7 @@ from pathlib import Path
 from rich.console import Console
 
 from deeppresenter import __version__ as version
-from deeppresenter.utils.constants import PACKAGE_DIR
+from deeppresenter.utils.constants import CONTEXT_LENGTH_LIMIT, PACKAGE_DIR
 
 console = Console()
 CONFIG_DIR = Path.home() / ".config" / "deeppresenter"
@@ -16,6 +16,7 @@ CACHE_DIR = Path.home() / ".cache" / "deeppresenter"
 LOCAL_MODEL = "Forceless/DeepPresenter-9B-GGUF:q4_K_M"
 LOCAL_LID_MODEL = "Forceless/fasttext-language-id"
 LOCAL_BASE_URL = "http://127.0.0.1:7811/v1"
+LOCAL_CONTEXT_TOKENS = CONTEXT_LENGTH_LIMIT
 REQUIRED_LLM_KEYS = ["research_agent", "design_agent", "long_context_model"]
 
 
@@ -66,6 +67,7 @@ __all__ = [
     "CONFIG_DIR",
     "CONFIG_FILE",
     "LOCAL_BASE_URL",
+    "LOCAL_CONTEXT_TOKENS",
     "LOCAL_LID_MODEL",
     "LOCAL_MODEL",
     "MCP_FILE",

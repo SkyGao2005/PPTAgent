@@ -13,16 +13,46 @@ design_agent:
   model: "google/gemini-3-pro-preview"
   api_key: "your_key"
   # Budget is checked before every request, including tool schemas and images.
-  context_limit_tokens: 114688
-  reserved_output_tokens: 10000
-  context_safety_margin_tokens: 2000
-  template_context_max_tokens: 12000
+  context_limit_tokens: 250000
+  reserved_output_tokens: 12500
+  context_safety_margin_tokens: 2500
+  template_context_max_tokens: 30000
+  template_overview_max_tokens: 7500
+  template_reference_max_tokens: 7500
+  template_search_result_max_tokens: 3750
+  compaction_input_max_tokens: 15000
+  compaction_summary_max_tokens: 2500
   max_template_reference_images: 2
 
 long_context_model:
   base_url: "https://open.bigmodel.cn/api/paas/v4/"
   model: "glm-4.5"
   api_key: "your_key"
+
+# # Anthropic provider example — pip install pptagent[anthropic]
+# # Speaks the native Messages API instead of an OpenAI-compatible endpoint.
+# # api_key may be omitted: the SDK falls back to ANTHROPIC_API_KEY or an
+# # `ant auth login` profile. Sampling parameters the Messages API rejects
+# # (temperature, top_p, top_k) are dropped, so one sampling block can serve
+# # both wire formats.
+# design_agent:
+#   provider: "anthropic"
+#   model: "claude-opus-4-8"
+#   api_key: "your_anthropic_key"
+
+# # Self-hosted or proxied Anthropic-compatible endpoint.
+# # base_url is the gateway root — "/v1/messages" is appended for you, and a
+# # trailing "/v1" you write yourself is accepted rather than doubled.
+# # Gateways that authenticate with a Bearer token instead of x-api-key take
+# # it through client_kwargs; extra headers go the same way.
+# design_agent:
+#   provider: "anthropic"
+#   base_url: "https://your-gateway.example.com/anthropic"
+#   model: "claude-opus-4-8"
+#   api_key: "your_gateway_key"
+#   # client_kwargs:
+#   #   auth_token: "bearer_token_instead_of_api_key"
+#   #   default_headers: { "x-tenant": "team-a" }
 
 # # LiteLLM provider example — pip install pptagent[litellm]
 # # Routes to 100+ providers (Anthropic, Gemini, Bedrock, etc.) without a proxy.

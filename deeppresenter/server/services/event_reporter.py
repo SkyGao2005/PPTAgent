@@ -1,10 +1,11 @@
-from __future__ import annotations
 """GenerationEvent 发布辅助层。
 
 EventReporter 是 AgentLoop / AgentEnv 与 EventBus 之间的薄适配器：
 业务代码只表达“任务开始、阶段完成、工具失败”等动作，不直接关心
 GenerationEvent 字段拼装和持久化细节。
 """
+
+from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -78,12 +79,14 @@ class EventReporter:
         self,
         message: str | None = None,
         payload: dict[str, Any] | None = None,
+        total_slides: int | None = None,
     ) -> None:
         await self.emit(
             EventType.TASK_CREATED,
             status=TaskStatus.QUEUED,
             progress=0,
             message=message or "任务已创建",
+            total_slides=total_slides,
             payload=payload,
         )
 

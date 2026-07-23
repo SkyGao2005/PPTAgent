@@ -42,15 +42,22 @@ R = TypeVar("R")
 def create_logger(
     name: str = __name__, log_file: str | Path | None = None
 ) -> logging.Logger:
-    """Create a new logger"""
-    assert name == "default logger" or name not in logging.Logger.manager.loggerDict, (
-        f"Logger '{name}' already exists."
-    )
+    """Create or reconfigure a logger.
+
+    Server workflows intentionally reuse a task id when an approved manuscript
+    moves from Research to Design and when a failed task is retried. Python keeps
+    named loggers in a process-wide registry, so rejecting an existing name makes
+    both transitions fail even after the earlier AgentLoop has finished.
+    """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
 
-    # Clear existing handlers to avoid duplicates
+    # A reused task logger may still own a FileHandler from the previous loop.
+    # Close it before rebuilding the handler set so retries do not leak file
+    # descriptors or duplicate output.
+    for handler in logger.handlers:
+        handler.close()
     logger.handlers.clear()
 
     console_handler = logging.StreamHandler()

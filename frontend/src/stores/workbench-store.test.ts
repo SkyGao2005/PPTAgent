@@ -104,6 +104,24 @@ beforeEach(() => {
 })
 
 describe("refresh persistence", () => {
+  it("restores the planned slide count from persisted generation parameters", async () => {
+    mockApi.getTask.mockResolvedValue(
+      snapshot({
+        total_slides: 0,
+        generation_params: { num_pages: "12" },
+      }),
+    )
+    mockApi.listSlides.mockResolvedValue([])
+
+    await useWorkbenchStore.getState().hydrate("t1")
+
+    const state = useWorkbenchStore.getState()
+    expect(state.task?.total_slides).toBe(12)
+    expect(state.slideOrder).toHaveLength(12)
+    expect(state.slideOrder[0]).toBe("pending-1")
+    expect(state.slideOrder[11]).toBe("pending-12")
+  })
+
   it("restores the selected slide, chat history, and queued edits", async () => {
     await hydrateTask(2)
     await useWorkbenchStore.getState().sendChat("pending-2", "保留这条排队指令")

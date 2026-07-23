@@ -36,6 +36,19 @@ SNAPSHOT_FILE = "task.json"
 MANUSCRIPT_IMAGE_SUFFIXES = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
 
+def planned_slide_count(value: object) -> int:
+    """Normalize an exact or ranged page-count request to its planned total."""
+
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, int):
+        return max(value, 0)
+    if not isinstance(value, str):
+        return 0
+    first = value.split("-", 1)[0].strip()
+    return int(first) if first.isdigit() else 0
+
+
 @dataclass(frozen=True)
 class _HtmlExportPage:
     """One selected HTML revision frozen for a deck export."""
@@ -170,17 +183,21 @@ class TaskSnapshot:
         stage = data.get("current_stage")
         if isinstance(stage, str) and stage:
             stage = StageName(stage)
+        generation_params = data.get("generation_params") or {}
+        total_slides = data.get("total_slides", 0)
+        if not isinstance(total_slides, int) or total_slides <= 0:
+            total_slides = planned_slide_count(generation_params.get("num_pages"))
         return cls(
             task_id=data["task_id"],
             status=status,
             progress=data.get("progress", 0.0),
             current_stage=stage,
             instruction=data.get("instruction", ""),
-            total_slides=data.get("total_slides", 0),
+            total_slides=total_slides,
             completed_slides=data.get("completed_slides", 0),
             failed_slides=data.get("failed_slides", 0),
             completed_slide_ids=data.get("completed_slide_ids") or [],
-            generation_params=data.get("generation_params") or {},
+            generation_params=generation_params,
             result_artifact=data.get("result_artifact"),
             error_message=data.get("error_message"),
             created_at=data.get("created_at"),
@@ -381,11 +398,12 @@ class TaskManager:
             "language": language,
             "manuscript_path": manuscript_path,
         }
+        planned_total = planned_slide_count(num_pages)
         snapshot = TaskSnapshot(
             task_id=task_id,
             status=TaskStatus.QUEUED,
             instruction=instruction,
-            total_slides=0,
+            total_slides=planned_total,
             generation_params=params,
         )
         self._snapshots[task_id] = snapshot
@@ -393,6 +411,7 @@ class TaskManager:
 
         await reporter.task_created(
             message=f"任务已创建：{instruction[:50]}",
+            total_slides=planned_total or None,
             payload={
                 "instruction": instruction,
                 "language": language,
@@ -536,15 +555,22 @@ class TaskManager:
         cancel_evt = asyncio.Event()
         self._cancel_events[task_id] = cancel_evt
 
+        params = snapshot.generation_params
+        planned_total = snapshot.total_slides or planned_slide_count(
+            params.get("num_pages")
+        )
         self._transition_to(
-            task_id, TaskStatus.RUNNING, progress=snapshot.progress, error_message=None
+            task_id,
+            TaskStatus.RUNNING,
+            progress=snapshot.progress,
+            error_message=None,
+            total_slides=planned_total,
         )
         await reporter.task_started(
             f"任务重新执行{'（跳过已完成页面）' if retry_failed_slides_only else ''}"
         )
 
         # 从快照恢复原始生成参数
-        params = snapshot.generation_params
         skip_ids = snapshot.completed_slide_ids if retry_failed_slides_only else []
 
         async def _retry_with_semaphore():
@@ -872,12 +898,18 @@ class TaskManager:
                 data = json.loads(snap_path.read_text(encoding="utf-8"))
                 snapshot = TaskSnapshot.from_dict(data)
                 task_id = snapshot.task_id
+                snapshot_changed = snapshot.total_slides != data.get(
+                    "total_slides", 0
+                )
 
                 # 孤儿 running → failed
                 if snapshot.status == TaskStatus.RUNNING:
                     snapshot.status = TaskStatus.FAILED
                     snapshot.error_message = "服务异常重启，任务标记为失败"
                     snapshot.updated_at = datetime.now(timezone.utc).isoformat()
+                    snapshot_changed = True
+
+                if snapshot_changed:
                     manager._save_snapshot(child, snapshot)
 
                 manager._snapshots[task_id] = snapshot

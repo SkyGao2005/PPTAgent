@@ -18,7 +18,11 @@ from deeppresenter.server.models.artifacts import SlideArtifact, is_path_safe, t
 from deeppresenter.server.models.templates import TemplateStatus
 from deeppresenter.server.routes.attachments import resolve_attachment_paths
 from deeppresenter.server.services.preview import artifact_url
-from deeppresenter.server.services.task_manager import TaskManager, TaskSnapshot
+from deeppresenter.server.services.task_manager import (
+    TaskManager,
+    TaskSnapshot,
+    planned_slide_count,
+)
 from deeppresenter.server.services.template_catalog import is_bundled_template
 from deeppresenter.server.services.template_catalog import bundled_template_summary
 from deeppresenter.templates.store import (
@@ -210,6 +214,8 @@ def _task_response(manager: TaskManager, snapshot) -> dict:
             "template_id": params.get("template_id") or params.get("template") or "",
             "ratio": params.get("powerpoint_type", "16:9"),
             "manuscript_approved": bool(params.get("manuscript_path")),
+            "total_slides": d.get("total_slides")
+            or planned_slide_count(params.get("num_pages")),
             "last_seq": _last_seq(manager, snapshot.task_id),
         }
     )
@@ -224,17 +230,6 @@ def _task_response(manager: TaskManager, snapshot) -> dict:
         else []
     )
     return d
-
-
-def _requested_slide_count(snapshot: TaskSnapshot) -> int:
-    """Return the configured page count while a task has no generated slides yet."""
-    value = snapshot.generation_params.get("num_pages")
-    if isinstance(value, int):
-        return max(value, 0)
-    if not isinstance(value, str):
-        return 0
-    first = value.split("-", 1)[0].strip()
-    return int(first) if first.isdigit() else 0
 
 
 def _task_history_item(
@@ -253,7 +248,9 @@ def _task_history_item(
         if hasattr(snapshot.current_stage, "value")
         else snapshot.current_stage
     )
-    total_slides = snapshot.total_slides or _requested_slide_count(snapshot)
+    total_slides = snapshot.total_slides or planned_slide_count(
+        snapshot.generation_params.get("num_pages")
+    )
 
     preview_url = None
     service = manager.get_preview_service(snapshot.task_id)
@@ -501,11 +498,18 @@ class RetryRequest(BaseModel):
 
 
 @router.post("/{task_id}/retry")
-async def retry_task(task_id: str, body: RetryRequest, request: Request):
+async def retry_task(
+    task_id: str,
+    request: Request,
+    body: RetryRequest | None = None,
+):
     """重试失败的任务。"""
     manager = _get_manager(request)
     success = await manager.retry(
-        task_id, retry_failed_slides_only=body.retry_failed_slides_only
+        task_id,
+        retry_failed_slides_only=(
+            body.retry_failed_slides_only if body is not None else True
+        ),
     )
     if not success:
         snapshot = manager.get_snapshot(task_id)

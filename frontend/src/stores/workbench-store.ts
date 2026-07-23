@@ -82,6 +82,21 @@ function timeOf(iso: string): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+function plannedSlideCount(task: TaskSnapshot, fallbackTotal: number): number {
+  if (task.total_slides > 0) {
+    return task.total_slides
+  }
+  if (fallbackTotal > 0) {
+    return fallbackTotal
+  }
+  const configured = task.generation_params?.num_pages
+  const first =
+    typeof configured === "number"
+      ? configured
+      : Number.parseInt(configured?.split("-", 1)[0]?.trim() ?? "", 10)
+  return Number.isFinite(first) && first > 0 ? Math.floor(first) : 0
+}
+
 function chatMessageId(): string {
   return createClientId()
 }
@@ -503,7 +518,11 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
         // §8.1 skeleton first: when the slide list is not known yet, render
         // placeholders from the snapshot's total_slides, falling back to the
         // page count configured on the create page.
-        const plannedTotal = task.total_slides > 0 ? task.total_slides : fallbackTotal
+        const plannedTotal = plannedSlideCount(task, fallbackTotal)
+        const hydratedTask =
+          task.total_slides > 0 || plannedTotal === 0
+            ? task
+            : { ...task, total_slides: plannedTotal }
         if (slides.size === 0 && plannedTotal > 0) {
           for (let index = 1; index <= plannedTotal; index++) {
             const id = placeholderId(index)
@@ -563,7 +582,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => {
           : null
         const selectedSlideId = restoredSelection ?? active?.id ?? slideOrder[0] ?? null
         set({
-          task,
+          task: hydratedTask,
           slides,
           slideOrder,
           chats,

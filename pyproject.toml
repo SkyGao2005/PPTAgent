@@ -89,6 +89,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+anthropic = [
+    "anthropic>=0.75",
+]
 litellm = [
     "litellm>=1.65,<1.85",
 ]

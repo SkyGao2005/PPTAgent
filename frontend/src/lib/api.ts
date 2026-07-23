@@ -111,7 +111,10 @@ const realApi: ApiSurface = {
   cancelTask: (taskId) =>
     request(`/api/tasks/${encodeURIComponent(taskId)}/cancel`, { method: "POST" }),
   resumeTask: (taskId) =>
-    request(`/api/tasks/${encodeURIComponent(taskId)}/retry`, { method: "POST" }),
+    request(`/api/tasks/${encodeURIComponent(taskId)}/retry`, {
+      method: "POST",
+      body: JSON.stringify({ retry_failed_slides_only: true }),
+    }),
   exportTask: (taskId, format) =>
     request(`/api/tasks/${encodeURIComponent(taskId)}/export`, {
       method: "POST",

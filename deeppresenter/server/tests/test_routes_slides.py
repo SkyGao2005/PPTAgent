@@ -5,6 +5,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -311,6 +312,21 @@ def test_export_route_returns_pdf_when_requested(tmp_workspace):
     )
 
 
+def test_retry_route_accepts_an_empty_body(tmp_workspace):
+    app = _create_test_app(tmp_workspace)
+    manager = app.state.task_manager
+    manager.retry = AsyncMock(return_value=True)
+    client = TestClient(app)
+
+    response = client.post("/api/tasks/retry-empty/retry")
+
+    assert response.status_code == 200
+    manager.retry.assert_awaited_once_with(
+        "retry-empty",
+        retry_failed_slides_only=True,
+    )
+
+
 def test_create_task_requires_instruction(tmp_workspace):
     app = _create_test_app(tmp_workspace)
     client = TestClient(app)
@@ -342,8 +358,10 @@ def test_create_task_accepts_frontend_payload(tmp_workspace):
     assert body["topic"] == "前端字段兼容测试"
     assert body["template_id"] == "default"
     assert body["ratio"] == "16:9"
+    assert body["total_slides"] == 5
     snapshot = app.state.task_manager.get_snapshot(task_id)
     assert snapshot.instruction == "前端字段兼容测试"
+    assert snapshot.total_slides == 5
     assert snapshot.generation_params["num_pages"] == "5"
     assert snapshot.generation_params["powerpoint_type"] == "16:9"
     assert snapshot.generation_params["language"] == "zh"

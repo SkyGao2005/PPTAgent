@@ -101,6 +101,9 @@ export interface TaskSnapshot {
   last_seq: number
   created_at: string
   updated_at: string
+  generation_params?: {
+    num_pages?: string | number | null
+  }
 }
 
 export interface TaskHistoryItem {

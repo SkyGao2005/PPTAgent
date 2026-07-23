@@ -54,6 +54,7 @@ from .dependency import (
 )
 from .model import (
     LOCAL_BASE_URL,
+    LOCAL_CONTEXT_TOKENS,
     LOCAL_MODEL,
     has_complete_model_config,
     is_local_model_server_running,
@@ -164,7 +165,7 @@ def onboard():
                     local_model_pid = setup_inference()
                 except Exception as e:
                     console.print(
-                        f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c 100000 --port 7811 --log-disable --reasoning-budget 0` manually, or configure another API instead."
+                        f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c {LOCAL_CONTEXT_TOKENS} --port 7811 --log-disable --reasoning-budget 0` manually, or configure another API instead."
                     )
                     console.print(f"[dim]{type(e).__name__}: {e!r}[/dim]")
                     sys.exit(1)
@@ -663,7 +664,7 @@ def serve():
         pid = setup_inference()
     except Exception as e:
         console.print(
-            f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c 100000 --port 7811 --log-disable --reasoning-budget 0` manually."
+            f"[bold red]✗[/bold red] Failed to start local model service. Please try running `llama-server -hf {LOCAL_MODEL} -c {LOCAL_CONTEXT_TOKENS} --port 7811 --log-disable --reasoning-budget 0` manually."
         )
         console.print(f"[dim]{e}[/dim]")
         sys.exit(1)
