@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import uuid
+from collections.abc import Mapping
 from datetime import datetime
 from enum import StrEnum
 from hashlib import md5
@@ -86,6 +87,10 @@ class ChatMessage(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     content: None | str | list[dict]
     reasoning: None | str = None
+    # The native Anthropic assistant blocks are kept separately from the
+    # OpenAI-compatible text/tool-call projection. Signed thinking and
+    # redacted_thinking blocks must be replayed unchanged on the next tool turn.
+    anthropic_content: list[dict[str, Any]] | None = None
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
     # This attribute mark if function call failed to execute
     is_error: bool = False
@@ -190,15 +195,84 @@ class Cost(BaseModel):
     prompt: int = 0
     completion: int = 0
     total: int = 0
+    input_tokens: int = 0
+    cache_creation_input_tokens: int = 0
+    cache_read_input_tokens: int = 0
+    cache_creation: dict[str, int] = Field(default_factory=dict)
+    cache_creation_ephemeral_5m_input_tokens: int = 0
+    cache_creation_ephemeral_1h_input_tokens: int = 0
+    cache_hit_rate: float = 0.0
 
     def __add__(self, other: CompletionUsage):
         self.prompt += other.prompt_tokens
         self.completion += other.completion_tokens
         self.total += other.total_tokens
+
+        usage_dump = other.model_dump(mode="json", exclude_none=True)
+        raw_usage = usage_dump.get("anthropic_usage")
+        if isinstance(raw_usage, BaseModel):
+            raw_usage = raw_usage.model_dump(mode="json", exclude_unset=True)
+        if not isinstance(raw_usage, Mapping) or not raw_usage:
+            # LiteLLM, older history files, and other adapters may expose the
+            # native fields only at the CompletionUsage top level.
+            raw_usage = usage_dump
+
+        is_anthropic = usage_dump.get("usage_source") == "anthropic" or any(
+            key in raw_usage
+            for key in (
+                "cache_creation_input_tokens",
+                "cache_read_input_tokens",
+                "cache_creation",
+            )
+        )
+        if is_anthropic:
+            self.input_tokens += self._token(raw_usage.get("input_tokens"))
+            self.cache_creation_input_tokens += self._token(
+                raw_usage.get("cache_creation_input_tokens")
+            )
+            self.cache_read_input_tokens += self._token(
+                raw_usage.get("cache_read_input_tokens")
+            )
+            cache_creation = raw_usage.get("cache_creation")
+            if isinstance(cache_creation, BaseModel):
+                cache_creation = cache_creation.model_dump(
+                    mode="json", exclude_unset=True
+                )
+            if isinstance(cache_creation, Mapping):
+                for key, value in cache_creation.items():
+                    self.cache_creation[str(key)] = self.cache_creation.get(
+                        str(key), 0
+                    ) + self._token(value)
+                self.cache_creation_ephemeral_5m_input_tokens = self.cache_creation.get(
+                    "ephemeral_5m_input_tokens", 0
+                )
+                self.cache_creation_ephemeral_1h_input_tokens = self.cache_creation.get(
+                    "ephemeral_1h_input_tokens", 0
+                )
+        else:
+            self.input_tokens += other.prompt_tokens
+
+        # Aggregate rates must be weighted by tokens, not averaged per request.
+        self.cache_hit_rate = (
+            self.cache_read_input_tokens / self.prompt if self.prompt else 0.0
+        )
         return self
 
+    @staticmethod
+    def _token(value: Any) -> int:
+        try:
+            return int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+
     def __repr__(self):
-        return f"{self.prompt / 1000:.1f}K prompt tokens and {self.completion / 1000:.1f}K completion tokens"
+        cache = ""
+        if self.cache_creation_input_tokens or self.cache_read_input_tokens:
+            cache = f", {self.cache_hit_rate:.1%} cache hit"
+        return (
+            f"{self.prompt / 1000:.1f}K prompt tokens and "
+            f"{self.completion / 1000:.1f}K completion tokens{cache}"
+        )
 
 
 class ConvertType(StrEnum):

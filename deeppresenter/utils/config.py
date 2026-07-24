@@ -4,6 +4,7 @@ import math
 import random
 import re
 from collections.abc import Mapping
+from copy import deepcopy
 from itertools import cycle, product
 from pathlib import Path
 from typing import Any, Literal
@@ -63,6 +64,35 @@ def _as_mapping(value: Any) -> dict[str, Any]:
     return {}
 
 
+def _anthropic_json(value: Any) -> Any:
+    """Serialize Anthropic SDK models without dropping opaque response fields."""
+
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json", exclude_unset=True)
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return model_dump(mode="json", exclude_unset=True)
+    if isinstance(value, Mapping):
+        return {key: _anthropic_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_anthropic_json(item) for item in value]
+    if hasattr(value, "__dict__"):
+        return {
+            key: _anthropic_json(item)
+            for key, item in vars(value).items()
+            if not key.startswith("_")
+        }
+    return value
+
+
+def _usage_token(usage: Mapping[str, Any], key: str) -> int:
+    value = usage.get(key, 0)
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _content_token_estimate(content: Any, image_token_estimate: int) -> int:
     if content is None:
         return 0
@@ -98,15 +128,24 @@ def estimate_chat_tokens(
     for raw_message in messages:
         message = _as_mapping(raw_message)
         tokens += 6
-        tokens += _content_token_estimate(
-            message.get("content"), image_token_estimate
-        )
-        if message.get("reasoning"):
-            tokens += _estimate_text_tokens(str(message["reasoning"]))
-        for tool_call in message.get("tool_calls") or []:
+        anthropic_blocks = message.get("anthropic_content")
+        if anthropic_blocks:
+            # Native blocks are the authoritative payload for an Anthropic
+            # assistant turn. Counting the OpenAI compatibility fields too
+            # would double-count its text and tool calls.
             tokens += _estimate_text_tokens(
-                json.dumps(_as_mapping(tool_call), ensure_ascii=False)
+                json.dumps(anthropic_blocks, ensure_ascii=False, default=str)
             )
+        else:
+            tokens += _content_token_estimate(
+                message.get("content"), image_token_estimate
+            )
+            if message.get("reasoning"):
+                tokens += _estimate_text_tokens(str(message["reasoning"]))
+            for tool_call in message.get("tool_calls") or []:
+                tokens += _estimate_text_tokens(
+                    json.dumps(_as_mapping(tool_call), ensure_ascii=False)
+                )
 
     if tools:
         tokens += 8 + _estimate_text_tokens(
@@ -337,6 +376,7 @@ _DATA_URL_RE = re.compile(r"^data:(?P<media>[^;]+);base64,(?P<data>.+)$", re.DOT
 _ANTHROPIC_UNSUPPORTED_SAMPLING = frozenset(
     {"temperature", "top_p", "top_k", "frequency_penalty", "presence_penalty", "n"}
 )
+_ANTHROPIC_DEFAULT_CACHE_CONTROL = {"type": "ephemeral"}
 
 
 def anthropic_base_url(base_url: str | None) -> str | None:
@@ -395,7 +435,8 @@ def anthropic_content(content: Any) -> Any:
 
 def to_anthropic_messages(
     messages: list[Any],
-) -> tuple[list[dict[str, Any]], str | None]:
+    cache_control: Mapping[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]] | None]:
     """Split OpenAI-shaped messages into Anthropic messages plus a system prompt.
 
     Three shapes differ, and an agent loop hits all of them on its second turn:
@@ -408,6 +449,11 @@ def to_anthropic_messages(
     its history straight through -- so each entry is normalized first.
     """
 
+    cache_control = (
+        _ANTHROPIC_DEFAULT_CACHE_CONTROL
+        if cache_control is None
+        else dict(cache_control)
+    )
     system: list[str] = []
     converted: list[dict[str, Any]] = []
     for entry in messages:
@@ -435,45 +481,70 @@ def to_anthropic_messages(
                             "type": "tool_result",
                             "tool_use_id": message.get("tool_call_id"),
                             "content": anthropic_content(content) or "",
-                            **(
-                                {"is_error": True} if message.get("is_error") else {}
-                            ),
+                            **({"is_error": True} if message.get("is_error") else {}),
                         }
                     ],
                 }
             )
             continue
-        blocks = anthropic_content(content)
-        for call in message.get("tool_calls") or []:
-            call = _as_mapping(call)
-            function = _as_mapping(call.get("function"))
-            arguments = function.get("arguments")
-            if isinstance(arguments, str):
-                arguments = get_json_from_response(arguments) if arguments else {}
-            if not isinstance(blocks, list):
-                blocks = [{"type": "text", "text": blocks}] if blocks else []
-            blocks.append(
-                {
-                    "type": "tool_use",
-                    "id": call.get("id"),
-                    "name": function.get("name"),
-                    "input": arguments or {},
-                }
-            )
+        native_blocks = message.get("anthropic_content")
+        if role == "assistant" and isinstance(native_blocks, list):
+            # Thinking signatures and redacted payloads are opaque. Anthropic
+            # requires the complete assistant block sequence to be replayed
+            # field-for-field and in its original order in a following tool
+            # turn, so never reconstruct it from the OpenAI-compatible
+            # text/tool_call projection.
+            blocks = deepcopy(native_blocks)
+        else:
+            blocks = anthropic_content(content)
+            for call in message.get("tool_calls") or []:
+                call = _as_mapping(call)
+                function = _as_mapping(call.get("function"))
+                arguments = function.get("arguments")
+                if isinstance(arguments, str):
+                    arguments = get_json_from_response(arguments) if arguments else {}
+                if not isinstance(blocks, list):
+                    blocks = [{"type": "text", "text": blocks}] if blocks else []
+                blocks.append(
+                    {
+                        "type": "tool_use",
+                        "id": call.get("id"),
+                        "name": function.get("name"),
+                        "input": arguments or {},
+                    }
+                )
         converted.append({"role": role, "content": blocks})
     # A turn whose content is empty is rejected; that happens when an assistant
     # message carried nothing but a now-relocated tool call.
     converted = [
-        message
-        for message in converted
-        if message["content"] not in (None, "", [])
+        message for message in converted if message["content"] not in (None, "", [])
     ]
-    return converted, "\n\n".join(part for part in system if part) or None
+    system_text = "\n\n".join(part for part in system if part)
+    system_blocks = (
+        [
+            {
+                "type": "text",
+                "text": system_text,
+                "cache_control": deepcopy(cache_control),
+            }
+        ]
+        if system_text
+        else None
+    )
+    return converted, system_blocks
 
 
-def to_anthropic_tools(tools: list[Any]) -> list[dict[str, Any]]:
-    """Unwrap OpenAI's `function` envelope into Anthropic's flat tool shape."""
+def to_anthropic_tools(
+    tools: list[Any],
+    cache_control: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Unwrap tools and mark the end of their stable cacheable prefix."""
 
+    cache_control = (
+        _ANTHROPIC_DEFAULT_CACHE_CONTROL
+        if cache_control is None
+        else dict(cache_control)
+    )
     converted: list[dict[str, Any]] = []
     for tool in tools:
         tool = _as_mapping(tool)
@@ -487,6 +558,8 @@ def to_anthropic_tools(tools: list[Any]) -> list[dict[str, Any]]:
                 ),
             }
         )
+    if converted:
+        converted[-1]["cache_control"] = deepcopy(cache_control)
     return converted
 
 
@@ -498,20 +571,32 @@ def from_anthropic_message(message: Any, model: str) -> ChatCompletion:
     agents, tools, and tests.
     """
 
+    native_content = _anthropic_json(message.content)
+    if not isinstance(native_content, list):
+        native_content = []
     text: list[str] = []
+    thinking: list[str] = []
     tool_calls: list[dict[str, Any]] = []
-    for block in message.content:
-        kind = getattr(block, "type", None)
+    for block in native_content:
+        if not isinstance(block, Mapping):
+            continue
+        kind = block.get("type")
         if kind == "text":
-            text.append(block.text)
+            text.append(str(block.get("text", "")))
+        elif kind == "thinking":
+            # This is only a human-readable compatibility view. The complete
+            # signed block above remains authoritative for replay.
+            thinking.append(str(block.get("thinking", "")))
         elif kind == "tool_use":
             tool_calls.append(
                 {
-                    "id": block.id,
+                    "id": block.get("id"),
                     "type": "function",
                     "function": {
-                        "name": block.name,
-                        "arguments": json.dumps(block.input, ensure_ascii=False),
+                        "name": block.get("name"),
+                        "arguments": json.dumps(
+                            block.get("input", {}), ensure_ascii=False
+                        ),
                     },
                 }
             )
@@ -525,6 +610,42 @@ def from_anthropic_message(message: Any, model: str) -> ChatCompletion:
         "refusal": "content_filter",
     }.get(getattr(message, "stop_reason", None) or "end_turn", "stop")
     usage = getattr(message, "usage", None)
+    usage_payload: dict[str, Any] | None = None
+    if usage is not None:
+        raw_usage = _anthropic_json(usage)
+        if not isinstance(raw_usage, Mapping):
+            raw_usage = {}
+        raw_usage = dict(raw_usage)
+        input_tokens = _usage_token(raw_usage, "input_tokens")
+        cache_creation_input_tokens = _usage_token(
+            raw_usage, "cache_creation_input_tokens"
+        )
+        cache_read_input_tokens = _usage_token(raw_usage, "cache_read_input_tokens")
+        output_tokens = _usage_token(raw_usage, "output_tokens")
+        total_input_tokens = (
+            input_tokens + cache_creation_input_tokens + cache_read_input_tokens
+        )
+        usage_payload = {
+            **raw_usage,
+            "prompt_tokens": total_input_tokens,
+            "completion_tokens": output_tokens,
+            "total_tokens": total_input_tokens + output_tokens,
+            "prompt_tokens_details": {
+                "cached_tokens": cache_read_input_tokens,
+                "uncached_tokens": input_tokens,
+                "cache_creation_tokens": cache_creation_input_tokens,
+            },
+            "total_input_tokens": total_input_tokens,
+            "cache_hit_rate": (
+                cache_read_input_tokens / total_input_tokens
+                if total_input_tokens
+                else 0.0
+            ),
+            "usage_source": "anthropic",
+            # Keep one untouched nested copy so future Anthropic usage fields
+            # survive even if the OpenAI compatibility model evolves.
+            "anthropic_usage": deepcopy(raw_usage),
+        }
     return ChatCompletion.model_validate(
         {
             "id": getattr(message, "id", "anthropic"),
@@ -539,17 +660,12 @@ def from_anthropic_message(message: Any, model: str) -> ChatCompletion:
                         "role": "assistant",
                         "content": "".join(text) or None,
                         "tool_calls": tool_calls or None,
+                        "reasoning": "".join(thinking) if thinking else None,
+                        "anthropic_content": native_content,
                     },
                 }
             ],
-            "usage": {
-                "prompt_tokens": getattr(usage, "input_tokens", 0) or 0,
-                "completion_tokens": getattr(usage, "output_tokens", 0) or 0,
-                "total_tokens": (getattr(usage, "input_tokens", 0) or 0)
-                + (getattr(usage, "output_tokens", 0) or 0),
-            }
-            if usage is not None
-            else None,
+            "usage": usage_payload,
         }
     )
 
@@ -627,12 +743,18 @@ class Endpoint(ContextBudgetConfig):
         response_format: type[BaseModel] | None = None,
         tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
-        converted, system = to_anthropic_messages(messages)
         sampling = {
             key: value
             for key, value in self.sampling_parameters.items()
             if key not in _ANTHROPIC_UNSUPPORTED_SAMPLING
         }
+        configured_cache_control = sampling.pop("cache_control", None)
+        cache_control = (
+            deepcopy(_ANTHROPIC_DEFAULT_CACHE_CONTROL)
+            if configured_cache_control is None
+            else dict(configured_cache_control)
+        )
+        converted, system = to_anthropic_messages(messages, cache_control=cache_control)
         # max_tokens is required here, unlike the OpenAI route where it is
         # optional; the endpoint's own reservation is the natural value.
         sampling.setdefault(
@@ -641,13 +763,18 @@ class Endpoint(ContextBudgetConfig):
             or self.effective_reserved_output_tokens,
         )
         sampling.setdefault("thinking", {"type": "adaptive"})
-        kwargs: dict[str, Any] = {"model": self.model, "messages": converted, **sampling}
+        kwargs: dict[str, Any] = {
+            "model": self.model,
+            "messages": converted,
+            "cache_control": deepcopy(cache_control),
+            **sampling,
+        }
         if system is not None:
             kwargs["system"] = system
         if tools is not None:
             # "auto" matches what the openai and litellm branches send; forcing
             # a call would also collide with thinking on some deployments.
-            kwargs["tools"] = to_anthropic_tools(tools)
+            kwargs["tools"] = to_anthropic_tools(tools, cache_control=cache_control)
             kwargs["tool_choice"] = {"type": "auto"}
         if response_format is not None:
             # The caller re-validates the text against the model afterwards,
@@ -855,9 +982,7 @@ class LLM(ContextBudgetConfig):
             if max(width, height) / min(width, height) > 3:
                 raise ValueError("GPT Image 2 aspect ratio cannot exceed 3:1")
             if width * height > 8_294_400:
-                raise ValueError(
-                    "GPT Image 2 requests cannot exceed 8,294,400 pixels"
-                )
+                raise ValueError("GPT Image 2 requests cannot exceed 8,294,400 pixels")
         return width, height
 
     @staticmethod

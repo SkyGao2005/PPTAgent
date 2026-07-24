@@ -183,6 +183,38 @@ def test_agent_history_round_trip_restores_conversation_context(
     assert restored.chat_history[0].role == Role.SYSTEM
 
 
+def test_agent_history_preserves_native_anthropic_thinking_blocks(
+    tmp_path: Path,
+) -> None:
+    native_blocks = [
+        {
+            "type": "thinking",
+            "thinking": "",
+            "signature": "opaque-signature",
+        },
+        {
+            "type": "redacted_thinking",
+            "data": "opaque-redacted-data",
+        },
+        {"type": "text", "text": "继续"},
+    ]
+    original = _make_agent(tmp_path, context_limit_tokens=4_000)
+    original.chat_history.append(
+        ChatMessage(
+            role=Role.ASSISTANT,
+            content="继续",
+            anthropic_content=native_blocks,
+        )
+    )
+    history_dir = tmp_path / "history"
+    original.save_history(history_dir, message_only=True)
+
+    restored = _make_agent(tmp_path, context_limit_tokens=4_000)
+    restored.load_history(history_dir / "_BudgetAgent-00-history.jsonl")
+
+    assert restored.chat_history[-1].anthropic_content == native_blocks
+
+
 @pytest.mark.asyncio
 async def test_preflight_folds_before_sending_and_preserves_pinned(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch

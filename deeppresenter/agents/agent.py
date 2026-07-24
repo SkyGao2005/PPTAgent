@@ -114,9 +114,7 @@ class Agent:
         self.template_context_max_tokens = self.llm.template_context_max_tokens
         self.max_template_reference_images = self.llm.max_template_reference_images
         self.compaction_input_max_tokens = self.llm.compaction_input_max_tokens
-        self.compaction_summary_max_tokens = (
-            self.llm.compaction_summary_max_tokens
-        )
+        self.compaction_summary_max_tokens = self.llm.compaction_summary_max_tokens
         self._setup_toolset()
         if language not in self.role_config.system:
             raise ValueError(f"Language '{language}' not found in system prompts")
@@ -215,6 +213,9 @@ class Agent:
                     reasoning=getattr(response.choices[0].message, "reasoning", None)
                     if self.keep_reasoning
                     else None,
+                    anthropic_content=getattr(
+                        response.choices[0].message, "anthropic_content", None
+                    ),
                 )
             )
             self._update_context_estimate()
@@ -263,6 +264,7 @@ class Agent:
                 reasoning=getattr(agent_message, "reasoning", None)
                 if self.keep_reasoning
                 else None,
+                anthropic_content=getattr(agent_message, "anthropic_content", None),
             )
         )
         self._update_context_estimate(self.tools)
@@ -351,9 +353,7 @@ class Agent:
             )
 
         # Eviction above enforces the cap; this remains a defensive invariant.
-        image_count = sum(
-            self._count_images(message) for message in template_messages
-        )
+        image_count = sum(self._count_images(message) for message in template_messages)
         if image_count > self.max_template_reference_images:
             raise ContextWindowExceededError(
                 f"Pinned template context contains {image_count} images, but only "
