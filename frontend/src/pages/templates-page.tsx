@@ -443,7 +443,6 @@ export function TemplatesPage() {
             <liquid-glass
               blur-amount="15"
               scale="72"
-              aberration="1.4"
               saturation="135"
               className="glass-panel max-h-[92svh] overflow-hidden rounded-[28px] [--liquid-glass-tint:rgba(235,238,243,0.35)] shadow-[0_28px_80px_rgba(30,32,44,0.22),inset_0_1px_1px_rgba(255,255,255,0.72)]"
             >

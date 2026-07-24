@@ -22,28 +22,28 @@ export function SceneBackground() {
         }}
       />
       <div
-        className="liquid-scene-orb liquid-scene-orb--blue absolute top-[42%] left-[1%] size-[620px] rounded-full"
+        className="liquid-scene-orb absolute top-[42%] left-[1%] size-[620px] rounded-full"
         style={{
           background:
             "radial-gradient(circle at 35% 35%, rgba(147,197,253,0.48) 0%, rgba(147,197,253,0.2) 52%, rgba(147,197,253,0) 90%)",
         }}
       />
       <div
-        className="liquid-scene-orb liquid-scene-orb--rose absolute top-[2%] right-[1%] size-[560px] rounded-full"
+        className="liquid-scene-orb absolute top-[2%] right-[1%] size-[560px] rounded-full"
         style={{
           background:
             "radial-gradient(circle at 40% 40%, rgba(235,204,213,0.32) 0%, rgba(235,204,213,0.12) 54%, rgba(235,204,213,0) 91%)",
         }}
       />
       <div
-        className="liquid-scene-orb liquid-scene-orb--peach absolute right-[14%] bottom-[-4%] size-[500px] rounded-full"
+        className="liquid-scene-orb absolute right-[14%] bottom-[-4%] size-[500px] rounded-full"
         style={{
           background:
             "radial-gradient(circle at 40% 40%, rgba(253,215,170,0.4) 0%, rgba(253,215,170,0.16) 52%, rgba(253,215,170,0) 90%)",
         }}
       />
       <div
-        className="liquid-scene-orb liquid-scene-orb--mint absolute top-[-10%] left-[12%] size-[540px] rounded-full"
+        className="liquid-scene-orb absolute top-[-10%] left-[12%] size-[540px] rounded-full"
         style={{
           background:
             "radial-gradient(circle at 42% 38%, rgba(159,224,201,0.4) 0%, rgba(159,224,201,0.15) 54%, rgba(159,224,201,0) 91%)",

@@ -174,7 +174,7 @@ const supportsDisplacement =
 
 class LiquidGlass extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["blur-amount", "scale", "aberration", "saturation"]
+    return ["blur-amount", "scale", "saturation"]
   }
 
   private readonly filterId = `liquid-glass-filter-${++filterSequence}`
@@ -287,8 +287,7 @@ class LiquidGlass extends HTMLElement {
     if (width < 8 || height < 8) return
 
     const scale = this.numberAttribute("scale", 70, 0, 160)
-    const aberration = this.numberAttribute("aberration", 2, 0, 8)
-    const signature = `${width}x${height}:${scale}:${aberration}`
+    const signature = `${width}x${height}:${scale}`
     if (this.filterSignature === signature) return
     if (scale === 0 || !supportsDisplacement) {
       this.disableFilter(signature)
@@ -302,17 +301,13 @@ class LiquidGlass extends HTMLElement {
       return
     }
 
+    // Single-pass refraction: displace every channel by the same map. The
+    // previous three-pass split (one feDisplacementMap per channel + feBlend)
+    // only added a faint chromatic-aberration fringe at roughly 3x the cost.
     const filter = this.ensureFilterElement()
     filter.innerHTML = `
   <feImage x="0" y="0" width="100%" height="100%" result="MAP" href="${map}" preserveAspectRatio="none"/>
-  <feDisplacementMap in="SourceGraphic" in2="MAP" scale="${scale}" xChannelSelector="R" yChannelSelector="B" result="RED_DISPLACED"/>
-  <feColorMatrix in="RED_DISPLACED" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="RED_CHANNEL"/>
-  <feDisplacementMap in="SourceGraphic" in2="MAP" scale="${scale * (1 - aberration * 0.05)}" xChannelSelector="R" yChannelSelector="B" result="GREEN_DISPLACED"/>
-  <feColorMatrix in="GREEN_DISPLACED" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="GREEN_CHANNEL"/>
-  <feDisplacementMap in="SourceGraphic" in2="MAP" scale="${scale * (1 - aberration * 0.1)}" xChannelSelector="R" yChannelSelector="B" result="BLUE_DISPLACED"/>
-  <feColorMatrix in="BLUE_DISPLACED" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="BLUE_CHANNEL"/>
-  <feBlend in="GREEN_CHANNEL" in2="BLUE_CHANNEL" mode="screen" result="GB_COMBINED"/>
-  <feBlend in="RED_CHANNEL" in2="GB_COMBINED" mode="screen"/>
+  <feDisplacementMap in="SourceGraphic" in2="MAP" scale="${scale}" xChannelSelector="R" yChannelSelector="B"/>
 `
     this.filterSignature = signature
     this.style.setProperty("--liquid-glass-filter", `url("#${this.filterId}")`)

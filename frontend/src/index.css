@@ -399,25 +399,11 @@
     will-change: transform;
   }
 
+  /* Static color fields for the glass to refract. Keeping the orbs off the
+     animation path stops them re-rasterizing their large blur every frame and
+     stops forcing every backdrop-filter surface above them to re-blur. */
   .liquid-scene-orb {
     filter: blur(clamp(72px, 8vw, 120px));
-    will-change: transform, opacity;
-  }
-
-  .liquid-scene-orb--blue {
-    animation: liquid-scene-orbit-blue 19s ease-in-out -5s infinite alternate;
-  }
-
-  .liquid-scene-orb--rose {
-    animation: liquid-scene-orbit-rose 23s ease-in-out -11s infinite alternate;
-  }
-
-  .liquid-scene-orb--peach {
-    animation: liquid-scene-orbit-peach 21s ease-in-out -8s infinite alternate;
-  }
-
-  .liquid-scene-orb--mint {
-    animation: liquid-scene-orbit-mint 25s ease-in-out -14s infinite alternate;
   }
 
   .liquid-scene-sheen {
@@ -510,74 +496,6 @@
   }
 }
 
-@keyframes liquid-scene-orbit-blue {
-  0% {
-    transform: translate3d(-5vw, 5vh, 0) scale(0.92);
-    opacity: 0.72;
-  }
-
-  50% {
-    transform: translate3d(11vw, -10vh, 0) scale(1.16);
-    opacity: 0.92;
-  }
-
-  100% {
-    transform: translate3d(3vw, -20vh, 0) scale(1.03);
-    opacity: 0.8;
-  }
-}
-
-@keyframes liquid-scene-orbit-rose {
-  0% {
-    transform: translate3d(5vw, -4vh, 0) scale(1.05);
-    opacity: 0.76;
-  }
-
-  50% {
-    transform: translate3d(-12vw, 12vh, 0) scale(0.9);
-    opacity: 0.94;
-  }
-
-  100% {
-    transform: translate3d(-5vw, 22vh, 0) scale(1.18);
-    opacity: 0.82;
-  }
-}
-
-@keyframes liquid-scene-orbit-peach {
-  0% {
-    transform: translate3d(7vw, 6vh, 0) scale(0.94);
-    opacity: 0.7;
-  }
-
-  48% {
-    transform: translate3d(-10vw, -9vh, 0) scale(1.2);
-    opacity: 0.9;
-  }
-
-  100% {
-    transform: translate3d(-18vw, 2vh, 0) scale(1.04);
-    opacity: 0.8;
-  }
-}
-
-@keyframes liquid-scene-orbit-mint {
-  0% {
-    transform: translate3d(-7vw, -5vh, 0) scale(1.08);
-    opacity: 0.66;
-  }
-
-  52% {
-    transform: translate3d(9vw, 13vh, 0) scale(0.94);
-    opacity: 0.86;
-  }
-
-  100% {
-    transform: translate3d(17vw, 3vh, 0) scale(1.14);
-    opacity: 0.74;
-  }
-}
-
 @keyframes liquid-scene-sheen-sweep {
   0%,
   14% {
@@ -598,6 +516,14 @@
     transform: translate3d(166vw, 0, 0) rotate(16deg) scaleX(1.08);
     opacity: 0;
   }
+}
+
+/* Pause ambient scene motion while the tab is backgrounded (toggled from
+   main.tsx on visibilitychange) so a hidden page stops driving the GPU. The
+   orbs are already static; this covers the base drift and the sheen sweep. */
+:root[data-scene-paused="true"] .liquid-scene-base,
+:root[data-scene-paused="true"] .liquid-scene-sheen {
+  animation-play-state: paused;
 }
 
 /* Surface treatment for <liquid-glass>. Keep the host transparent so its

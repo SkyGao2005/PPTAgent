@@ -9,6 +9,14 @@ import './index.css'
 import '@/lib/liquid-glass'
 import App from './App.tsx'
 
+// Pause the ambient background animation while the tab is hidden so a
+// backgrounded page stops spending GPU on the scene.
+const syncScenePlayback = (): void => {
+  document.documentElement.dataset.scenePaused = document.hidden ? 'true' : 'false'
+}
+document.addEventListener('visibilitychange', syncScenePlayback)
+syncScenePlayback()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

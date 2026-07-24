@@ -6,8 +6,6 @@ interface LiquidGlassAttributes
   "blur-amount"?: number | string
   /** Refraction displacement intensity (default 70). */
   scale?: number | string
-  /** Chromatic aberration intensity (default 2). */
-  aberration?: number | string
   /** Backdrop saturation in % (default 140). */
   saturation?: number | string
 }
